@@ -1,9 +1,6 @@
 using A55.Subdivisions.Aws.Adapters;
-using Amazon.EventBridge;
-using Amazon.EventBridge.Model;
 using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Unit.Adapters;

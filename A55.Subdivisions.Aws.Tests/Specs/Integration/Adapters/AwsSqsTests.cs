@@ -100,7 +100,7 @@ public class AwsSqsTests : LocalstackTest
                 {
                     QueueAttributeName.VisibilityTimeout,
                     QueueAttributeName.MessageRetentionPeriod,
-                    QueueAttributeName.DelaySeconds,
+                    QueueAttributeName.DelaySeconds
                 });
 
         attr.VisibilityTimeout.Should().Be(config.MessageTimeoutInSeconds);
@@ -147,11 +147,11 @@ public class AwsSqsTests : LocalstackTest
     async Task<string> CreateDefaultKey()
     {
         var kms = GetService<IAmazonKeyManagementService>();
-        var key = await kms.CreateKeyAsync(new() {Description = "Test key",});
+        var key = await kms.CreateKeyAsync(new() {Description = "Test key"});
 
         await kms.CreateAliasAsync(new CreateAliasRequest
         {
-            AliasName = config.PubKey, TargetKeyId = key.KeyMetadata.KeyId,
+            AliasName = config.PubKey, TargetKeyId = key.KeyMetadata.KeyId
         });
 
         return key.KeyMetadata.KeyId;

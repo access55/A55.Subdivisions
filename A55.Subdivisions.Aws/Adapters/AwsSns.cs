@@ -8,9 +8,9 @@ namespace A55.Subdivisions.Aws.Adapters;
 
 class AwsSns
 {
-    readonly IAmazonSimpleNotificationService sns;
     readonly AwsKms kms;
     readonly ILogger<AwsSns> logger;
+    readonly IAmazonSimpleNotificationService sns;
 
     public AwsSns(IAmazonSimpleNotificationService sns, AwsKms kms, ILogger<AwsSns> logger)
     {
@@ -19,7 +19,7 @@ class AwsSns
         this.logger = logger;
     }
 
-    public async Task<string> CreateTopic(TopicName topicName, CancellationToken ctx )
+    public async Task<string> CreateTopic(TopicName topicName, CancellationToken ctx)
     {
         var policy = GetPolicy(topicName, RegionEndpoint.USEast1);
         var keyId = await kms.GetKey(ctx) ??

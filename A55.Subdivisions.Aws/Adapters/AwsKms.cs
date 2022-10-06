@@ -1,19 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
-using Amazon;
-using Amazon.KeyManagementService;
+﻿using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
-using Amazon.SimpleNotificationService;
-using Amazon.SQS;
-using Amazon.SQS.Model;
 using Microsoft.Extensions.Options;
 
 namespace A55.Subdivisions.Aws.Adapters;
 
 class AwsKms
 {
-    readonly IAmazonKeyManagementService kms;
     readonly SubConfig config;
+    readonly IAmazonKeyManagementService kms;
     string? keyCache;
 
     public AwsKms(IAmazonKeyManagementService kms, IOptions<SubConfig> config)
@@ -22,7 +16,7 @@ class AwsKms
         this.config = config.Value;
     }
 
-    public async ValueTask<string?> GetKey(CancellationToken ctx )
+    public async ValueTask<string?> GetKey(CancellationToken ctx)
     {
         if (!string.IsNullOrWhiteSpace(keyCache))
             return keyCache;

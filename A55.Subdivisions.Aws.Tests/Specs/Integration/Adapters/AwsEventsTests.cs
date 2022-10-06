@@ -2,8 +2,8 @@ using A55.Subdivisions.Aws.Adapters;
 using A55.Subdivisions.Aws.Tests.Builders;
 using Amazon.EventBridge;
 using AutoBogus;
-using Newtonsoft.Json.Linq;
 using FluentAssertions.Json;
+using Newtonsoft.Json.Linq;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration.Adapters;
 

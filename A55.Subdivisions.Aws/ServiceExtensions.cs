@@ -21,10 +21,8 @@ public static class ServiceExtensions
         AmazonKeyManagementServiceConfig configKms = new();
 
         if (!string.IsNullOrWhiteSpace(serviceUrl))
-        {
             configSns.ServiceURL =
                 configKms.ServiceURL = configSqs.ServiceURL = configEventBridge.ServiceURL = serviceUrl;
-        }
 
         services.AddSingleton(configSqs);
         services.AddSingleton(configSns);

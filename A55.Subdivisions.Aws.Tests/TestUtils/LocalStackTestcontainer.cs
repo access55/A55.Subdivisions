@@ -11,6 +11,7 @@ public sealed class LocalStackTestcontainer : TestcontainerMessageBroker
         : base(configuration, logger)
     {
     }
+
     public string Url => $"http://localhost:{Port}";
 }
 

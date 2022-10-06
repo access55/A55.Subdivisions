@@ -3,6 +3,7 @@ using AutoBogus;
 using Bogus;
 
 namespace A55.Subdivisions.Aws.Tests.TestUtils;
+
 public class BaseTest
 {
     protected readonly Faker Faker = new("pt_BR");

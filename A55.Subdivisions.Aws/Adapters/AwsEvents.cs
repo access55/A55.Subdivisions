@@ -10,7 +10,6 @@ class AwsEvents
 {
     readonly IAmazonEventBridge eventBridge;
     readonly ILogger<AwsEvents> logger;
-    public RegionEndpoint Region => eventBridge.Config.RegionEndpoint;
 
     public AwsEvents(IAmazonEventBridge eventBridge, ILogger<AwsEvents> logger)
     {
@@ -18,19 +17,17 @@ class AwsEvents
         this.logger = logger;
     }
 
-    public async Task<bool> RuleExists(TopicName topicName, CancellationToken ctx )
+    public RegionEndpoint Region => eventBridge.Config.RegionEndpoint;
+
+    public async Task<bool> RuleExists(TopicName topicName, CancellationToken ctx)
     {
-        var rules = await eventBridge.ListRulesAsync(new()
-        {
-            Limit = 100,
-            NamePrefix = topicName.FullName,
-        }, ctx);
+        var rules = await eventBridge.ListRulesAsync(new() {Limit = 100, NamePrefix = topicName.FullName}, ctx);
 
         return rules is not null &&
                rules.Rules.Any(r => r.Name.Trim() == topicName.FullName && r.State == RuleState.ENABLED);
     }
 
-    public async Task<string> CreateRule(TopicName topicName, CancellationToken ctx )
+    public async Task<string> CreateRule(TopicName topicName, CancellationToken ctx)
     {
         var eventPattern =
             $@"{{ ""detail-type"": [""{topicName.Topic}""], ""detail"": {{ ""event"": [""{topicName.Topic}""] }} }}";
@@ -38,10 +35,11 @@ class AwsEvents
         PutRuleRequest request = new()
         {
             Name = topicName.FullName,
-            Description = $"Created in {Assembly.GetExecutingAssembly().GetName().Name} for {topicName.FullName} events",
+            Description =
+                $"Created in {Assembly.GetExecutingAssembly().GetName().Name} for {topicName.FullName} events",
             State = RuleState.ENABLED,
             EventBusName = "default",
-            EventPattern = eventPattern,
+            EventPattern = eventPattern
         };
 
         var response = await eventBridge.PutRuleAsync(request, ctx);

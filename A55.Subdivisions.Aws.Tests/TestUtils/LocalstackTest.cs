@@ -10,12 +10,11 @@ namespace A55.Subdivisions.Aws.Tests.TestUtils;
 [Parallelizable(ParallelScope.Self)]
 public class LocalstackTest
 {
-    LocalStackTestcontainer localstack = null!;
-    ServiceProvider serviceProvider = null!;
-
     protected SubConfig config = null!;
 
     protected Faker Faker = new("pt_BR");
+    LocalStackTestcontainer localstack = null!;
+    ServiceProvider serviceProvider = null!;
 
     [SetUp]
     public async Task SetupLocalStackTest()
@@ -23,10 +22,10 @@ public class LocalstackTest
         config = new()
         {
             PubKey = $"alias/{Faker.Random.Word()}",
-            MessageDelayInSeconds = Faker.Random.Int(min: 0, max: 60),
-            MessageTimeoutInSeconds = Faker.Random.Int(min: 4, max: 60),
-            MessageRetantionInDays = Faker.Random.Int(min: 4, max: 10),
-            QueueMaxReceiveCount = Faker.Random.Int(min: 5, max: 10),
+            MessageDelayInSeconds = Faker.Random.Int(0, 60),
+            MessageTimeoutInSeconds = Faker.Random.Int(4, 60),
+            MessageRetantionInDays = Faker.Random.Int(4, 10),
+            QueueMaxReceiveCount = Faker.Random.Int(5, 10)
         };
 
         localstack = new TestcontainersBuilder<LocalStackTestcontainer>()
