@@ -1,4 +1,5 @@
 ﻿using A55.Subdivisions.Aws.Adapters;
+using Amazon.KeyManagementService.Model;
 using Microsoft.Extensions.Logging;
 using Subdivisions;
 
@@ -16,6 +17,6 @@ public class AwsSubClient : ISub
 
     public Task<string> GetStringMessages(int quantity)
     {
-        throw new Exception();
+        throw new InvalidOperationException();
     }
 }

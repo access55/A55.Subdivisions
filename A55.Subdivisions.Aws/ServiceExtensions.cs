@@ -36,35 +36,35 @@ public static class ServiceExtensions
         services.AddTransient<IAmazonSimpleNotificationService>(sp =>
         {
             var cred = sp.GetRequiredService<AWSCredentials>();
-            var config = sp.GetRequiredService<AmazonSimpleNotificationServiceConfig>();
-            return new AmazonSimpleNotificationServiceClient(cred, config);
+            var c = sp.GetRequiredService<AmazonSimpleNotificationServiceConfig>();
+            return new AmazonSimpleNotificationServiceClient(cred, c);
         });
 
         services.AddTransient<IAmazonSQS>(sp =>
         {
             var cred = sp.GetRequiredService<AWSCredentials>();
-            var config = sp.GetRequiredService<AmazonSQSConfig>();
-            return new AmazonSQSClient(cred, config);
+            var c = sp.GetRequiredService<AmazonSQSConfig>();
+            return new AmazonSQSClient(cred, c);
         });
 
         services.AddTransient<IAmazonEventBridge>(sp =>
         {
             var cred = sp.GetRequiredService<AWSCredentials>();
-            var config = sp.GetRequiredService<AmazonEventBridgeConfig>();
-            return new AmazonEventBridgeClient(cred, config);
+            var c = sp.GetRequiredService<AmazonEventBridgeConfig>();
+            return new AmazonEventBridgeClient(cred, c);
         });
 
         services.AddTransient<IAmazonKeyManagementService>(sp =>
         {
             var cred = sp.GetRequiredService<AWSCredentials>();
-            var config = sp.GetRequiredService<AmazonKeyManagementServiceConfig>();
-            return new AmazonKeyManagementServiceClient(cred, config);
+            var c = sp.GetRequiredService<AmazonKeyManagementServiceConfig>();
+            return new AmazonKeyManagementServiceClient(cred, c);
         });
 
+        services.AddSingleton<AwsKms>();
         services.AddTransient<AwsEvents>();
         services.AddTransient<AwsSqs>();
         services.AddTransient<AwsSns>();
-        services.AddTransient<AwsKms>();
 
         return services;
     }

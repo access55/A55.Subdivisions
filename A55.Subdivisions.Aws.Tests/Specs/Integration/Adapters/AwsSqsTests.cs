@@ -16,11 +16,10 @@ public class AwsSqsTests : LocalstackTest
         var queue = await sqs.CreateQueueAsync(Faker.Person.FirstName.ToLowerInvariant());
 
         var aws = GetService<AwsSqs>();
-        var result = await aws.GetQueueAttributes(queue.QueueUrl);
+        var result = await aws.GetQueueAttributes(queue.QueueUrl, default);
 
         result.Arn.Should().NotBeNullOrWhiteSpace();
     }
-
 
     [Test]
     public async Task QueueExistsShouldReturnTrue()
@@ -30,7 +29,7 @@ public class AwsSqsTests : LocalstackTest
         await sqs.CreateQueueAsync(queueName);
 
         var aws = GetService<AwsSqs>();
-        var result = await aws.QueueExists(queueName);
+        var result = await aws.QueueExists(queueName, default);
 
         result.Should().BeTrue();
     }
@@ -40,7 +39,7 @@ public class AwsSqsTests : LocalstackTest
     {
         var queueName = Faker.Person.FirstName.ToLowerInvariant();
         var aws = GetService<AwsSqs>();
-        var result = await aws.QueueExists(queueName);
+        var result = await aws.QueueExists(queueName, default);
         result.Should().BeFalse();
     }
 
@@ -52,7 +51,7 @@ public class AwsSqsTests : LocalstackTest
         var queue = await sqs.CreateQueueAsync(queueName);
 
         var aws = GetService<AwsSqs>();
-        var result = await aws.GetQueue(queueName);
+        var result = await aws.GetQueue(queueName, default);
         result?.Url.Should().Be(queue.QueueUrl);
         result?.Arn.Should().NotBeNullOrWhiteSpace();
     }
@@ -64,7 +63,7 @@ public class AwsSqsTests : LocalstackTest
         var aws = GetService<AwsSqs>();
         await CreateDefaultKey();
 
-        var result = await aws.CreateQueue(queueName);
+        var result = await aws.CreateQueue(queueName, default);
 
         var sqs = GetService<IAmazonSQS>();
         var qs = await sqs.ListQueuesAsync(new ListQueuesRequest());
@@ -79,7 +78,7 @@ public class AwsSqsTests : LocalstackTest
         var aws = GetService<AwsSqs>();
         await CreateDefaultKey();
 
-        await aws.CreateQueue(queueName);
+        await aws.CreateQueue(queueName, default);
 
         var sqs = GetService<IAmazonSQS>();
         var qs = await sqs.ListQueuesAsync(new ListQueuesRequest());
@@ -88,12 +87,34 @@ public class AwsSqsTests : LocalstackTest
     }
 
     [Test]
+    public async Task ShouldCreateNewQueueWithTimedAttributes()
+    {
+        var queueName = Faker.Person.FirstName.ToLowerInvariant();
+        await CreateDefaultKey();
+
+        var result = await GetService<AwsSqs>().CreateQueue(queueName, default);
+
+        var attr = await GetService<IAmazonSQS>()
+            .GetQueueAttributesAsync(result.Url,
+                new List<string>
+                {
+                    QueueAttributeName.VisibilityTimeout,
+                    QueueAttributeName.MessageRetentionPeriod,
+                    QueueAttributeName.DelaySeconds,
+                });
+
+        attr.VisibilityTimeout.Should().Be(config.MessageTimeoutInSeconds);
+        attr.MessageRetentionPeriod.Should().Be(config.MessageRetantionInDays);
+        attr.DelaySeconds.Should().Be(config.MessageDelayInSeconds);
+    }
+
+    [Test]
     public async Task ShouldCreateNewQueueWithKmsKey()
     {
         var queueName = Faker.Person.FirstName.ToLowerInvariant();
         var keyId = await CreateDefaultKey();
 
-        var result = await GetService<AwsSqs>().CreateQueue(queueName);
+        var result = await GetService<AwsSqs>().CreateQueue(queueName, default);
 
         var attr = await GetService<IAmazonSQS>()
             .GetQueueAttributesAsync(result.Url, new List<string> {QueueAttributeName.KmsMasterKeyId});
@@ -108,15 +129,17 @@ public class AwsSqsTests : LocalstackTest
         var sqs = GetService<IAmazonSQS>();
         await CreateDefaultKey();
 
-        var result = await GetService<AwsSqs>().CreateQueue(queueName);
+        var result = await GetService<AwsSqs>().CreateQueue(queueName, default);
         var attr = await sqs.GetQueueAttributesAsync(result.Url, new List<string> {QueueAttributeName.RedrivePolicy});
         var policy = JToken.Parse(attr.Attributes[QueueAttributeName.RedrivePolicy]);
 
         var qs = await sqs.ListQueuesAsync(new ListQueuesRequest());
         var deadletter = qs.QueueUrls.Single(q => q.Contains($"dead_letter_{queueName}"));
-        var deadletterAttr = await sqs.GetQueueAttributesAsync(deadletter, new List<string>{QueueAttributeName.QueueArn});
+        var deadletterAttr =
+            await sqs.GetQueueAttributesAsync(deadletter, new List<string> {QueueAttributeName.QueueArn});
 
-        var expected = @$"{{""deadLetterTargetArn"": ""{deadletterAttr.QueueARN}"", ""maxReceiveCount"": ""{config.QueueMaxReceiveCount}""}}";
+        var expected =
+            @$"{{""deadLetterTargetArn"": ""{deadletterAttr.QueueARN}"", ""maxReceiveCount"": ""{config.QueueMaxReceiveCount}""}}";
 
         policy.Should().BeEquivalentTo(JToken.Parse(expected));
     }
@@ -124,15 +147,11 @@ public class AwsSqsTests : LocalstackTest
     async Task<string> CreateDefaultKey()
     {
         var kms = GetService<IAmazonKeyManagementService>();
-        var key = await kms.CreateKeyAsync(new()
-        {
-            Description = "Test key",
-        });
+        var key = await kms.CreateKeyAsync(new() {Description = "Test key",});
 
         await kms.CreateAliasAsync(new CreateAliasRequest
         {
-            AliasName = config.PubKey,
-            TargetKeyId = key.KeyMetadata.KeyId,
+            AliasName = config.PubKey, TargetKeyId = key.KeyMetadata.KeyId,
         });
 
         return key.KeyMetadata.KeyId;

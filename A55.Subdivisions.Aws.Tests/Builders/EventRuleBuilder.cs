@@ -8,21 +8,21 @@ namespace A55.Subdivisions.Aws.Tests.Builders;
 
 public class EventRuleBuilder
 {
-    Faker faker = new();
-
-    internal EventName Event { get; private set; }
+    readonly Faker faker = new();
+    internal TopicName Topic { get; private set; }
     public string TopicName { get; }
     public string EventName { get; }
 
     string state = RuleState.ENABLED;
+
     public EventRuleBuilder()
     {
         var firstPart = faker.Person.FirstName;
         var secondPart = faker.Person.LastName;
-        
-        EventName  = $"{firstPart.ToLowerInvariant()}_{secondPart.ToLowerInvariant()}";
+
+        EventName = $"{firstPart.ToLowerInvariant()}_{secondPart.ToLowerInvariant()}";
         TopicName = $"{firstPart}{secondPart}";
-        Event = new(EventName);
+        Topic = new(EventName);
     }
 
     public EventRuleBuilder Disabled()

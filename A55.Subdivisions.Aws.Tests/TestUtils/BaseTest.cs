@@ -5,7 +5,6 @@ using Bogus;
 namespace A55.Subdivisions.Aws.Tests.TestUtils;
 public class BaseTest
 {
-
     protected readonly Faker Faker = new("pt_BR");
     protected AutoFakeIt Mocker = null!;
 
@@ -29,11 +28,7 @@ public class BaseTest
     }
 
     [SetUp]
-    public void SetupBase()
-    {
-        Mocker = new AutoFakeIt();
-    }
-
+    public void SetupBase() => Mocker = new AutoFakeIt();
 
     [OneTimeSetUp]
     public void StartTest() => Trace.Listeners.Add(new ConsoleTraceListener());

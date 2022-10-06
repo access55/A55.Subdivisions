@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using Amazon;
 using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
@@ -13,7 +14,7 @@ class AwsKms
 {
     readonly IAmazonKeyManagementService kms;
     readonly SubConfig config;
-    public RegionEndpoint Region => kms.Config.RegionEndpoint;
+    string? keyCache;
 
     public AwsKms(IAmazonKeyManagementService kms, IOptions<SubConfig> config)
     {
@@ -21,9 +22,15 @@ class AwsKms
         this.config = config.Value;
     }
 
-    public async Task<string?> GetKey()
+    public async ValueTask<string?> GetKey(CancellationToken ctx )
     {
-        var aliases = await kms.ListAliasesAsync(new ListAliasesRequest { Limit = 100 });
-        return aliases.Aliases.FirstOrDefault(x => x.AliasName == config.PubKey)?.TargetKeyId;
+        if (!string.IsNullOrWhiteSpace(keyCache))
+            return keyCache;
+
+        var aliases = await kms.ListAliasesAsync(new ListAliasesRequest {Limit = 100}, ctx);
+        var key = aliases.Aliases.Find(x => x.AliasName == config.PubKey)?.TargetKeyId;
+        if (string.IsNullOrWhiteSpace(keyCache))
+            keyCache = key;
+        return key;
     }
 }

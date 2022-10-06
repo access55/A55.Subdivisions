@@ -6,12 +6,6 @@ using Microsoft.Extensions.Logging;
 
 namespace A55.Subdivisions.Aws.Adapters;
 
-record EventName(string Topic, string Prefix = "", string Sufix = "")
-{
-    public string Name { get; } =
-        $"{Prefix.SnakeToPascalCase()}{Topic.SnakeToPascalCase()}{Sufix.SnakeToPascalCase()}".Trim();
-}
-
 class AwsEvents
 {
     readonly IAmazonEventBridge eventBridge;
@@ -24,27 +18,27 @@ class AwsEvents
         this.logger = logger;
     }
 
-    public async Task<bool> RuleExists(EventName eventName, CancellationToken ctx = default)
+    public async Task<bool> RuleExists(TopicName topicName, CancellationToken ctx )
     {
         var rules = await eventBridge.ListRulesAsync(new()
         {
             Limit = 100,
-            NamePrefix = eventName.Name,
+            NamePrefix = topicName.FullName,
         }, ctx);
 
         return rules is not null &&
-               rules.Rules.Any(r => r.Name.Trim() == eventName.Name && r.State == RuleState.ENABLED);
+               rules.Rules.Any(r => r.Name.Trim() == topicName.FullName && r.State == RuleState.ENABLED);
     }
 
-    public async Task<string> CreateRule(EventName eventName, CancellationToken ctx = default)
+    public async Task<string> CreateRule(TopicName topicName, CancellationToken ctx )
     {
         var eventPattern =
-            $@"{{ ""detail-type"": [""{eventName.Topic}""], ""detail"": {{ ""event"": [""{eventName.Topic}""] }} }}";
+            $@"{{ ""detail-type"": [""{topicName.Topic}""], ""detail"": {{ ""event"": [""{topicName.Topic}""] }} }}";
 
         PutRuleRequest request = new()
         {
-            Name = eventName.Name,
-            Description = $"Created in {Assembly.GetExecutingAssembly().GetName().Name} for {eventName.Name} events",
+            Name = topicName.FullName,
+            Description = $"Created in {Assembly.GetExecutingAssembly().GetName().Name} for {topicName.FullName} events",
             State = RuleState.ENABLED,
             EventBusName = "default",
             EventPattern = eventPattern,

@@ -23,6 +23,10 @@ public class LocalstackTest
         config = new()
         {
             PubKey = $"alias/{Faker.Random.Word()}",
+            MessageDelayInSeconds = Faker.Random.Int(min: 0, max: 60),
+            MessageTimeoutInSeconds = Faker.Random.Int(min: 4, max: 60),
+            MessageRetantionInDays = Faker.Random.Int(min: 4, max: 10),
+            QueueMaxReceiveCount = Faker.Random.Int(min: 5, max: 10),
         };
 
         localstack = new TestcontainersBuilder<LocalStackTestcontainer>()
@@ -34,7 +38,14 @@ public class LocalstackTest
             new ServiceCollection()
                 .AddLogging()
                 .AddSubdivisions(credentials: new AnonymousAWSCredentials(), serviceUrl: localstack.Url,
-                    config: c => { c.PubKey = config.PubKey; });
+                    config: c =>
+                    {
+                        c.PubKey = config.PubKey;
+                        c.MessageDelayInSeconds = config.MessageDelayInSeconds;
+                        c.MessageTimeoutInSeconds = config.MessageTimeoutInSeconds;
+                        c.MessageRetantionInDays = config.MessageRetantionInDays;
+                        c.QueueMaxReceiveCount = config.QueueMaxReceiveCount;
+                    });
 
         serviceProvider = services.BuildServiceProvider();
     }

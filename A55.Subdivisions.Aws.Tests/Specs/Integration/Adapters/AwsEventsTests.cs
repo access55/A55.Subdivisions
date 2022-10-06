@@ -4,7 +4,7 @@ using Amazon.EventBridge;
 using AutoBogus;
 using Newtonsoft.Json.Linq;
 using FluentAssertions.Json;
-    
+
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration.Adapters;
 
 public class AwsEventsTests : LocalstackTest
@@ -18,7 +18,7 @@ public class AwsEventsTests : LocalstackTest
         await eventClient.PutRuleAsync(rule.CreateRule());
 
         var aws = GetService<AwsEvents>();
-        var result = await aws.RuleExists(rule.Event);
+        var result = await aws.RuleExists(rule.Topic, default);
 
         result.Should().BeTrue();
     }
@@ -32,7 +32,7 @@ public class AwsEventsTests : LocalstackTest
         await eventClient.PutRuleAsync(rule.CreateRule());
 
         var aws = GetService<AwsEvents>();
-        var result = await aws.RuleExists(rule.Event);
+        var result = await aws.RuleExists(rule.Topic, default);
 
         result.Should().BeFalse();
     }
@@ -41,7 +41,7 @@ public class AwsEventsTests : LocalstackTest
     public async Task TopicExistsShouldReturnFalseIfNotExists()
     {
         var aws = GetService<AwsEvents>();
-        var result = await aws.RuleExists(AutoFaker.Generate<EventName>());
+        var result = await aws.RuleExists(AutoFaker.Generate<TopicName>(), default);
         result.Should().BeFalse();
     }
 
@@ -50,14 +50,14 @@ public class AwsEventsTests : LocalstackTest
     {
         var aws = GetService<AwsEvents>();
         var ruleBuilder = new EventRuleBuilder();
-        var result = await aws.CreateRule(ruleBuilder.Event);
+        var result = await aws.CreateRule(ruleBuilder.Topic, default);
 
         var eventClient = GetService<IAmazonEventBridge>();
         var rulesResponse = await eventClient.ListRulesAsync(new());
         var rule = rulesResponse.Rules.Single();
 
         result.Should().NotBeNullOrWhiteSpace();
-        rule.Name.Should().Be(ruleBuilder.Event.Name);
+        rule.Name.Should().Be(ruleBuilder.Topic.FullName);
         rule.State.Should().Be(RuleState.ENABLED);
 
         JToken.Parse(rule.EventPattern).Should().BeEquivalentTo(JToken.Parse(ruleBuilder.EventPattern));
