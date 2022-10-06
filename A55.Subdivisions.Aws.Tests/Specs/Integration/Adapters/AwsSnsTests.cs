@@ -3,7 +3,6 @@ using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
-using Amazon.SQS.Model;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration.Adapters;
 

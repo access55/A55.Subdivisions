@@ -1,18 +1,23 @@
 ﻿using A55.Subdivisions.Aws.Adapters;
 using Microsoft.Extensions.Logging;
-using Subdivisions;
 
 namespace A55.Subdivisions.Aws;
 
-public class AwsSubClient : ISub
+public class AwsSubBootstraper
 {
     readonly AwsEvents events;
+    readonly AwsSns sns;
+    readonly AwsSqs sqs;
 
-    internal AwsSubClient(AwsEvents events, ILogger<AwsSubClient> logger)
+    internal AwsSubBootstraper(ILogger<AwsSubBootstraper> logger, AwsEvents events, AwsSns sns, AwsSqs sqs)
     {
         logger.LogInformation("Start Subdivisions. AWS Region is: {Region}", events.Region.DisplayName);
         this.events = events;
+        this.sns = sns;
+        this.sqs = sqs;
     }
 
-    public Task<string> GetStringMessages(int quantity) => throw new InvalidOperationException();
+    public async Task EnsureTopicExists()
+    {
+    }
 }
