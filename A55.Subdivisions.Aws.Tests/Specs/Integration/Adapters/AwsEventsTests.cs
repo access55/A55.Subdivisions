@@ -57,7 +57,7 @@ public class AwsEventsTests : LocalstackTest
         var rule = rulesResponse.Rules.Single();
 
         result.Should().NotBeNullOrWhiteSpace();
-        rule.Name.Should().Be(ruleBuilder.Topic.FullName);
+        rule.Name.Should().Be(ruleBuilder.Topic.FullNamePascalCase);
         rule.State.Should().Be(RuleState.ENABLED);
 
         JToken.Parse(rule.EventPattern).Should().BeEquivalentTo(JToken.Parse(ruleBuilder.EventPattern));

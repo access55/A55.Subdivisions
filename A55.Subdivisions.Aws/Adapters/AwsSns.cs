@@ -30,7 +30,7 @@ class AwsSns
 
         CreateTopicRequest request = new()
         {
-            Name = topicName.FullName,
+            Name = topicName.FullNamePascalCase,
             Attributes = new() {[QueueAttributeName.KmsMasterKeyId] = keyId, [QueueAttributeName.Policy] = policy,}
         };
         var response = await sns.CreateTopicAsync(request, ctx);

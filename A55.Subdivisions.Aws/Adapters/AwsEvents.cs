@@ -21,10 +21,10 @@ class AwsEvents
 
     public async Task<bool> RuleExists(TopicName topicName, CancellationToken ctx)
     {
-        var rules = await eventBridge.ListRulesAsync(new() {Limit = 100, NamePrefix = topicName.FullName}, ctx);
+        var rules = await eventBridge.ListRulesAsync(new() {Limit = 100, NamePrefix = topicName.FullNamePascalCase}, ctx);
 
         return rules is not null &&
-               rules.Rules.Any(r => r.Name.Trim() == topicName.FullName && r.State == RuleState.ENABLED);
+               rules.Rules.Any(r => r.Name.Trim() == topicName.FullNamePascalCase && r.State == RuleState.ENABLED);
     }
 
     public async Task<string> CreateRule(TopicName topicName, CancellationToken ctx)
@@ -34,9 +34,9 @@ class AwsEvents
 
         PutRuleRequest request = new()
         {
-            Name = topicName.FullName,
+            Name = topicName.FullNamePascalCase,
             Description =
-                $"Created in {Assembly.GetExecutingAssembly().GetName().Name} for {topicName.FullName} events",
+                $"Created in {Assembly.GetExecutingAssembly().GetName().Name} for {topicName.FullNamePascalCase} events",
             State = RuleState.ENABLED,
             EventBusName = "default",
             EventPattern = eventPattern
