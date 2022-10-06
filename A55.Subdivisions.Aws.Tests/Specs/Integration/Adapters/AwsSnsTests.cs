@@ -37,7 +37,7 @@ public class AwsSnsTests : LocalstackTest
         var sns = GetService<IAmazonSimpleNotificationService>();
         var topic = await sns.GetTopicAttributesAsync(new GetTopicAttributesRequest {TopicArn = result.Value});
 
-        topic.Should().NotBeNull();
+        topic.Attributes.Should().HaveCountGreaterThan(0);
     }
 
     async Task<string> CreateDefaultKey()

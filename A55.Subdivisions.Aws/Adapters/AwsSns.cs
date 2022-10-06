@@ -1,4 +1,5 @@
-﻿using Amazon;
+﻿using System.Text.Json;
+using Amazon;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
@@ -30,11 +31,7 @@ class AwsSns
         CreateTopicRequest request = new()
         {
             Name = topicName.FullName,
-            Attributes = new()
-            {
-                [QueueAttributeName.KmsMasterKeyId] = keyId,
-                [QueueAttributeName.Policy] = policy,
-            }
+            Attributes = new() {[QueueAttributeName.KmsMasterKeyId] = keyId, [QueueAttributeName.Policy] = policy,}
         };
         var response = await sns.CreateTopicAsync(request, ctx);
         logger.LogDebug("SNS Creation Response is: {Response}", response.HttpStatusCode);
@@ -45,34 +42,34 @@ class AwsSns
     public Task Subscribe(SnsArn snsArn, SqsArn sqsArn, CancellationToken ctx) => sns.SubscribeAsync(
         new SubscribeRequest {TopicArn = snsArn.Value, Protocol = "sqs", Endpoint = sqsArn.Value}, ctx);
 
-    static string GetPolicy(string resourceName, RegionEndpoint region) => @$"{{
-""Version"": ""2008-10-17"",
-""Id"": ""__default_policy_ID"",
-""Statement"": [
-    {{
-        ""Sid"": ""__default_statement_ID"",
-        ""Effect"": ""Allow"",
-        ""Principal"": {{""AWS"": ""*""}},
-        ""Action"": [
-            ""SNS:GetTopicAttributes"",
-            ""SNS:SetTopicAttributes"",
-            ""SNS:AddPermission"",
-            ""SNS:RemovePermission"",
-            ""SNS:DeleteTopic"",
-            ""SNS:Subscribe"",
-            ""SNS:ListSubscriptionsByTopic"",
-            ""SNS:Publish"",
-            ""SNS:Receive"",
-        ],
-        ""Resource"": ""arn:aws:sns:{region.SystemName}:*:{resourceName}""
-    }},
-    {{
-        ""Sid"": ""Enable Eventbridge Events"",
-        ""Effect"": ""Allow"",
-        ""Principal"": {{""Service"": ""events.amazonaws.com""}},
-        ""Action"": ""sns:Publish"",
-        ""Resource"": ""*""
-    }}
-]
-}}";
+    static string GetPolicy(string resourceName, RegionEndpoint region) => JsonSerializer.Serialize(
+        new
+        {
+            Version = "2008-10-17",
+            Id = "__default_policy_ID",
+            Statement = new object[]
+            {
+                new
+                {
+                    Sid = "__default_statement_ID",
+                    Effect = "Allow",
+                    Principal = new {AWS = "*"},
+                    Action = new[]
+                    {
+                        "SNS:GetTopicAttributes", "SNS:SetTopicAttributes", "SNS:AddPermission",
+                        "SNS:RemovePermission", "SNS:DeleteTopic", "SNS:Subscribe", "SNS:ListSubscriptionsByTopic",
+                        "SNS:Publish", "SNS:Receive",
+                    },
+                    Resource = $"arn:aws:sns:{region.SystemName}:*:{resourceName}",
+                },
+                new
+                {
+                    Sid = "Enable Eventbridge Events",
+                    Effect = "Allow",
+                    Principal = new {Service = "events.amazonaws.com"},
+                    Action = "sns:Publish",
+                    Resource = "*",
+                }
+            }
+        });
 }
