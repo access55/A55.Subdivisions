@@ -7,20 +7,8 @@ using Newtonsoft.Json.Linq;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration.Adapters;
 
-public class AwsSqsTests : LocalstackTest
+public class AwsSnsTests : LocalstackTest
 {
-    [Test]
-    public async Task ShouldGetQueueAttributes()
-    {
-        var sqs = GetService<IAmazonSQS>();
-        var queue = await sqs.CreateQueueAsync(Faker.Person.FirstName.ToLowerInvariant());
-
-        var aws = GetService<AwsSqs>();
-        var result = await aws.GetQueueAttributes(queue.QueueUrl, default);
-
-        result.Arn.Value.Should().NotBeNullOrWhiteSpace();
-    }
-
     [Test]
     public async Task QueueExistsShouldReturnTrue()
     {
@@ -130,7 +118,6 @@ public class AwsSqsTests : LocalstackTest
         await CreateDefaultKey();
 
         var result = await GetService<AwsSqs>().CreateQueue(queueName, default);
-
         var attr = await sqs.GetQueueAttributesAsync(result.Url.ToString(),
             new List<string> {QueueAttributeName.RedrivePolicy});
         var policy = JToken.Parse(attr.Attributes[QueueAttributeName.RedrivePolicy]);

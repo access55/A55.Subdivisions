@@ -6,7 +6,9 @@ using Microsoft.Extensions.Options;
 
 namespace A55.Subdivisions.Aws.Adapters;
 
-record QueueInfo(string Url, string Arn);
+record SqsArn(string Value) : BaseArn(Value);
+
+record QueueInfo(Uri Url, SqsArn Arn);
 
 class AwsSqs
 {
@@ -45,7 +47,7 @@ class AwsSqs
         var response = await sqs.GetQueueAttributesAsync(queueUrl, new List<string> {QueueAttributeName.QueueArn}, ctx);
         logger.LogDebug("Queue Attributes Response is: {Response}", JsonSerializer.Serialize(response.Attributes));
 
-        return new(queueUrl, response.QueueARN);
+        return new(new(queueUrl), new(response.QueueARN));
     }
 
     public async Task<QueueInfo?> GetQueue(string queueName,
@@ -74,7 +76,7 @@ class AwsSqs
 
         var deadLetterPolicy = new
         {
-            deadLetterTargetArn = deadLetter.Arn, maxReceiveCount = config.QueueMaxReceiveCount.ToString()
+            deadLetterTargetArn = deadLetter.Arn.Value, maxReceiveCount = config.QueueMaxReceiveCount.ToString()
         };
 
         var q = await sqs.CreateQueueAsync(
