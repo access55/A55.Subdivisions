@@ -1,4 +1,6 @@
-﻿namespace A55.Subdivisions.Aws;
+﻿using A55.Subdivisions.Aws.Extensions;
+
+namespace A55.Subdivisions.Aws;
 
 class TopicName
 {

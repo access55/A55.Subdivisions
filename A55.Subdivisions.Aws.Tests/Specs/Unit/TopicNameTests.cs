@@ -45,5 +45,4 @@ public class TopicNameTests
 
         topic.FullNamePascalCase.Should().Be(expected);
     }
-
 }

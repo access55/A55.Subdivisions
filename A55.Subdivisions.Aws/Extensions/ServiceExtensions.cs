@@ -6,7 +6,7 @@ using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace A55.Subdivisions.Aws;
+namespace A55.Subdivisions.Aws.Extensions;
 
 public static class ServiceExtensions
 {

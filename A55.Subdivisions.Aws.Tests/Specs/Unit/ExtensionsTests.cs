@@ -1,4 +1,6 @@
-﻿namespace A55.Subdivisions.Aws.Tests.Specs.Unit;
+﻿using A55.Subdivisions.Aws.Extensions;
+
+namespace A55.Subdivisions.Aws.Tests.Specs.Unit;
 
 public class ExtensionsTests
 {

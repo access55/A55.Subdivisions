@@ -1,4 +1,5 @@
-﻿using Amazon.Runtime;
+﻿using A55.Subdivisions.Aws.Extensions;
+using Amazon.Runtime;
 using Bogus;
 using DotNet.Testcontainers.Builders;
 using Microsoft.Extensions.DependencyInjection;
