@@ -6,6 +6,8 @@ using Microsoft.Extensions.Logging;
 
 namespace A55.Subdivisions.Aws.Adapters;
 
+record SnsArn(string Value) : BaseArn(Value);
+
 class AwsSns
 {
     readonly AwsKms kms;
@@ -19,24 +21,31 @@ class AwsSns
         this.logger = logger;
     }
 
-    public async Task<string> CreateTopic(TopicName topicName, CancellationToken ctx)
+    public async Task<SnsArn> CreateTopic(TopicName topicName, CancellationToken ctx)
     {
-        var policy = GetPolicy(topicName, RegionEndpoint.USEast1);
+        var policy = GetPolicy(topicName.Topic, RegionEndpoint.USEast1);
         var keyId = await kms.GetKey(ctx) ??
                     throw new InvalidOperationException("Default KMS EncryptionKey Id not found");
 
         CreateTopicRequest request = new()
         {
             Name = topicName.FullName,
-            Attributes = new() {[QueueAttributeName.KmsMasterKeyId] = keyId, [QueueAttributeName.Policy] = policy}
+            Attributes = new()
+            {
+                [QueueAttributeName.KmsMasterKeyId] = keyId,
+                [QueueAttributeName.Policy] = policy,
+            }
         };
         var response = await sns.CreateTopicAsync(request, ctx);
         logger.LogDebug("SNS Creation Response is: {Response}", response.HttpStatusCode);
 
-        return response.TopicArn;
+        return new(response.TopicArn);
     }
 
-    static string GetPolicy(string topicName, RegionEndpoint region) => @$"{{
+    public Task Subscribe(SnsArn snsArn, SqsArn sqsArn, CancellationToken ctx) => sns.SubscribeAsync(
+        new SubscribeRequest {TopicArn = snsArn.Value, Protocol = "sqs", Endpoint = sqsArn.Value}, ctx);
+
+    static string GetPolicy(string resourceName, RegionEndpoint region) => @$"{{
 ""Version"": ""2008-10-17"",
 ""Id"": ""__default_policy_ID"",
 ""Statement"": [
@@ -55,15 +64,15 @@ class AwsSns
             ""SNS:Publish"",
             ""SNS:Receive"",
         ],
-        ""Resource"": ""arn:aws:sns:{region.DisplayName}:*:{topicName}"",
+        ""Resource"": ""arn:aws:sns:{region.SystemName}:*:{resourceName}""
     }},
     {{
         ""Sid"": ""Enable Eventbridge Events"",
         ""Effect"": ""Allow"",
         ""Principal"": {{""Service"": ""events.amazonaws.com""}},
         ""Action"": ""sns:Publish"",
-        ""Resource"": ""*"",
-    }},
-],
+        ""Resource"": ""*""
+    }}
+]
 }}";
 }

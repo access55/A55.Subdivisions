@@ -3,8 +3,8 @@
 public class SubConfig
 {
     public int QueueMaxReceiveCount { get; set; } = 1000;
-    public string? PubKey { get; set; }
+    public string PubKey { get; set; } = "alias/PubSubKey";
     public int MessageRetantionInDays { get; set; } = 7;
     public int MessageTimeoutInSeconds { get; set; } = 30;
-    public int MessageDelayInSeconds { get; set; }
+    public int MessageDelayInSeconds { get; set; } = 0;
 }
