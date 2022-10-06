@@ -14,11 +14,11 @@ public class AwsEventsTests : BaseTest
         Mocker.Provide(A.Fake<ILogger<AwsEvents>>());
         var aws = Mocker.Generate<AwsEvents>();
 
-        ListRulesRequest request = new() {Limit = 100, NamePrefix = topicName.FullNamePascalCase};
+        ListRulesRequest request = new() {Limit = 100, NamePrefix = topicName.FullTopicName};
 
         ListRulesResponse response = new()
         {
-            Rules = new List<Rule> {new() {Name = topicName.FullNamePascalCase, State = RuleState.ENABLED}}
+            Rules = new List<Rule> {new() {Name = topicName.FullTopicName, State = RuleState.ENABLED}}
         };
 
         A.CallTo(() => Mocker.Resolve<IAmazonEventBridge>()

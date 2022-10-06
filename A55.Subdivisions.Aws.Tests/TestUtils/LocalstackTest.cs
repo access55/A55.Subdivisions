@@ -1,4 +1,7 @@
-﻿using A55.Subdivisions.Aws.Extensions;
+﻿using A55.Subdivisions.Aws.Adapters;
+using A55.Subdivisions.Aws.Extensions;
+using Amazon.KeyManagementService;
+using Amazon.KeyManagementService.Model;
 using Amazon.Runtime;
 using Bogus;
 using DotNet.Testcontainers.Builders;
@@ -58,4 +61,15 @@ public class LocalstackTest
     }
 
     public T GetService<T>() where T : notnull => serviceProvider.GetRequiredService<T>();
+
+    protected async Task<string> CreateDefaultKmsKey()
+    {
+        var kms = GetService<IAmazonKeyManagementService>();
+        var key = await kms.CreateKeyAsync(new() {Description = "Test key"});
+        await kms.CreateAliasAsync(new CreateAliasRequest
+        {
+            AliasName = config.PubKey, TargetKeyId = key.KeyMetadata.KeyId
+        });
+        return key.KeyMetadata.KeyId;
+    }
 }

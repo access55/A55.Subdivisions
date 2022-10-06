@@ -10,19 +10,24 @@ namespace A55.Subdivisions.Aws.Extensions;
 
 public static class ServiceExtensions
 {
-    public static IServiceCollection AddSubdivisions(this IServiceCollection services, Action<SubConfig>? config = null,
+    public static IServiceCollection AddSubdivisions(this IServiceCollection services,
+        Action<SubConfig>? config = null,
         AWSCredentials? credentials = null, string? serviceUrl = null)
     {
         services.Configure<SubConfig>(c => config?.Invoke(c));
 
-        AmazonSimpleNotificationServiceConfig configSqs = new();
-        AmazonSQSConfig configSns = new();
+        AmazonSimpleNotificationServiceConfig configSns = new();
+        AmazonSQSConfig configSqs = new();
         AmazonEventBridgeConfig configEventBridge = new();
         AmazonKeyManagementServiceConfig configKms = new();
 
         if (!string.IsNullOrWhiteSpace(serviceUrl))
-            configSns.ServiceURL =
-                configKms.ServiceURL = configSqs.ServiceURL = configEventBridge.ServiceURL = serviceUrl;
+        {
+            configSns.ServiceURL = serviceUrl;
+            configKms.ServiceURL = serviceUrl;
+            configSqs.ServiceURL = serviceUrl;
+            configEventBridge.ServiceURL = serviceUrl;
+        }
 
         services.AddSingleton(configSqs);
         services.AddSingleton(configSns);
@@ -63,6 +68,7 @@ public static class ServiceExtensions
         services.AddTransient<AwsEvents>();
         services.AddTransient<AwsSqs>();
         services.AddTransient<AwsSns>();
+        services.AddTransient<AwsSubdivisionsBootstrapper>();
 
         return services;
     }

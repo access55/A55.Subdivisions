@@ -43,6 +43,6 @@ public class TopicNameTests
         const string expected = "ThePrefixNameToNormalizeTheSufix";
         var topic = new TopicName(name, prefix, sufix);
 
-        topic.FullNamePascalCase.Should().Be(expected);
+        topic.FullTopicName.Should().Be(expected);
     }
 }

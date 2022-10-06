@@ -61,7 +61,7 @@ public class AwsSqsTests : LocalstackTest
     {
         var queueName = Faker.Person.FirstName.ToLowerInvariant();
         var aws = GetService<AwsSqs>();
-        await CreateDefaultKey();
+        await CreateDefaultKmsKey();
 
         var result = await aws.CreateQueue(queueName, default);
 
@@ -76,7 +76,7 @@ public class AwsSqsTests : LocalstackTest
     {
         var queueName = Faker.Person.FirstName.ToLowerInvariant();
         var aws = GetService<AwsSqs>();
-        await CreateDefaultKey();
+        await CreateDefaultKmsKey();
 
         await aws.CreateQueue(queueName, default);
 
@@ -90,7 +90,7 @@ public class AwsSqsTests : LocalstackTest
     public async Task ShouldCreateNewQueueWithTimedAttributes()
     {
         var queueName = Faker.Person.FirstName.ToLowerInvariant();
-        await CreateDefaultKey();
+        await CreateDefaultKmsKey();
 
         var result = await GetService<AwsSqs>().CreateQueue(queueName, default);
 
@@ -112,7 +112,7 @@ public class AwsSqsTests : LocalstackTest
     public async Task ShouldCreateNewQueueWithKmsKey()
     {
         var queueName = Faker.Person.FirstName.ToLowerInvariant();
-        var keyId = await CreateDefaultKey();
+        var keyId = await CreateDefaultKmsKey();
 
         var result = await GetService<AwsSqs>().CreateQueue(queueName, default);
 
@@ -127,7 +127,7 @@ public class AwsSqsTests : LocalstackTest
     {
         var queueName = Faker.Person.FirstName.ToLowerInvariant();
         var sqs = GetService<IAmazonSQS>();
-        await CreateDefaultKey();
+        await CreateDefaultKmsKey();
 
         var result = await GetService<AwsSqs>().CreateQueue(queueName, default);
 
@@ -144,18 +144,5 @@ public class AwsSqsTests : LocalstackTest
             @$"{{""deadLetterTargetArn"": ""{deadletterAttr.QueueARN}"", ""maxReceiveCount"": ""{config.QueueMaxReceiveCount}""}}";
 
         policy.Should().BeEquivalentTo(JToken.Parse(expected));
-    }
-
-    async Task<string> CreateDefaultKey()
-    {
-        var kms = GetService<IAmazonKeyManagementService>();
-        var key = await kms.CreateKeyAsync(new() {Description = "Test key"});
-
-        await kms.CreateAliasAsync(new CreateAliasRequest
-        {
-            AliasName = config.PubKey, TargetKeyId = key.KeyMetadata.KeyId
-        });
-
-        return key.KeyMetadata.KeyId;
     }
 }
