@@ -7,7 +7,7 @@ class TopicName
     public TopicName(string topic, string prefix = "", string sufix = "")
     {
         if (!IsValidTopicName(topic))
-            throw new ArgumentException("Invalid topic name", nameof(topic));
+            throw new ArgumentException($"Invalid topic name {topic}", nameof(topic));
 
         Topic = topic.PascalToSnakeCase();
         Prefix = prefix;

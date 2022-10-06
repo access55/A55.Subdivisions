@@ -12,7 +12,7 @@ public class AwsSnsTests : LocalstackTest
     [Test]
     public async Task ShouldCreateNewTopic()
     {
-        var name = $"{Faker.Person.FirstName}_{Faker.Name.LastName()}".ToLowerInvariant();
+        var name = $"{Faker.Person.FirstName}_{Faker.Name.LastName()}_{Faker.Random.AlphaNumeric(6)}".ToLowerInvariant();
         var topicName = new TopicName(name);
         var aws = GetService<AwsSns>();
         await CreateDefaultKey();
@@ -28,7 +28,7 @@ public class AwsSnsTests : LocalstackTest
     [Test]
     public async Task ShouldCreateNewTopicWithArn()
     {
-        var topicName = new TopicName(Faker.Person.FirstName.ToLowerInvariant());
+        var topicName = new TopicName(Faker.Random.String2(10).ToLowerInvariant());
         var aws = GetService<AwsSns>();
         await CreateDefaultKey();
 

@@ -10,7 +10,7 @@ public class AwsEventsTests : BaseTest
     [Test]
     public async Task TopicExistsShouldReturnTrueIfRuleExists()
     {
-        var topicName = new TopicName(Faker.Internet.UserName());
+        var topicName = new TopicName(Faker.Random.String2(10));
         Mocker.Provide(A.Fake<ILogger<AwsEvents>>());
         var aws = Mocker.Generate<AwsEvents>();
 
