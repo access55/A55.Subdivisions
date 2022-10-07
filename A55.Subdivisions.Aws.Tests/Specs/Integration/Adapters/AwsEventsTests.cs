@@ -44,7 +44,7 @@ public class AwsEventsTests : LocalstackTest
     public async Task TopicExistsShouldReturnFalseIfNotExists()
     {
         var aws = GetService<AwsEvents>();
-        var result = await aws.RuleExists(AutoFaker.Generate<TopicName>(), default);
+        var result = await aws.RuleExists(Faker.TopicName(), default);
         result.Should().BeFalse();
     }
 

@@ -14,7 +14,7 @@ public class AwsSubBootstraperTests : LocalstackTest
     [Test]
     public async Task ShouldCreateAllTopicResources()
     {
-        var topicName = $"{Faker.Random.Replace("????_?##?_****")}".ToLowerInvariant();
+        var topicName = Faker.TopicNameString();
         var bootstrapper = GetService<AwsSubdivisionsBootstrapper>();
         await CreateDefaultKmsKey();
 

@@ -1,5 +1,4 @@
-﻿using A55.Subdivisions.Aws.Adapters;
-using A55.Subdivisions.Aws.Extensions;
+﻿using A55.Subdivisions.Aws.Extensions;
 using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
 using Amazon.Runtime;
@@ -21,11 +20,11 @@ public class LocalstackTest
     ServiceProvider serviceProvider = null!;
 
     [SetUp]
-    public async Task SetupLocalStackTest()
+    public async Task OneTimeSetupLocalStackTest()
     {
         config = new()
         {
-            PubKey = $"alias/{Faker.Random.Word()}",
+            PubKey = $"alias/{Faker.Random.Replace("Key????")}",
             MessageDelayInSeconds = Faker.Random.Int(0, 60),
             MessageTimeoutInSeconds = Faker.Random.Int(4, 60),
             MessageRetantionInDays = Faker.Random.Int(4, 10),
@@ -40,9 +39,10 @@ public class LocalstackTest
         var services =
             new ServiceCollection()
                 .AddLogging()
-                .AddSubdivisions(credentials: new AnonymousAWSCredentials(), serviceUrl: localstack.Url,
+                .AddSubdivisionsClient(credentials: new AnonymousAWSCredentials(),
                     config: c =>
                     {
+                        c.ServiceUrl = localstack.Url;
                         c.PubKey = config.PubKey;
                         c.MessageDelayInSeconds = config.MessageDelayInSeconds;
                         c.MessageTimeoutInSeconds = config.MessageTimeoutInSeconds;
@@ -54,7 +54,7 @@ public class LocalstackTest
     }
 
     [TearDown]
-    public async Task TearDownLocalstackTest()
+    public async Task OneTimeTearDownLocalstackTest()
     {
         await localstack.DisposeAsync();
         await serviceProvider.DisposeAsync();

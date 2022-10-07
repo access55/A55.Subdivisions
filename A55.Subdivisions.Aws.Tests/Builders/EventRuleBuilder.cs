@@ -14,7 +14,8 @@ public class EventRuleBuilder
     public EventRuleBuilder()
     {
         var firstPart = faker.Person.FirstName;
-        var secondPart = faker.Person.LastName;
+        var secondPart = $"{faker.Person.LastName}{faker.Random.Replace("####")}";
+
         EventName = $"{firstPart.ToLowerInvariant()}_{secondPart.ToLowerInvariant()}";
         TopicName = $"{firstPart}{secondPart}";
         Topic = new(EventName);

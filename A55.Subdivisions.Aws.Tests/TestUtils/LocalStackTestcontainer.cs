@@ -17,7 +17,7 @@ public sealed class LocalStackTestcontainer : TestcontainerMessageBroker
 
 public class LocalStackTestcontainerConfiguration : TestcontainerMessageBrokerConfiguration
 {
-    const string LocalStackImage = "localstack/localstack:latest";
+    const string LocalStackImage = "localstack/localstack:1.1.0";
     const int LocalStackPort = 4566;
 
     public LocalStackTestcontainerConfiguration()

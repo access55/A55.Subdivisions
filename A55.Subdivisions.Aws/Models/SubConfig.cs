@@ -1,4 +1,6 @@
-﻿namespace A55.Subdivisions.Aws;
+﻿using Amazon;
+
+namespace A55.Subdivisions.Aws;
 
 public class SubConfig
 {
@@ -8,7 +10,10 @@ public class SubConfig
     public int MessageTimeoutInSeconds { get; set; } = 30;
     public int MessageDelayInSeconds { get; set; } = 0;
     public string? Source { get; set; }
+    public string? ServiceUrl { get; set; }
     public string Sufix { get; set; } = "";
     public string Prefix { get; set; } = "a55";
     public bool AutoCreateNewTopic { get; set; } = true;
+    public string Region { get; set; } = "sa-east-1";
+    public RegionEndpoint Endpoint => RegionEndpoint.GetBySystemName(Region);
 }

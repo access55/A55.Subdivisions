@@ -5,62 +5,47 @@ using Amazon.Runtime;
 using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace A55.Subdivisions.Aws.Extensions;
 
 public static class ServiceExtensions
 {
-    public static IServiceCollection AddSubdivisions(this IServiceCollection services,
+    public static IServiceCollection AddSubdivisionsClient(this IServiceCollection services,
         Action<SubConfig>? config = null,
-        AWSCredentials? credentials = null, string? serviceUrl = null)
+        AWSCredentials? credentials = null)
     {
-        services.Configure<SubConfig>(c => config?.Invoke(c));
+        services
+            .Configure<SubConfig>(c => config?.Invoke(c));
 
-        AmazonSimpleNotificationServiceConfig configSns = new();
-        AmazonSQSConfig configSqs = new();
-        AmazonEventBridgeConfig configEventBridge = new();
-        AmazonKeyManagementServiceConfig configKms = new();
-
-        if (!string.IsNullOrWhiteSpace(serviceUrl))
-        {
-            configSns.ServiceURL = serviceUrl;
-            configKms.ServiceURL = serviceUrl;
-            configSqs.ServiceURL = serviceUrl;
-            configEventBridge.ServiceURL = serviceUrl;
-        }
-
-        services.AddSingleton(configSqs);
-        services.AddSingleton(configSns);
-        services.AddSingleton(configEventBridge);
-        services.AddSingleton(configKms);
-
-        services.AddSingleton(credentials ?? FallbackCredentialsFactory.GetCredentials());
+        services
+            .AddSingleton(credentials ?? FallbackCredentialsFactory.GetCredentials())
+            .AddAwsConfig<AmazonSQSConfig>()
+            .AddAwsConfig<AmazonEventBridgeConfig>()
+            .AddAwsConfig<AmazonKeyManagementServiceConfig>()
+            .AddAwsConfig<AmazonSimpleNotificationServiceConfig>();
 
         services.AddTransient<IAmazonSimpleNotificationService>(sp =>
         {
-            var cred = sp.GetRequiredService<AWSCredentials>();
-            var c = sp.GetRequiredService<AmazonSimpleNotificationServiceConfig>();
+            var (cred, c) = sp.GetClientSettings<AmazonSimpleNotificationServiceConfig>();
             return new AmazonSimpleNotificationServiceClient(cred, c);
         });
 
         services.AddTransient<IAmazonSQS>(sp =>
         {
-            var cred = sp.GetRequiredService<AWSCredentials>();
-            var c = sp.GetRequiredService<AmazonSQSConfig>();
+            var (cred, c) = sp.GetClientSettings<AmazonSQSConfig>();
             return new AmazonSQSClient(cred, c);
         });
 
         services.AddTransient<IAmazonEventBridge>(sp =>
         {
-            var cred = sp.GetRequiredService<AWSCredentials>();
-            var c = sp.GetRequiredService<AmazonEventBridgeConfig>();
+            var (cred, c) = sp.GetClientSettings<AmazonEventBridgeConfig>();
             return new AmazonEventBridgeClient(cred, c);
         });
 
         services.AddTransient<IAmazonKeyManagementService>(sp =>
         {
-            var cred = sp.GetRequiredService<AWSCredentials>();
-            var c = sp.GetRequiredService<AmazonKeyManagementServiceConfig>();
+            var (cred, c) = sp.GetClientSettings<AmazonKeyManagementServiceConfig>();
             return new AmazonKeyManagementServiceClient(cred, c);
         });
 
@@ -72,4 +57,25 @@ public static class ServiceExtensions
 
         return services;
     }
+
+    static (AWSCredentials, TConfig) GetClientSettings<TConfig>(this IServiceProvider sp) where TConfig : notnull
+    {
+        var cred = sp.GetRequiredService<AWSCredentials>();
+        var c = sp.GetRequiredService<TConfig>();
+        return (cred, c);
+    }
+
+    static IServiceCollection AddAwsConfig<TConfig>(this IServiceCollection services)
+        where TConfig : ClientConfig, new() =>
+        services.AddTransient(sp =>
+        {
+            var subSettings = sp.GetRequiredService<IOptionsMonitor<SubConfig>>().CurrentValue;
+            var config = new TConfig();
+            if (!string.IsNullOrWhiteSpace(subSettings.ServiceUrl))
+                config.ServiceURL = subSettings.ServiceUrl;
+            else
+                config.RegionEndpoint = subSettings.Endpoint;
+
+            return config;
+        });
 }

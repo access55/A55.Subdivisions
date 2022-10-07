@@ -1,4 +1,14 @@
-﻿namespace A55.Subdivisions.Aws.Tests.TestUtils;
+﻿using Bogus;
+
+namespace A55.Subdivisions.Aws.Tests.TestUtils;
+
+public static class FakerExtensions
+{
+    public static string TopicNameString(this Faker faker) =>
+        $"{faker.Person.FirstName}_{faker.Random.Replace("_?##?_?**?")}".ToLowerInvariant();
+
+    internal static TopicName TopicName(this Faker faker) => new(faker.TopicNameString());
+}
 
 public static class FluentAssertionsComparer
 {
