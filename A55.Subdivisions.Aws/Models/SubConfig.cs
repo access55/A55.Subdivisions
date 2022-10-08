@@ -10,7 +10,8 @@ public class SubTopicNameConfig
     public string Suffix { get; set; } = "";
     public string Prefix { get; set; } = "a55";
     public string? Source { get; set; }
-    internal string? FallbackSource { get; set; }
+    internal string? FallbackSource { get; private set; }
+    public void SetFallbackSource(string fallback) => FallbackSource = fallback;
 }
 
 public class SubConfig : SubTopicNameConfig
@@ -42,9 +43,9 @@ public class ConfigureSubConfigOptions : IConfigureOptions<SubConfig>
 
     public void Configure(SubConfig options)
     {
-        if (hostEnvironment is not null && options.FallbackSource is null)
-            options.FallbackSource = hostEnvironment.ApplicationName;
-
         configuration?.GetSection(ConfigSection).Bind(options);
+
+        if (hostEnvironment is not null && options.FallbackSource is null)
+            options.SetFallbackSource(hostEnvironment.ApplicationName);
     }
 }

@@ -86,9 +86,9 @@ public class TopicNameTests
         const string sourceFallBack = "TheFallback";
         const string name = "NameToNormalize";
         const string expected = "the_prefix_the_fallback_name_to_normalize_the_suffix";
-
-        var topic = new TopicName(name,
-            new SubTopicNameConfig {Prefix = prefix, Suffix = suffix, Source = null, FallbackSource = sourceFallBack});
+        var config = new SubTopicNameConfig {Prefix = prefix, Suffix = suffix, Source = null};
+        config.SetFallbackSource(sourceFallBack);
+        var topic = new TopicName(name, config);
 
         topic.FullQueueName.Should().Be(expected);
     }

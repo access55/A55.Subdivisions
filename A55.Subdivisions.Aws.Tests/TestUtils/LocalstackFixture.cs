@@ -12,7 +12,7 @@ public class LocalstackFixture : ServicesFixture
 {
     LocalStackTestcontainer localstack = null!;
 
-    public override async Task BeforeSetup()
+    protected override async Task BeforeSetup()
     {
         localstack = new TestcontainersBuilder<LocalStackTestcontainer>()
             .WithMessageBroker(new LocalStackTestcontainerConfiguration())
@@ -21,7 +21,7 @@ public class LocalstackFixture : ServicesFixture
         await localstack.StartAsync();
     }
 
-    public override void ConfigureSubdivisions(SubConfig subConfig) =>
+    protected override void ConfigureSubdivisions(SubConfig subConfig) =>
         subConfig.ServiceUrl = localstack.Url;
 
     protected async Task<string> CreateDefaultKmsKey()

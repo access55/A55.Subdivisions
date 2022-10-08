@@ -55,13 +55,13 @@ public class ServicesFixture
         Fake.ClearRecordedCalls(fakeClock);
     }
 
-    public virtual Task BeforeSetup() => Task.CompletedTask;
+    protected virtual Task BeforeSetup() => Task.CompletedTask;
 
-    public virtual void ConfigureSubdivisions(SubConfig subConfig)
+    protected virtual void ConfigureSubdivisions(SubConfig subConfig)
     {
     }
 
-    public virtual void ConfigureServices(IServiceCollection services)
+    protected virtual void ConfigureServices(IServiceCollection services)
     {
     }
 
