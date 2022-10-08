@@ -21,7 +21,8 @@ public class LocalstackFixture : ServicesFixture
         await localstack.StartAsync();
     }
 
-    public override void ConfigureSubdivisions(SubConfig subConfig) => subConfig.ServiceUrl = localstack.Url;
+    public override void ConfigureSubdivisions(SubConfig subConfig) =>
+        subConfig.ServiceUrl = localstack.Url;
 
     protected async Task<string> CreateDefaultKmsKey()
     {

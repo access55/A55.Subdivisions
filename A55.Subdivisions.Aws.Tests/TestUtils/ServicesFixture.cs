@@ -19,7 +19,8 @@ public class ServicesFixture
         MessageTimeoutInSeconds = faker.Random.Int(4, 60),
         MessageRetantionInDays = faker.Random.Int(4, 10),
         QueueMaxReceiveCount = faker.Random.Int(5, 10),
-        Source = faker.Internet.DomainWord()
+        Prefix = "The",
+        Source = "Test"
     };
 
     ServiceProvider serviceProvider = null!;
@@ -37,6 +38,7 @@ public class ServicesFixture
                     config: c =>
                     {
                         c.PubKey = config.PubKey;
+                        c.Prefix = config.Prefix;
                         c.Source = config.Source;
                         c.MessageDelayInSeconds = config.MessageDelayInSeconds;
                         c.MessageTimeoutInSeconds = config.MessageTimeoutInSeconds;

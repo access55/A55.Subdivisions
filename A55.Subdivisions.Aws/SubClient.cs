@@ -37,16 +37,13 @@ sealed class AwsSubClient : ISubClient
         this.queue = queue;
     }
 
-    public async Task<PublishResult> Publish(string topicName, string message, CancellationToken ctx = default) =>
-        await Publish(GetTopic(topicName), message, ctx);
-
-    public async ValueTask<IReadOnlyCollection<Message>> GetMessages(string topic, CancellationToken ctx = default) =>
-        await GetMessages(GetTopic(topic), ctx);
-
-    TopicName GetTopic(string name) => new(
+    TopicName CreateTopicName(string name) => new(
         name,
         config.Value
     );
+
+    public async Task<PublishResult> Publish(string topicName, string message, CancellationToken ctx = default) =>
+        await Publish(CreateTopicName(topicName), message, ctx);
 
     internal async Task<PublishResult> Publish(TopicName topic, string message, CancellationToken ctx)
     {
@@ -59,6 +56,9 @@ sealed class AwsSubClient : ISubClient
         var payload = serializer.Serialize(messagePayload);
         return await events.PushEvent(topic, payload, ctx);
     }
+
+    public async ValueTask<IReadOnlyCollection<Message>> GetMessages(string topic, CancellationToken ctx = default) =>
+        await GetMessages(CreateTopicName(topic), ctx);
 
     internal async ValueTask<IReadOnlyCollection<Message>> GetMessages(TopicName topic, CancellationToken ctx) =>
         await queue.ReceiveMessages(topic.FullQueueName, ctx);
