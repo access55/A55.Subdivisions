@@ -19,7 +19,7 @@ public class EventRuleBuilder
 
         EventName = $"{firstPart.ToLowerInvariant()}_{secondPart.ToLowerInvariant()}";
         TopicName = $"{firstPart}{secondPart}";
-        Topic = new(EventName, new() {Prefix = "Test"});
+        Topic = new(EventName, new() {Prefix = "The", Source = "Test"});
     }
 
     internal TopicName Topic { get; }

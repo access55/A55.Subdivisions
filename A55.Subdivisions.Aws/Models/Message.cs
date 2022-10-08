@@ -4,10 +4,9 @@ public record MessagePayload(string Event, DateTime DateTime, string Payload);
 
 public sealed class Message
 {
-    public Guid Id { get; }
+    readonly Func<Task> deleteMessage;
 
     readonly MessagePayload payload;
-    readonly Func<Task> deleteMessage;
 
     public Message(
         Guid Id,
@@ -18,6 +17,8 @@ public sealed class Message
         this.payload = payload;
         this.deleteMessage = deleteMessage;
     }
+
+    public Guid Id { get; }
 
     public string Body => payload.Payload;
     public DateTime Datetime => payload.DateTime;

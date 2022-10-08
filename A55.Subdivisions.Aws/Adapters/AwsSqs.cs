@@ -143,9 +143,12 @@ class AwsSqs
                 var message = serializer.Desserialize<MessagePayload>(body.Message) ??
                               throw new SerializationException("Unable to deserialize message");
 
-                Task DeleteMessage() =>
-                    sqs.DeleteMessageAsync(new() {QueueUrl = queueInfo.Url.ToString(), ReceiptHandle = m.ReceiptHandle},
+                Task DeleteMessage()
+                {
+                    return sqs.DeleteMessageAsync(
+                        new() {QueueUrl = queueInfo.Url.ToString(), ReceiptHandle = m.ReceiptHandle},
                         CancellationToken.None);
+                }
 
                 return new Message(body.MessageId, message, DeleteMessage);
             })

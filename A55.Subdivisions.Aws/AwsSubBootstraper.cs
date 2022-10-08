@@ -8,8 +8,8 @@ namespace A55.Subdivisions.Aws;
 class AwsSubdivisionsBootstrapper
 {
     readonly SubConfig config;
-    readonly ILogger<AwsSubdivisionsBootstrapper> logger;
     readonly AwsEvents events;
+    readonly ILogger<AwsSubdivisionsBootstrapper> logger;
     readonly AwsSns sns;
     readonly AwsSqs sqs;
 
@@ -30,9 +30,9 @@ class AwsSubdivisionsBootstrapper
 
     public async ValueTask EnsureTopicExists(string topic, CancellationToken ctx = default)
     {
-        TopicName topicName = new TopicName(
-            topic: topic,
-            config: config
+        var topicName = new TopicName(
+            topic,
+            config
         );
         await EnsureTopicExists(topicName, ctx);
     }

@@ -47,7 +47,7 @@ public class AwsEventsTests : LocalstackFixture
     public async Task TopicExistsShouldReturnFalseIfNotExists()
     {
         var aws = GetService<AwsEvents>();
-        var result = await aws.RuleExists(Faker.TopicName(), default);
+        var result = await aws.RuleExists(faker.TopicName(), default);
         result.Should().BeFalse();
     }
 
@@ -76,7 +76,7 @@ public class AwsEventsTests : LocalstackFixture
         var sns = GetService<IAmazonSimpleNotificationService>();
 
         var rule = new EventRuleBuilder();
-        TopicName topicName = rule.Topic;
+        var topicName = rule.Topic;
         await ev.PutRuleAsync(rule.CreateRule());
         var topic = await sns.CreateTopicAsync(new CreateTopicRequest {Name = topicName.FullTopicName});
 
@@ -92,8 +92,8 @@ public class AwsEventsTests : LocalstackFixture
     public async Task ShouldPushEvent()
     {
         var sut = GetService<AwsEvents>();
-        var topic = Faker.TopicName();
-        var message = JsonSerializer.Serialize(new {@event = topic.Topic, Loren = Faker.Lorem.Paragraph()});
+        var topic = faker.TopicName();
+        var message = JsonSerializer.Serialize(new {@event = topic.Topic, Loren = faker.Lorem.Paragraph()});
         var queue = await SetupQueueRule(topic);
 
         var result = await sut.PushEvent(topic, message, default);

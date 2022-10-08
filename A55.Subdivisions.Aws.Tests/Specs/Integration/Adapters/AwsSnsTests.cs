@@ -1,5 +1,4 @@
 using A55.Subdivisions.Aws.Adapters;
-using A55.Subdivisions.Aws.Models;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
@@ -12,7 +11,7 @@ public class AwsSnsTests : LocalstackFixture
     [Test]
     public async Task ShouldCreateNewTopic()
     {
-        var topicName = Faker.TopicName();
+        var topicName = faker.TopicName();
         var aws = GetService<AwsSns>();
         await CreateDefaultKmsKey();
 
@@ -27,7 +26,7 @@ public class AwsSnsTests : LocalstackFixture
     [Test]
     public async Task CreateTopicShouldBeIdempotent()
     {
-        var topicName = Faker.TopicName();
+        var topicName = faker.TopicName();
         var aws = GetService<AwsSns>();
         await CreateDefaultKmsKey();
 
@@ -44,7 +43,7 @@ public class AwsSnsTests : LocalstackFixture
     [Test]
     public async Task ShouldCreateNewTopicWithArn()
     {
-        var topicName = Faker.TopicName();
+        var topicName = faker.TopicName();
         var aws = GetService<AwsSns>();
         await CreateDefaultKmsKey();
 
@@ -59,7 +58,7 @@ public class AwsSnsTests : LocalstackFixture
     [Test]
     public async Task ShouldSubscribeTopic()
     {
-        var topicName = Faker.TopicName();
+        var topicName = faker.TopicName();
 
         var sns = GetService<IAmazonSimpleNotificationService>();
         var sqs = GetService<IAmazonSQS>();
@@ -75,7 +74,7 @@ public class AwsSnsTests : LocalstackFixture
         var subs = await sns.ListSubscriptionsAsync();
         subs.Subscriptions.Should().ContainEquivalentOf(new
         {
-            TopicArn = topic.TopicArn, Protocol = "sqs", Endpoint = queue.QueueARN,
+            topic.TopicArn, Protocol = "sqs", Endpoint = queue.QueueARN
         });
     }
 }

@@ -7,8 +7,6 @@ namespace A55.Subdivisions.Aws.Adapters;
 
 class AwsKms
 {
-    public record struct KeyId(string Value);
-
     readonly SubConfig config;
     readonly IAmazonKeyManagementService kms;
     KeyId? keyCache;
@@ -33,4 +31,6 @@ class AwsKms
         keyCache = new(key);
         return keyCache;
     }
+
+    public record struct KeyId(string Value);
 }

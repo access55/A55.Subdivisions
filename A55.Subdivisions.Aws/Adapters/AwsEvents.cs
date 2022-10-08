@@ -11,9 +11,9 @@ public record PublishResult(bool IsSuccess);
 
 class AwsEvents
 {
+    readonly SubConfig config;
     readonly IAmazonEventBridge eventBridge;
     readonly ILogger<AwsEvents> logger;
-    readonly SubConfig config;
 
     public AwsEvents(IAmazonEventBridge eventBridge, ILogger<AwsEvents> logger, IOptions<SubConfig> config)
     {
@@ -70,6 +70,6 @@ class AwsEvents
         };
         var response = await eventBridge.PutEventsAsync(request, ctx);
 
-        return new(IsSuccess: response.FailedEntryCount == 0);
+        return new(response.FailedEntryCount == 0);
     }
 }

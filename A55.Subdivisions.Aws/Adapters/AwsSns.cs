@@ -30,7 +30,10 @@ class AwsSns
         CreateTopicRequest request = new()
         {
             Name = topicName.FullTopicName,
-            Attributes = new() {[QueueAttributeName.KmsMasterKeyId] = keyId.Value, [QueueAttributeName.Policy] = policy,}
+            Attributes = new()
+            {
+                [QueueAttributeName.KmsMasterKeyId] = keyId.Value, [QueueAttributeName.Policy] = policy
+            }
         };
         var response = await sns.CreateTopicAsync(request, ctx);
         logger.LogDebug("SNS Creation Response is: {Response}", response.HttpStatusCode);
@@ -56,10 +59,10 @@ class AwsSns
                     Action = new[]
                     {
                         "SNS:GetTopicAttributes", "SNS:SetTopicAttributes", "SNS:AddPermission",
-                        "SNS:RemovePermission", "SNS:DeleteTopic", "SNS:Subscribe", "SNS:ListSubscriptionsByTopic",
-                        "SNS:Publish", "SNS:Receive",
+                        "SNS:RemovePermission", "SNS:DeleteTopic", "SNS:Subscribe",
+                        "SNS:ListSubscriptionsByTopic", "SNS:Publish", "SNS:Receive"
                     },
-                    Resource = $"arn:aws:sns:{region.SystemName}:*:{resourceName}",
+                    Resource = $"arn:aws:sns:{region.SystemName}:*:{resourceName}"
                 },
                 new
                 {
@@ -67,7 +70,7 @@ class AwsSns
                     Effect = "Allow",
                     Principal = new {Service = "events.amazonaws.com"},
                     Action = "sns:Publish",
-                    Resource = "*",
+                    Resource = "*"
                 }
             }
         });

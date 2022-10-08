@@ -11,11 +11,11 @@ public class AwsKmsTests : BaseTest
     [Test]
     public async Task ShouldGetKey()
     {
-        var keyName = Faker.Random.Word();
-        var keyId = Faker.Random.Guid().ToString();
+        var keyName = faker.Random.Word();
+        var keyId = faker.Random.Guid().ToString();
 
-        Mocker.Provide(Options.Create(new SubConfig {PubKey = keyName}));
-        var aws = Mocker.Generate<AwsKms>();
+        mocker.Provide(Options.Create(new SubConfig {PubKey = keyName}));
+        var aws = mocker.Generate<AwsKms>();
 
         var request = new ListAliasesRequest {Limit = 100};
         var response = new ListAliasesResponse
@@ -23,7 +23,7 @@ public class AwsKmsTests : BaseTest
             Aliases = new List<AliasListEntry> {new() {AliasName = keyName, TargetKeyId = keyId}}
         };
 
-        A.CallTo(() => Mocker.Resolve<IAmazonKeyManagementService>()
+        A.CallTo(() => mocker.Resolve<IAmazonKeyManagementService>()
                 .ListAliasesAsync(A<ListAliasesRequest>.That.IsEquivalentTo(request), A<CancellationToken>._))
             .Returns(response);
 
@@ -35,11 +35,11 @@ public class AwsKmsTests : BaseTest
     [Test]
     public async Task ShouldUseCacheAtSecondCall()
     {
-        var keyName = Faker.Random.Word();
-        var keyId = Faker.Random.Guid().ToString();
+        var keyName = faker.Random.Word();
+        var keyId = faker.Random.Guid().ToString();
 
-        Mocker.Provide(Options.Create(new SubConfig {PubKey = keyName}));
-        var aws = Mocker.Generate<AwsKms>();
+        mocker.Provide(Options.Create(new SubConfig {PubKey = keyName}));
+        var aws = mocker.Generate<AwsKms>();
 
         var request = new ListAliasesRequest {Limit = 100};
         var response = new ListAliasesResponse
@@ -47,7 +47,7 @@ public class AwsKmsTests : BaseTest
             Aliases = new List<AliasListEntry> {new() {AliasName = keyName, TargetKeyId = keyId}}
         };
 
-        var service = Mocker.Resolve<IAmazonKeyManagementService>();
+        var service = mocker.Resolve<IAmazonKeyManagementService>();
         A.CallTo(() =>
                 service.ListAliasesAsync(A<ListAliasesRequest>.That.IsEquivalentTo(request), A<CancellationToken>._))
             .Returns(response);
@@ -63,11 +63,11 @@ public class AwsKmsTests : BaseTest
     [Test]
     public async Task CacheShouldBeSameAsTheFirstCall()
     {
-        var keyName = Faker.Random.Word();
-        var keyId = Faker.Random.Guid().ToString();
+        var keyName = faker.Random.Word();
+        var keyId = faker.Random.Guid().ToString();
 
-        Mocker.Provide(Options.Create(new SubConfig {PubKey = keyName}));
-        var aws = Mocker.Generate<AwsKms>();
+        mocker.Provide(Options.Create(new SubConfig {PubKey = keyName}));
+        var aws = mocker.Generate<AwsKms>();
 
         var request = new ListAliasesRequest {Limit = 100};
         var response = new ListAliasesResponse
@@ -75,7 +75,7 @@ public class AwsKmsTests : BaseTest
             Aliases = new List<AliasListEntry> {new() {AliasName = keyName, TargetKeyId = keyId}}
         };
 
-        var service = Mocker.Resolve<IAmazonKeyManagementService>();
+        var service = mocker.Resolve<IAmazonKeyManagementService>();
         A.CallTo(() =>
                 service.ListAliasesAsync(A<ListAliasesRequest>.That.IsEquivalentTo(request), A<CancellationToken>._))
             .Returns(response);

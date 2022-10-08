@@ -4,7 +4,8 @@ namespace A55.Subdivisions.Aws.Tests.Specs.Unit;
 
 public class TopicNameTests
 {
-    public static readonly SubTopicNameConfig EmptyConfig = new() {Prefix = string.Empty, Suffix = string.Empty,};
+    public static readonly SubTopicNameConfig EmptyConfig =
+        new() {Prefix = string.Empty, Suffix = string.Empty, Source = "source"};
 
     [TestCase("0name")]
     [TestCase("name@bad")]
@@ -45,7 +46,7 @@ public class TopicNameTests
         const string sufix = "TheSufix";
         const string name = "NameToNormalize";
         const string expected = "ThePrefixNameToNormalizeTheSufix";
-        var topic = new TopicName(name, new SubTopicNameConfig {Prefix = prefix, Suffix = sufix});
+        var topic = new TopicName(name, new SubTopicNameConfig {Prefix = prefix, Suffix = sufix, Source = "source"});
 
         topic.FullTopicName.Should().Be(expected);
     }
@@ -77,17 +78,17 @@ public class TopicNameTests
         topic.FullQueueName.Should().NotStartWith("_").And.NotEndWith("_");
     }
 
-
     [Test]
     public void ShouldInferSourceNameByAssembly()
     {
         const string prefix = "ThePrefix";
         const string suffix = "TheSuffix";
+        const string sourceFallBack = "TheFallback";
         const string name = "NameToNormalize";
-        const string sourceName = "a55_subdivisions_aws_tests";
-        const string expected = $"the_prefix_{sourceName}_name_to_normalize_the_suffix";
+        const string expected = "the_prefix_the_fallback_name_to_normalize_the_suffix";
 
-        var topic = new TopicName(name, new SubTopicNameConfig {Prefix = prefix, Suffix = suffix, Source = null});
+        var topic = new TopicName(name,
+            new SubTopicNameConfig {Prefix = prefix, Suffix = suffix, Source = null, FallbackSource = sourceFallBack});
 
         topic.FullQueueName.Should().Be(expected);
     }

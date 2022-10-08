@@ -5,13 +5,13 @@ namespace A55.Subdivisions.Aws.Tests.Specs.Integration;
 
 public class AwsSubClientFixtures : LocalstackFixture
 {
-    TopicName topic = null!;
     IAmazonSQS sqs = null!;
+    TopicName topic = null!;
 
     [SetUp]
     public async Task Setup()
     {
-        topic = Faker.TopicName();
+        topic = faker.TopicName();
         sqs = GetService<IAmazonSQS>();
 
         await CreateDefaultKmsKey();
@@ -21,9 +21,9 @@ public class AwsSubClientFixtures : LocalstackFixture
     [Test]
     public async Task ShouldSendAndReceiveMessages()
     {
-        var message = Faker.Lorem.Lines();
-        var fakedDate = Faker.Date.Soon();
-        A.CallTo(() => FakeClock.Now()).Returns(fakedDate);
+        var message = faker.Lorem.Lines();
+        var fakedDate = faker.Date.Soon();
+        A.CallTo(() => fakeClock.Now()).Returns(fakedDate);
 
         var client = GetService<AwsSubClient>();
         await client.Publish(topic, message, default);

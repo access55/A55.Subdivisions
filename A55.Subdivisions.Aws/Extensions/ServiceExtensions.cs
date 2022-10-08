@@ -17,9 +17,8 @@ public static class ServiceExtensions
         AWSCredentials? credentials = null)
     {
         services
-            .Configure<SubConfig>(c => config?.Invoke(c));
-
-        services
+            .AddSingleton<IConfigureOptions<SubConfig>, ConfigureSubConfigOptions>()
+            .PostConfigure<SubConfig>(c => config?.Invoke(c))
             .AddSingleton<ISubClock, UtcClock>()
             .AddSingleton<ISubMessageSerializer, SubJsonSerializer>();
 
@@ -30,46 +29,28 @@ public static class ServiceExtensions
             .AddAwsConfig<AmazonKeyManagementServiceConfig>()
             .AddAwsConfig<AmazonSimpleNotificationServiceConfig>();
 
-        services.AddTransient<IAmazonSimpleNotificationService>(sp =>
-        {
-            var (cred, c) = sp.GetClientSettings<AmazonSimpleNotificationServiceConfig>();
-            return new AmazonSimpleNotificationServiceClient(cred, c);
-        });
+        services
+            .AddTransient<IAmazonSimpleNotificationService>(sp =>
+                new AmazonSimpleNotificationServiceClient(
+                    sp.GetAwsCredentials(), sp.GetRequiredService<AmazonSimpleNotificationServiceConfig>()))
+            .AddTransient<IAmazonSQS>(sp =>
+                new AmazonSQSClient(sp.GetAwsCredentials(), sp.GetRequiredService<AmazonSQSConfig>()))
+            .AddTransient<IAmazonEventBridge>(sp =>
+                new AmazonEventBridgeClient(sp.GetAwsCredentials(), sp.GetRequiredService<AmazonEventBridgeConfig>()))
+            .AddTransient<IAmazonKeyManagementService>(sp =>
+                new AmazonKeyManagementServiceClient(sp.GetAwsCredentials(),
+                    sp.GetRequiredService<AmazonKeyManagementServiceConfig>()));
 
-        services.AddTransient<IAmazonSQS>(sp =>
-        {
-            var (cred, c) = sp.GetClientSettings<AmazonSQSConfig>();
-            return new AmazonSQSClient(cred, c);
-        });
-
-        services.AddTransient<IAmazonEventBridge>(sp =>
-        {
-            var (cred, c) = sp.GetClientSettings<AmazonEventBridgeConfig>();
-            return new AmazonEventBridgeClient(cred, c);
-        });
-
-        services.AddTransient<IAmazonKeyManagementService>(sp =>
-        {
-            var (cred, c) = sp.GetClientSettings<AmazonKeyManagementServiceConfig>();
-            return new AmazonKeyManagementServiceClient(cred, c);
-        });
-
-        services.AddSingleton<AwsKms>();
-        services.AddTransient<AwsEvents>();
-        services.AddTransient<AwsSqs>();
-        services.AddTransient<AwsSns>();
-        services.AddTransient<AwsSubdivisionsBootstrapper>();
-        services.AddTransient<AwsSubClient>();
-        services.AddTransient<ISubClient>(sp => sp.GetRequiredService<AwsSubClient>());
+        services
+            .AddSingleton<AwsKms>()
+            .AddTransient<AwsEvents>()
+            .AddTransient<AwsSqs>()
+            .AddTransient<AwsSns>()
+            .AddTransient<AwsSubdivisionsBootstrapper>()
+            .AddTransient<AwsSubClient>()
+            .AddTransient<ISubClient>(sp => sp.GetRequiredService<AwsSubClient>());
 
         return services;
-    }
-
-    static (AWSCredentials, TConfig) GetClientSettings<TConfig>(this IServiceProvider sp) where TConfig : notnull
-    {
-        var cred = sp.GetRequiredService<AWSCredentials>();
-        var c = sp.GetRequiredService<TConfig>();
-        return (cred, c);
     }
 
     static IServiceCollection AddAwsConfig<TConfig>(this IServiceCollection services)
@@ -85,4 +66,7 @@ public static class ServiceExtensions
 
             return config;
         });
+
+    static AWSCredentials GetAwsCredentials(this IServiceProvider provider) =>
+        provider.GetRequiredService<AWSCredentials>();
 }

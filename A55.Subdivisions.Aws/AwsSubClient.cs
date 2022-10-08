@@ -13,12 +13,12 @@ interface ISubClient
 
 sealed class AwsSubClient : ISubClient
 {
-    readonly ILogger<AwsSubClient> logger;
-    readonly IOptions<SubConfig> config;
     readonly ISubClock clock;
-    readonly ISubMessageSerializer serializer;
+    readonly IOptions<SubConfig> config;
     readonly AwsEvents events;
+    readonly ILogger<AwsSubClient> logger;
     readonly AwsSqs queue;
+    readonly ISubMessageSerializer serializer;
 
     public AwsSubClient(
         ILogger<AwsSubClient> logger,
@@ -37,13 +37,16 @@ sealed class AwsSubClient : ISubClient
         this.queue = queue;
     }
 
-    TopicName GetTopic(string name) => new(
-        topic: name,
-        config: config.Value
-    );
-
     public async Task<PublishResult> Publish(string topicName, string message, CancellationToken ctx = default) =>
         await Publish(GetTopic(topicName), message, ctx);
+
+    public async ValueTask<IReadOnlyCollection<Message>> GetMessages(string topic, CancellationToken ctx = default) =>
+        await GetMessages(GetTopic(topic), ctx);
+
+    TopicName GetTopic(string name) => new(
+        name,
+        config.Value
+    );
 
     internal async Task<PublishResult> Publish(TopicName topic, string message, CancellationToken ctx)
     {
@@ -51,14 +54,11 @@ sealed class AwsSubClient : ISubClient
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(topic);
 
-        MessagePayload messagePayload = new(Event: topic.Topic, DateTime: clock.Now(), Payload: message);
+        MessagePayload messagePayload = new(topic.Topic, clock.Now(), message);
 
         var payload = serializer.Serialize(messagePayload);
         return await events.PushEvent(topic, payload, ctx);
     }
-
-    public async ValueTask<IReadOnlyCollection<Message>> GetMessages(string topic, CancellationToken ctx = default) =>
-        await GetMessages(GetTopic(topic), ctx);
 
     internal async ValueTask<IReadOnlyCollection<Message>> GetMessages(TopicName topic, CancellationToken ctx) =>
         await queue.ReceiveMessages(topic.FullQueueName, ctx);

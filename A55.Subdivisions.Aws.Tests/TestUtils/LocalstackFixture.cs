@@ -1,74 +1,27 @@
-﻿using System.Diagnostics;
-using A55.Subdivisions.Aws.Extensions;
-using A55.Subdivisions.Aws.Models;
+﻿using A55.Subdivisions.Aws.Models;
 using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
-using Amazon.Runtime;
-using Bogus;
 using DotNet.Testcontainers.Builders;
-using Microsoft.Extensions.DependencyInjection;
 
 [assembly: LevelOfParallelism(5)]
 
 namespace A55.Subdivisions.Aws.Tests.TestUtils;
 
 [Parallelizable(ParallelScope.Self)]
-public class LocalstackFixture
+public class LocalstackFixture : ServicesFixture
 {
-    protected SubConfig config = null!;
-
-    protected static Faker Faker = new("pt_BR");
-    protected ISubClock FakeClock = A.Fake<ISubClock>();
     LocalStackTestcontainer localstack = null!;
-    ServiceProvider serviceProvider = null!;
 
-    [SetUp]
-    public async Task OneTimeSetupLocalStackTest()
+    public override async Task BeforeSetup()
     {
-        config = new()
-        {
-            PubKey = $"alias/{Faker.Random.Replace("Key????")}",
-            MessageDelayInSeconds = Faker.Random.Int(0, 60),
-            MessageTimeoutInSeconds = Faker.Random.Int(4, 60),
-            MessageRetantionInDays = Faker.Random.Int(4, 10),
-            QueueMaxReceiveCount = Faker.Random.Int(5, 10),
-        };
-
         localstack = new TestcontainersBuilder<LocalStackTestcontainer>()
             .WithMessageBroker(new LocalStackTestcontainerConfiguration())
             .Build();
+
         await localstack.StartAsync();
-
-        var services =
-            new ServiceCollection()
-                .AddLogging()
-                .AddSubdivisionsClient(
-                    credentials: new AnonymousAWSCredentials(),
-                    config: c =>
-                    {
-                        c.ServiceUrl = localstack.Url;
-                        c.PubKey = config.PubKey;
-                        c.MessageDelayInSeconds = config.MessageDelayInSeconds;
-                        c.MessageTimeoutInSeconds = config.MessageTimeoutInSeconds;
-                        c.MessageRetantionInDays = config.MessageRetantionInDays;
-                        c.QueueMaxReceiveCount = config.QueueMaxReceiveCount;
-                    });
-
-        services.AddSingleton(FakeClock);
-        serviceProvider = services.BuildServiceProvider();
-
-        Fake.ClearConfiguration(FakeClock);
-        Fake.ClearRecordedCalls(FakeClock);
     }
 
-    [TearDown]
-    public async Task OneTimeTearDownLocalstackTest()
-    {
-        await localstack.DisposeAsync();
-        await serviceProvider.DisposeAsync();
-    }
-
-    public T GetService<T>() where T : notnull => serviceProvider.GetRequiredService<T>();
+    public override void ConfigureSubdivisions(SubConfig subConfig) => subConfig.ServiceUrl = localstack.Url;
 
     protected async Task<string> CreateDefaultKmsKey()
     {
@@ -95,7 +48,7 @@ public class LocalstackFixture
     public Task WaitFor(Func<Task<bool>> checkTask, TimeSpan? timeout = null, TimeSpan? next = null) =>
         WaitFor(
             checkTask,
-            timeout: timeout ?? TimeSpan.FromSeconds(5000),
-            next: next ?? TimeSpan.FromSeconds(1)
+            timeout ?? TimeSpan.FromSeconds(5000),
+            next ?? TimeSpan.FromSeconds(1)
         );
 }

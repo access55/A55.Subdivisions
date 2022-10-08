@@ -5,7 +5,6 @@ using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
 using Amazon.SQS.Model;
-using Docker.DotNet.Models;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration;
 
@@ -14,7 +13,7 @@ public class AwsSubBootstraperTests : LocalstackFixture
     [Test]
     public async Task ShouldCreateAllTopicResources()
     {
-        var topicName = Faker.TopicNameString();
+        var topicName = faker.TopicNameString();
         var bootstrapper = GetService<AwsSubdivisionsBootstrapper>();
         await CreateDefaultKmsKey();
 

@@ -1,6 +1,4 @@
 using A55.Subdivisions.Aws.Adapters;
-using Amazon.KeyManagementService;
-using Amazon.KeyManagementService.Model;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Newtonsoft.Json.Linq;
@@ -13,7 +11,7 @@ public class AwsSqsTests : LocalstackFixture
     public async Task ShouldGetQueueAttributes()
     {
         var sqs = GetService<IAmazonSQS>();
-        var queue = await sqs.CreateQueueAsync(Faker.Person.FirstName.ToLowerInvariant());
+        var queue = await sqs.CreateQueueAsync(faker.Person.FirstName.ToLowerInvariant());
 
         var aws = GetService<AwsSqs>();
         var result = await aws.GetQueueAttributes(queue.QueueUrl, default);
@@ -25,7 +23,7 @@ public class AwsSqsTests : LocalstackFixture
     public async Task QueueExistsShouldReturnTrue()
     {
         var sqs = GetService<IAmazonSQS>();
-        var queueName = Faker.Person.FirstName.ToLowerInvariant();
+        var queueName = faker.Person.FirstName.ToLowerInvariant();
         await sqs.CreateQueueAsync(queueName);
 
         var aws = GetService<AwsSqs>();
@@ -37,7 +35,7 @@ public class AwsSqsTests : LocalstackFixture
     [Test]
     public async Task QueueExistsShouldReturnFalse()
     {
-        var queueName = Faker.Person.FirstName.ToLowerInvariant();
+        var queueName = faker.Person.FirstName.ToLowerInvariant();
         var aws = GetService<AwsSqs>();
         var result = await aws.QueueExists(queueName, default);
         result.Should().BeFalse();
@@ -47,7 +45,7 @@ public class AwsSqsTests : LocalstackFixture
     public async Task GetQueueShoulsReturnQueueData()
     {
         var sqs = GetService<IAmazonSQS>();
-        var queueName = Faker.Person.FirstName.ToLowerInvariant();
+        var queueName = faker.Person.FirstName.ToLowerInvariant();
         var queue = await sqs.CreateQueueAsync(queueName);
 
         var aws = GetService<AwsSqs>();
@@ -59,7 +57,7 @@ public class AwsSqsTests : LocalstackFixture
     [Test]
     public async Task ShouldCreateNewQueue()
     {
-        var queueName = Faker.Person.FirstName.ToLowerInvariant();
+        var queueName = faker.Person.FirstName.ToLowerInvariant();
         var aws = GetService<AwsSqs>();
         await CreateDefaultKmsKey();
 
@@ -74,7 +72,7 @@ public class AwsSqsTests : LocalstackFixture
     [Test]
     public async Task ShouldCreateNewDeadletterQueue()
     {
-        var queueName = Faker.Person.FirstName.ToLowerInvariant();
+        var queueName = faker.Person.FirstName.ToLowerInvariant();
         var aws = GetService<AwsSqs>();
         await CreateDefaultKmsKey();
 
@@ -89,7 +87,7 @@ public class AwsSqsTests : LocalstackFixture
     [Test]
     public async Task ShouldCreateNewQueueWithTimedAttributes()
     {
-        var queueName = Faker.Person.FirstName.ToLowerInvariant();
+        var queueName = faker.Person.FirstName.ToLowerInvariant();
         await CreateDefaultKmsKey();
 
         var result = await GetService<AwsSqs>().CreateQueue(queueName, default);
@@ -111,7 +109,7 @@ public class AwsSqsTests : LocalstackFixture
     [Test]
     public async Task ShouldCreateNewQueueWithKmsKey()
     {
-        var queueName = Faker.Person.FirstName.ToLowerInvariant();
+        var queueName = faker.Person.FirstName.ToLowerInvariant();
         var keyId = await CreateDefaultKmsKey();
 
         var result = await GetService<AwsSqs>().CreateQueue(queueName, default);
@@ -125,7 +123,7 @@ public class AwsSqsTests : LocalstackFixture
     [Test]
     public async Task ShouldCreateNewQueueWithRedrivePolicy()
     {
-        var queueName = Faker.Person.FirstName.ToLowerInvariant();
+        var queueName = faker.Person.FirstName.ToLowerInvariant();
         var sqs = GetService<IAmazonSQS>();
         await CreateDefaultKmsKey();
 
