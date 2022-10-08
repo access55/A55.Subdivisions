@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 
 namespace A55.Subdivisions.Aws.Extensions;
 
-public static class ServiceExtensions
+public static class ServicesExtensions
 {
     public static IServiceCollection AddSubdivisionsClient(this IServiceCollection services,
         Action<SubConfig>? config = null,
