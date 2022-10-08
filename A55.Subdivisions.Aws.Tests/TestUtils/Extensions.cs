@@ -1,13 +1,20 @@
-﻿using Bogus;
+﻿using A55.Subdivisions.Aws.Models;
+using Bogus;
+using Newtonsoft.Json.Linq;
 
 namespace A55.Subdivisions.Aws.Tests.TestUtils;
+
+public static class Extensions
+{
+    public static JToken AsJToken(this string json) => JToken.Parse(json);
+}
 
 public static class FakerExtensions
 {
     public static string TopicNameString(this Faker faker) =>
         $"{faker.Person.FirstName}_{faker.Random.Replace("_?##?_?**?")}".ToLowerInvariant();
 
-    internal static TopicName TopicName(this Faker faker) => new(faker.TopicNameString());
+    internal static TopicName TopicName(this Faker faker) => new(faker.TopicNameString(), new() {Prefix = "Test",});
 }
 
 public static class FluentAssertionsComparer

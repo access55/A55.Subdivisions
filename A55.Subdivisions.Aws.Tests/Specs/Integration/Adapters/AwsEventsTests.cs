@@ -1,16 +1,19 @@
+using System.Text.Json;
 using A55.Subdivisions.Aws.Adapters;
+using A55.Subdivisions.Aws.Models;
 using A55.Subdivisions.Aws.Tests.Builders;
 using Amazon.EventBridge;
 using Amazon.EventBridge.Model;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
-using AutoBogus;
+using Amazon.SQS;
+using Amazon.SQS.Model;
 using FluentAssertions.Json;
 using Newtonsoft.Json.Linq;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration.Adapters;
 
-public class AwsEventsTests : LocalstackTest
+public class AwsEventsTests : LocalstackFixture
 {
     [Test]
     public async Task TopicExistsShouldReturnTrueIfRuleExists()
@@ -78,10 +81,49 @@ public class AwsEventsTests : LocalstackTest
         var topic = await sns.CreateTopicAsync(new CreateTopicRequest {Name = topicName.FullTopicName});
 
         var aws = GetService<AwsEvents>();
-        await aws.PutTarget(topicName.FullTopicName, new SnsArn(topic.TopicArn), default);
+        await aws.PutTarget(topicName, new SnsArn(topic.TopicArn), default);
 
         var target = await ev.ListTargetsByRuleAsync(new ListTargetsByRuleRequest {Rule = topicName.FullTopicName});
 
         target.Targets.Single().Arn.Should().Be(topic.TopicArn);
+    }
+
+    [Test]
+    public async Task ShouldPushEvent()
+    {
+        var sut = GetService<AwsEvents>();
+        var topic = Faker.TopicName();
+        var message = JsonSerializer.Serialize(new {@event = topic.Topic, Loren = Faker.Lorem.Paragraph()});
+        var queue = await SetupQueueRule(topic);
+
+        var result = await sut.PushEvent(topic, message, default);
+        result.IsSuccess.Should().BeTrue();
+
+        var messages = await GetService<IAmazonSQS>().ReceiveMessageAsync(queue);
+        messages.Messages.Single().Body.AsJToken().Should().BeEquivalentTo(message.AsJToken());
+    }
+
+    async Task<string> SetupQueueRule(TopicName topic)
+    {
+        var sqs = GetService<IAmazonSQS>();
+        var ev = GetService<IAmazonEventBridge>();
+        var createQueue = await sqs.CreateQueueAsync(new CreateQueueRequest {QueueName = topic.FullQueueName});
+        var queue = await sqs.GetQueueAttributesAsync(createQueue.QueueUrl, new() {QueueAttributeName.QueueArn});
+
+        await ev.PutRuleAsync(new PutRuleRequest
+        {
+            Name = topic.FullTopicName,
+            State = RuleState.ENABLED,
+            EventPattern =
+                $@"{{ ""detail-type"": [""{topic.Topic}""], ""detail"": {{ ""event"": [""{topic.Topic}""] }} }}"
+        });
+
+        await ev.PutTargetsAsync(new PutTargetsRequest
+        {
+            Rule = topic.FullTopicName,
+            Targets = new() {new() {Id = topic.FullTopicName, Arn = queue.QueueARN, InputPath = "$.detail"}}
+        });
+
+        return createQueue.QueueUrl;
     }
 }

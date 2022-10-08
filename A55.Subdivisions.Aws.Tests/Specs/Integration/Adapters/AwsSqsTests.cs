@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration.Adapters;
 
-public class AwsSqsTests : LocalstackTest
+public class AwsSqsTests : LocalstackFixture
 {
     [Test]
     public async Task ShouldGetQueueAttributes()

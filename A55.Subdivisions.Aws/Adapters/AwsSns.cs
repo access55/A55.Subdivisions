@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using A55.Subdivisions.Aws.Models;
 using Amazon;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
@@ -6,8 +7,6 @@ using Amazon.SQS;
 using Microsoft.Extensions.Logging;
 
 namespace A55.Subdivisions.Aws.Adapters;
-
-record SnsArn(string Value) : BaseArn(Value);
 
 class AwsSns
 {
@@ -31,7 +30,7 @@ class AwsSns
         CreateTopicRequest request = new()
         {
             Name = topicName.FullTopicName,
-            Attributes = new() {[QueueAttributeName.KmsMasterKeyId] = keyId, [QueueAttributeName.Policy] = policy,}
+            Attributes = new() {[QueueAttributeName.KmsMasterKeyId] = keyId.Value, [QueueAttributeName.Policy] = policy,}
         };
         var response = await sns.CreateTopicAsync(request, ctx);
         logger.LogDebug("SNS Creation Response is: {Response}", response.HttpStatusCode);

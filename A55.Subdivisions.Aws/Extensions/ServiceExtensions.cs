@@ -1,4 +1,5 @@
 ﻿using A55.Subdivisions.Aws.Adapters;
+using A55.Subdivisions.Aws.Models;
 using Amazon.EventBridge;
 using Amazon.KeyManagementService;
 using Amazon.Runtime;
@@ -17,6 +18,10 @@ public static class ServiceExtensions
     {
         services
             .Configure<SubConfig>(c => config?.Invoke(c));
+
+        services
+            .AddSingleton<ISubClock, UtcClock>()
+            .AddSingleton<ISubMessageSerializer, SubJsonSerializer>();
 
         services
             .AddSingleton(credentials ?? FallbackCredentialsFactory.GetCredentials())
@@ -54,6 +59,8 @@ public static class ServiceExtensions
         services.AddTransient<AwsSqs>();
         services.AddTransient<AwsSns>();
         services.AddTransient<AwsSubdivisionsBootstrapper>();
+        services.AddTransient<AwsSubClient>();
+        services.AddTransient<ISubClient>(sp => sp.GetRequiredService<AwsSubClient>());
 
         return services;
     }

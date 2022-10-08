@@ -1,7 +1,11 @@
-﻿namespace A55.Subdivisions.Aws.Tests.Specs.Unit;
+﻿using A55.Subdivisions.Aws.Models;
+
+namespace A55.Subdivisions.Aws.Tests.Specs.Unit;
 
 public class TopicNameTests
 {
+    public static readonly SubTopicNameConfig EmptyConfig = new() {Prefix = string.Empty, Suffix = string.Empty,};
+
     [TestCase("0name")]
     [TestCase("name@bad")]
     [TestCase("name$bad")]
@@ -11,7 +15,7 @@ public class TopicNameTests
     [TestCase("abcde")]
     public void ShouldThrowIfBadName(string badName)
     {
-        var action = () => new TopicName(badName);
+        var action = () => new TopicName(badName, EmptyConfig);
         action.Should().Throw<ArgumentException>();
     }
 
@@ -20,7 +24,7 @@ public class TopicNameTests
     [TestCase("abc123")]
     public void ShouldNotThrowIfGoodName(string goodName)
     {
-        var action = () => new TopicName(goodName);
+        var action = () => new TopicName(goodName, EmptyConfig);
         action.Should().NotThrow();
     }
 
@@ -29,7 +33,7 @@ public class TopicNameTests
     {
         const string name = "NameToNormalize";
         const string expected = "name_to_normalize";
-        var topic = new TopicName(name);
+        var topic = new TopicName(name, EmptyConfig);
 
         topic.Topic.Should().Be(expected);
     }
@@ -41,8 +45,50 @@ public class TopicNameTests
         const string sufix = "TheSufix";
         const string name = "NameToNormalize";
         const string expected = "ThePrefixNameToNormalizeTheSufix";
-        var topic = new TopicName(name, prefix, sufix);
+        var topic = new TopicName(name, new SubTopicNameConfig {Prefix = prefix, Suffix = sufix});
 
         topic.FullTopicName.Should().Be(expected);
+    }
+
+    [Test]
+    public void ShouldNormalizeQueueName()
+    {
+        const string prefix = "ThePrefix";
+        const string suffix = "TheSuffix";
+        const string source = "TheSource";
+        const string name = "NameToNormalize";
+        const string expected = "the_prefix_the_source_name_to_normalize_the_suffix";
+
+        var topic = new TopicName(name, new SubTopicNameConfig {Prefix = prefix, Suffix = suffix, Source = source});
+
+        topic.FullQueueName.Should().Be(expected);
+    }
+
+    [TestCase("ThePrefix", "")]
+    [TestCase("", "TheSuffix")]
+    [TestCase("", "")]
+    public void ShouldNotHaveUnderscoreAtEdges(string prefix, string suffix)
+    {
+        const string source = "TheSource";
+        const string name = "NameToNormalize";
+
+        var topic = new TopicName(name, new SubTopicNameConfig {Prefix = "", Suffix = suffix, Source = source});
+
+        topic.FullQueueName.Should().NotStartWith("_").And.NotEndWith("_");
+    }
+
+
+    [Test]
+    public void ShouldInferSourceNameByAssembly()
+    {
+        const string prefix = "ThePrefix";
+        const string suffix = "TheSuffix";
+        const string name = "NameToNormalize";
+        const string sourceName = "a55_subdivisions_aws_tests";
+        const string expected = $"the_prefix_{sourceName}_name_to_normalize_the_suffix";
+
+        var topic = new TopicName(name, new SubTopicNameConfig {Prefix = prefix, Suffix = suffix, Source = null});
+
+        topic.FullQueueName.Should().Be(expected);
     }
 }

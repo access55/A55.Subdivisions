@@ -9,7 +9,7 @@ using Docker.DotNet.Models;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration;
 
-public class AwsSubBootstraperTests : LocalstackTest
+public class AwsSubBootstraperTests : LocalstackFixture
 {
     [Test]
     public async Task ShouldCreateAllTopicResources()

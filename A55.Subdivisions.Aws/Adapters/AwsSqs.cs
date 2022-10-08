@@ -1,12 +1,13 @@
-﻿using System.Text.Json;
+﻿using System.Runtime.Serialization;
+using System.Text.Json;
+using A55.Subdivisions.Aws.Models;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Message = A55.Subdivisions.Aws.Models.Message;
 
 namespace A55.Subdivisions.Aws.Adapters;
-
-record SqsArn(string Value) : BaseArn(Value);
 
 record QueueInfo(Uri Url, SqsArn Arn);
 
@@ -32,13 +33,21 @@ class AwsSqs
     readonly SubConfig config;
     readonly AwsKms kms;
     readonly ILogger<AwsSqs> logger;
+    readonly ISubMessageSerializer serializer;
     readonly IAmazonSQS sqs;
 
-    public AwsSqs(IAmazonSQS sqs, AwsKms kms, ILogger<AwsSqs> logger, IOptions<SubConfig> config)
+    public AwsSqs(
+        ILogger<AwsSqs> logger,
+        IOptions<SubConfig> config,
+        ISubMessageSerializer serializer,
+        IAmazonSQS sqs,
+        AwsKms kms
+    )
     {
         this.sqs = sqs;
         this.kms = kms;
         this.logger = logger;
+        this.serializer = serializer;
         this.config = config.Value;
     }
 
@@ -72,7 +81,7 @@ class AwsSqs
         var keyId = await kms.GetKey(ctx) ??
                     throw new InvalidOperationException("Default KMS EncryptionKey Id not found");
 
-        var deadLetter = await CreateDeadletterQueue(queueName, keyId, ctx);
+        var deadLetter = await CreateDeadletterQueue(queueName, keyId.Value, ctx);
 
         var deadLetterPolicy = new
         {
@@ -87,7 +96,7 @@ class AwsSqs
                 {
                     [QueueAttributeName.RedrivePolicy] = JsonSerializer.Serialize(deadLetterPolicy),
                     [QueueAttributeName.Policy] = IAM,
-                    [QueueAttributeName.KmsMasterKeyId] = keyId,
+                    [QueueAttributeName.KmsMasterKeyId] = keyId.Value,
                     [QueueAttributeName.VisibilityTimeout] = config.MessageTimeoutInSeconds.ToString(),
                     [QueueAttributeName.DelaySeconds] = config.MessageDelayInSeconds.ToString(),
                     [QueueAttributeName.MessageRetentionPeriod] = config.MessageRetantionInDays.ToString()
@@ -106,5 +115,52 @@ class AwsSqs
                 Attributes = new() {["Policy"] = IAM, ["KmsMasterKeyId"] = keyId}
             }, ctx);
         return await GetQueueAttributes(q.QueueUrl, ctx);
+    }
+
+    public async Task<IReadOnlyCollection<Message>> ReceiveMessages(
+        string queue,
+        CancellationToken ctx)
+    {
+        var queueInfo = await GetQueue(queue, ctx);
+        if (queueInfo is null)
+            throw new InvalidOperationException($"Unable to get '{queue}' data");
+
+        var readMessagesRequest = await sqs.ReceiveMessageAsync(
+            new ReceiveMessageRequest
+            {
+                QueueUrl = queueInfo.Url.ToString(), MaxNumberOfMessages = config.QueueMaxReceiveCount
+            }, ctx);
+
+        if (readMessagesRequest?.Messages is not { } messages)
+            return ArraySegment<Message>.Empty;
+
+        return messages
+            .Select(m =>
+            {
+                var body = JsonSerializer.Deserialize<SqsMessageBody>(m.Body) ??
+                           throw new SerializationException("Unable to deserialize message");
+
+                var message = serializer.Desserialize<MessagePayload>(body.Message) ??
+                              throw new SerializationException("Unable to deserialize message");
+
+                Task DeleteMessage() =>
+                    sqs.DeleteMessageAsync(new() {QueueUrl = queueInfo.Url.ToString(), ReceiptHandle = m.ReceiptHandle},
+                        CancellationToken.None);
+
+                return new Message(body.MessageId, message, DeleteMessage);
+            })
+            .ToArray();
+    }
+
+    class SqsMessageBody
+    {
+        public SqsMessageBody(Guid messageId, string message)
+        {
+            MessageId = messageId;
+            Message = message;
+        }
+
+        public Guid MessageId { get; set; }
+        public string Message { get; set; }
     }
 }

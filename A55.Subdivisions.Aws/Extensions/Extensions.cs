@@ -8,6 +8,8 @@ static class Extensions
         string.Concat(snakeName.ToLowerInvariant().Split('_')
             .Select(CultureInfo.InvariantCulture.TextInfo.ToTitleCase));
 
+    public static string TrimUnderscores(this string text) => text.Trim('_');
+
     public static string PascalToSnakeCase(this string str)
         => string.Concat(str
                 .Select((x, i) =>

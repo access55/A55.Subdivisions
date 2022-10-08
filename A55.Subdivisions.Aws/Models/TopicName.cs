@@ -1,26 +1,25 @@
 ﻿using System.Reflection;
 using A55.Subdivisions.Aws.Extensions;
 
-namespace A55.Subdivisions.Aws;
+namespace A55.Subdivisions.Aws.Models;
 
 class TopicName
 {
-    public TopicName(string topic, string prefix = "", string sufix = "", string? source = null)
+    public TopicName(string topic, SubTopicNameConfig config)
     {
         if (!IsValidTopicName(topic))
             throw new ArgumentException($"Invalid topic name {topic}", nameof(topic));
 
-        Prefix = prefix;
-        Sufix = sufix;
-
+        Prefix = config.Prefix.PascalToSnakeCase();
+        Suffix = config.Suffix.PascalToSnakeCase();
         Topic = topic.PascalToSnakeCase();
-        Source = source?.PascalToSnakeCase() ?? DefaultSourceName();
+        Source = (config.Source ?? DefaultSourceName()).PascalToSnakeCase();
 
         FullTopicName =
-            $"{Prefix}{Topic.SnakeToPascalCase()}{Sufix}";
+            $"{Prefix.SnakeToPascalCase()}{Topic.SnakeToPascalCase()}{Suffix.SnakeToPascalCase()}";
 
         FullQueueName =
-            $"{Prefix.SnakeToPascalCase()}_{Source}_{Topic}{Sufix.SnakeToPascalCase()}";
+            $"{Prefix}_{Source}_{Topic}_{Suffix}".TrimUnderscores();
     }
 
     static string DefaultSourceName() =>
@@ -38,7 +37,7 @@ class TopicName
     public string Topic { get; }
     public string Source { get; }
     public string Prefix { get; }
-    public string Sufix { get; }
+    public string Suffix { get; }
 
     public override string ToString() => FullTopicName;
 }

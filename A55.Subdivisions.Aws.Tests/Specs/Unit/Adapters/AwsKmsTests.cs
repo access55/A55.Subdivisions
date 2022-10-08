@@ -1,4 +1,5 @@
 using A55.Subdivisions.Aws.Adapters;
+using A55.Subdivisions.Aws.Models;
 using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
 using Microsoft.Extensions.Options;
@@ -28,7 +29,7 @@ public class AwsKmsTests : BaseTest
 
         var result = await aws.GetKey(default);
 
-        result.Should().Be(keyId);
+        result.Should().Be(new AwsKms.KeyId(keyId));
     }
 
     [Test]
@@ -82,6 +83,6 @@ public class AwsKmsTests : BaseTest
         var first = await aws.GetKey(default);
         var second = await aws.GetKey(default);
 
-        first.Should().BeSameAs(second);
+        first.Should().Be(second);
     }
 }

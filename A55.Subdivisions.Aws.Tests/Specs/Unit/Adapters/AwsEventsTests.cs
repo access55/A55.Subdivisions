@@ -1,4 +1,5 @@
 using A55.Subdivisions.Aws.Adapters;
+using A55.Subdivisions.Aws.Models;
 using Amazon.EventBridge;
 using Amazon.EventBridge.Model;
 using Microsoft.Extensions.Logging;
@@ -10,7 +11,7 @@ public class AwsEventsTests : BaseTest
     [Test]
     public async Task TopicExistsShouldReturnTrueIfRuleExists()
     {
-        var topicName = new TopicName(Faker.Random.String2(10));
+        var topicName = Faker.TopicName();
         Mocker.Provide(A.Fake<ILogger<AwsEvents>>());
         var aws = Mocker.Generate<AwsEvents>();
 

@@ -1,4 +1,5 @@
 using A55.Subdivisions.Aws.Adapters;
+using A55.Subdivisions.Aws.Models;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
@@ -6,14 +7,12 @@ using Amazon.SQS.Model;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration.Adapters;
 
-public class AwsSnsTests : LocalstackTest
+public class AwsSnsTests : LocalstackFixture
 {
     [Test]
     public async Task ShouldCreateNewTopic()
     {
-        var name = $"{Faker.Person.FirstName}_{Faker.Name.LastName()}_{Faker.Random.AlphaNumeric(6)}"
-            .ToLowerInvariant();
-        var topicName = new TopicName(name);
+        var topicName = Faker.TopicName();
         var aws = GetService<AwsSns>();
         await CreateDefaultKmsKey();
 
@@ -28,9 +27,7 @@ public class AwsSnsTests : LocalstackTest
     [Test]
     public async Task CreateTopicShouldBeIdempotent()
     {
-        var name = $"{Faker.Person.FirstName}_{Faker.Name.LastName()}_{Faker.Random.AlphaNumeric(6)}"
-            .ToLowerInvariant();
-        var topicName = new TopicName(name);
+        var topicName = Faker.TopicName();
         var aws = GetService<AwsSns>();
         await CreateDefaultKmsKey();
 
@@ -47,7 +44,7 @@ public class AwsSnsTests : LocalstackTest
     [Test]
     public async Task ShouldCreateNewTopicWithArn()
     {
-        var topicName = new TopicName(Faker.Random.String2(10).ToLowerInvariant());
+        var topicName = Faker.TopicName();
         var aws = GetService<AwsSns>();
         await CreateDefaultKmsKey();
 
@@ -62,7 +59,7 @@ public class AwsSnsTests : LocalstackTest
     [Test]
     public async Task ShouldSubscribeTopic()
     {
-        var topicName = new TopicName(Faker.Random.String2(10).ToLowerInvariant());
+        var topicName = Faker.TopicName();
 
         var sns = GetService<IAmazonSimpleNotificationService>();
         var sqs = GetService<IAmazonSQS>();

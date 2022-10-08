@@ -1,22 +1,25 @@
 ﻿using System.Reflection;
-using Amazon;
+using A55.Subdivisions.Aws.Models;
 using Amazon.EventBridge;
 using Amazon.EventBridge.Model;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace A55.Subdivisions.Aws.Adapters;
 
-record RuleArn(string Value) : BaseArn(Value);
+public record PublishResult(bool IsSuccess);
 
 class AwsEvents
 {
     readonly IAmazonEventBridge eventBridge;
     readonly ILogger<AwsEvents> logger;
+    readonly SubConfig config;
 
-    public AwsEvents(IAmazonEventBridge eventBridge, ILogger<AwsEvents> logger)
+    public AwsEvents(IAmazonEventBridge eventBridge, ILogger<AwsEvents> logger, IOptions<SubConfig> config)
     {
         this.eventBridge = eventBridge;
         this.logger = logger;
+        this.config = config.Value;
     }
 
     public async Task<bool> RuleExists(TopicName topicName, CancellationToken ctx)
@@ -27,12 +30,15 @@ class AwsEvents
                rules.Rules.Any(r => r.Name.Trim() == topicName.FullTopicName && r.State == RuleState.ENABLED);
     }
 
-    public Task PutTarget(string ruleName, SnsArn snsArn, CancellationToken ctx) => eventBridge
+    public Task PutTarget(TopicName topic, SnsArn snsArn, CancellationToken ctx) => eventBridge
         .PutTargetsAsync(
             new()
             {
-                Rule = ruleName,
-                Targets = new List<Target> {new() {Id = ruleName, Arn = snsArn.Value, InputPath = "$.detail"}}
+                Rule = topic.FullTopicName,
+                Targets = new List<Target>
+                {
+                    new() {Id = topic.FullTopicName, Arn = snsArn.Value, InputPath = "$.detail"}
+                }
             }, ctx);
 
     public async Task<RuleArn> CreateRule(TopicName topicName, CancellationToken ctx)
@@ -54,5 +60,16 @@ class AwsEvents
         logger.LogDebug("Event Create/Update Response is: {Response}", response.HttpStatusCode);
 
         return new(response.RuleArn);
+    }
+
+    public async Task<PublishResult> PushEvent(TopicName topic, string message, CancellationToken ctx)
+    {
+        PutEventsRequest request = new()
+        {
+            Entries = new() {new() {DetailType = topic.Topic, Source = config.Source, Detail = message}}
+        };
+        var response = await eventBridge.PutEventsAsync(request, ctx);
+
+        return new(IsSuccess: response.FailedEntryCount == 0);
     }
 }

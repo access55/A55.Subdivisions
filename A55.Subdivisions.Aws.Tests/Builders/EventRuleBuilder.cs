@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using A55.Subdivisions.Aws.Models;
 using Amazon.EventBridge;
 using Amazon.EventBridge.Model;
 using Bogus;
@@ -7,18 +8,18 @@ namespace A55.Subdivisions.Aws.Tests.Builders;
 
 public class EventRuleBuilder
 {
-    readonly Faker faker = new();
+    readonly Faker faker = new("pt_BR");
 
     string state = RuleState.ENABLED;
 
     public EventRuleBuilder()
     {
         var firstPart = faker.Person.FirstName;
-        var secondPart = $"{faker.Person.FirstName}{faker.Random.Replace("####")}";
+        var secondPart = $"{faker.Person.LastName}{faker.Random.Replace("?###?").ToLowerInvariant()}";
 
         EventName = $"{firstPart.ToLowerInvariant()}_{secondPart.ToLowerInvariant()}";
         TopicName = $"{firstPart}{secondPart}";
-        Topic = new(EventName);
+        Topic = new(EventName, new() {Prefix = "Test"});
     }
 
     internal TopicName Topic { get; }
@@ -41,7 +42,7 @@ public class EventRuleBuilder
 
     public PutRuleRequest CreateRule() => new()
     {
-        Name = TopicName,
+        Name = Topic.FullTopicName,
         Description = faker.Lorem.Paragraph(),
         State = state,
         EventBusName = "default",
