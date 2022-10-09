@@ -33,7 +33,7 @@ public class LocalstackFixture : ServicesFixture
         c.MessageRetantionInDays = faker.Random.Int(4, 10);
         c.QueueMaxReceiveCount = faker.Random.Int(5, 10);
         c.Prefix = faker.Random.Replace("?##");
-        c.Source = faker.Internet.DomainWord().SnakeToPascalCase();
+        c.Source = faker.Internet.UserNameUnicode().Replace(".", "").SnakeToPascalCase();
     }
 
     [SetUp]

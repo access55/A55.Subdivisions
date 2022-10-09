@@ -8,7 +8,7 @@ namespace A55.Subdivisions.Aws.Tests.TestUtils;
 
 public class ServicesFixture
 {
-    protected static readonly Faker faker = new("pt_BR");
+    protected static readonly Faker faker = new();
 
     protected readonly ISubClock fakeClock = A.Fake<ISubClock>();
 

@@ -13,22 +13,22 @@ record QueueInfo(Uri Url, SqsArn Arn);
 
 class AwsSqs
 {
-    const string IAM = @"
-{
-  ""Id"": ""SQSEventsPolicy"",
-  ""Version"": ""2012-10-17"",
-  ""Statement"": [
+    public static readonly string IAM = JsonSerializer.Serialize(new
     {
-      ""Sid"": ""Allow_SQS_Services"",
-      ""Action"": ""sqs:*"",
-      ""Effect"": ""Allow"",
-      ""Resource"": ""arn:aws:sqs:*"",
-      ""Principal"": {
-        ""AWS"": ""*""
-      }
-    }
-  ]
-}";
+        Id = "SQSEventsPolicy",
+        Version = "2012-10-17",
+        Statement = new[]
+        {
+            new
+            {
+                Sid = "Allow_SQS_Services",
+                Action = "sqs:*",
+                Effect = "Allow",
+                Resource = "arn:aws:sqs:*",
+                Principal = new {AWS = "*"}
+            }
+        }
+    });
 
     readonly SubConfig config;
     readonly AwsKms kms;

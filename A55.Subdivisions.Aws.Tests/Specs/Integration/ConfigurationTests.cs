@@ -28,7 +28,9 @@ public class ConfigurationHostTests : ServicesFixture
 
 public class ConfigurationTests : ServicesFixture
 {
-    readonly SubConfig randomConfig = AutoFaker.Generate<SubConfig>();
+    readonly SubConfig randomConfig = new AutoFaker<SubConfig>()
+        .RuleFor(x => x.Region, "us-east-1")
+        .Generate();
 
     protected override void ConfigureServices(IServiceCollection services)
     {
