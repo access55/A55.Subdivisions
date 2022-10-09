@@ -1,5 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using System.Text.Json;
+using A55.Subdivisions.Aws.Extensions;
 
 namespace A55.Subdivisions.Aws;
 
@@ -9,9 +10,15 @@ public interface ISubMessageSerializer
     TValue Deserialize<TValue>(ReadOnlySpan<char> json);
 }
 
+class SnakeCaseNamingPolicy : JsonNamingPolicy
+{
+    public static SnakeCaseNamingPolicy Instance { get; } = new();
+    public override string ConvertName(string name) => name.ToSnakeCase();
+}
+
 public class SubJsonSerializer : ISubMessageSerializer
 {
-    static readonly JsonSerializerOptions jsonOptions = new() {PropertyNamingPolicy = JsonNamingPolicy.CamelCase};
+    static readonly JsonSerializerOptions jsonOptions = new() {PropertyNamingPolicy = SnakeCaseNamingPolicy.Instance};
 
     public string Serialize<TValue>(TValue something) =>
         JsonSerializer.Serialize(something, jsonOptions);

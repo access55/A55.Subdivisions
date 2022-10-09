@@ -9,10 +9,10 @@ class TopicName
         if (!IsValidTopicName(topic))
             throw new ArgumentException($"Invalid topic name {topic}", nameof(topic));
 
-        Prefix = config.Prefix.PascalToSnakeCase();
-        Suffix = config.Suffix.PascalToSnakeCase();
-        Topic = topic.PascalToSnakeCase();
-        Source = (config.Source ?? config.FallbackSource)?.PascalToSnakeCase() ??
+        Prefix = config.Prefix.ToSnakeCase();
+        Suffix = config.Suffix.ToSnakeCase();
+        Topic = topic.ToSnakeCase();
+        Source = (config.Source ?? config.FallbackSource)?.ToSnakeCase() ??
                  throw new InvalidOperationException("Unable to infer the source name");
 
         FullTopicName =

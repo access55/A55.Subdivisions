@@ -10,7 +10,7 @@ static class Extensions
 
     public static string TrimUnderscores(this string text) => text.Trim('_');
 
-    public static string PascalToSnakeCase(this string str)
+    public static string ToSnakeCase(this string str)
         => string.Concat(str
                 .Select((x, i) =>
                     i > 0 && i < str.Length - 1 && char.IsUpper(x) && !char.IsUpper(str[i - 1])
