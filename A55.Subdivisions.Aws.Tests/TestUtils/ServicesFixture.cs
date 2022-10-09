@@ -12,17 +12,6 @@ public class ServicesFixture
 
     protected readonly ISubClock fakeClock = A.Fake<ISubClock>();
 
-    protected readonly SubConfig config = new()
-    {
-        PubKey = $"alias/{faker.Random.Replace("Key????")}",
-        MessageDelayInSeconds = faker.Random.Int(0, 60),
-        MessageTimeoutInSeconds = faker.Random.Int(4, 60),
-        MessageRetantionInDays = faker.Random.Int(4, 10),
-        QueueMaxReceiveCount = faker.Random.Int(5, 10),
-        Prefix = "The",
-        Source = "Test"
-    };
-
     ServiceProvider serviceProvider = null!;
 
     [SetUp]
@@ -35,17 +24,7 @@ public class ServicesFixture
                 .AddLogging()
                 .AddSubdivisionsClient(
                     credentials: new AnonymousAWSCredentials(),
-                    config: c =>
-                    {
-                        c.PubKey = config.PubKey;
-                        c.Prefix = config.Prefix;
-                        c.Source = config.Source;
-                        c.MessageDelayInSeconds = config.MessageDelayInSeconds;
-                        c.MessageTimeoutInSeconds = config.MessageTimeoutInSeconds;
-                        c.MessageRetantionInDays = config.MessageRetantionInDays;
-                        c.QueueMaxReceiveCount = config.QueueMaxReceiveCount;
-                        ConfigureSubdivisions(c);
-                    });
+                    config: ConfigureSubdivisions);
 
         services.AddSingleton(fakeClock);
         ConfigureServices(services);
@@ -57,7 +36,7 @@ public class ServicesFixture
 
     protected virtual Task BeforeSetup() => Task.CompletedTask;
 
-    protected virtual void ConfigureSubdivisions(SubConfig subConfig)
+    protected virtual void ConfigureSubdivisions(SubConfig c)
     {
     }
 

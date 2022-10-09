@@ -2,6 +2,7 @@
 using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
 using DotNet.Testcontainers.Builders;
+using Microsoft.Extensions.Options;
 
 [assembly: LevelOfParallelism(5)]
 
@@ -11,6 +12,7 @@ namespace A55.Subdivisions.Aws.Tests.TestUtils;
 public class LocalstackFixture : ServicesFixture
 {
     LocalStackTestcontainer localstack = null!;
+    protected SubConfig config = null!;
 
     protected override async Task BeforeSetup()
     {
@@ -21,8 +23,20 @@ public class LocalstackFixture : ServicesFixture
         await localstack.StartAsync();
     }
 
-    protected override void ConfigureSubdivisions(SubConfig subConfig) =>
-        subConfig.ServiceUrl = localstack.Url;
+    protected override void ConfigureSubdivisions(SubConfig c)
+    {
+        c.ServiceUrl = localstack.Url;
+        c.PubKey = $"alias/{faker.Random.Replace("Key????")}";
+        c.MessageDelayInSeconds = faker.Random.Int(0, 60);
+        c.MessageTimeoutInSeconds = faker.Random.Int(4, 60);
+        c.MessageRetantionInDays = faker.Random.Int(4, 10);
+        c.QueueMaxReceiveCount = faker.Random.Int(5, 10);
+        c.Prefix = "The";
+        c.Source = "Test";
+    }
+
+    [SetUp]
+    public void LocalstackSetup() => config = GetService<IOptions<SubConfig>>().Value;
 
     protected async Task<string> CreateDefaultKmsKey()
     {
