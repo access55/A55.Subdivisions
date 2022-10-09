@@ -1,12 +1,7 @@
-﻿namespace A55.Subdivisions.Aws;
+﻿namespace A55.Subdivisions.Aws.Models;
 
-record BaseArn(string Value)
-{
-    public override string ToString() => Value;
-}
+readonly record struct RuleArn(in string Value);
 
-record RuleArn(string Value) : BaseArn(Value);
+readonly record struct SnsArn(in string Value);
 
-record SnsArn(string Value) : BaseArn(Value);
-
-record SqsArn(string Value) : BaseArn(Value);
+readonly record struct SqsArn(in string Value);

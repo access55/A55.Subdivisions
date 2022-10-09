@@ -1,23 +1,12 @@
 ﻿using A55.Subdivisions.Aws.Models;
+using A55.Subdivisions.Aws.Tests.Builders;
 using Amazon.SQS;
+using NUnit.Framework.Internal;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration;
 
-public class AwsSubClientFixtures : LocalstackFixture
+public class AwsSubClientTests : AwsSubClientFixture
 {
-    IAmazonSQS sqs = null!;
-    TopicName topic = null!;
-
-    [SetUp]
-    public async Task Setup()
-    {
-        topic = faker.TopicName(config);
-        sqs = GetService<IAmazonSQS>();
-
-        await CreateDefaultKmsKey();
-        await GetService<AwsSubdivisionsBootstrapper>().EnsureTopicExists(topic, default);
-    }
-
     [Test]
     public async Task ShouldSendAndReceiveMessages()
     {
@@ -30,11 +19,14 @@ public class AwsSubClientFixtures : LocalstackFixture
 
         await WaitFor(() => sqs.HasMessagesOn(topic.FullQueueName), TimeSpan.FromMinutes(1));
 
-        var messages = await client.GetMessages(topic, default);
+        var messages = await client.Receive(topic, default);
 
         messages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
     }
+}
 
+public class AwsSubClientInterfaceTests : AwsSubClientFixture
+{
     [Test]
     public async Task ShouldSendAndReceiveMessagesOnClassPublicApi()
     {
@@ -50,8 +42,49 @@ public class AwsSubClientFixtures : LocalstackFixture
 
         await WaitFor(() => sqs.HasMessagesOn(queueName), TimeSpan.FromMinutes(1));
 
-        var messages = await client.GetMessages(stringTopicName, default);
+        var messages = await client.Receive(stringTopicName, default);
 
         messages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
+    }
+}
+
+public class AwsSubClientSerializerTests : AwsSubClientFixture
+{
+    [Test]
+    public async Task ShouldSendAndReceiveSerializedMessages()
+    {
+        var message = TestMessage.New();
+
+        var stringTopicName = topic.Topic;
+        var queueName = topic.FullQueueName;
+
+        var fakedDate = faker.Date.Soon();
+        A.CallTo(() => fakeClock.Now()).Returns(fakedDate);
+
+        var client = GetService<ISubClient>();
+        await client.Publish<TestMessage>(stringTopicName, message, default);
+
+        await WaitFor(() => sqs.HasMessagesOn(queueName), TimeSpan.FromMinutes(1));
+
+        var messages = await client.Receive<TestMessage>(stringTopicName, default);
+
+        messages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
+    }
+}
+
+[Parallelizable(ParallelScope.Self)]
+public class AwsSubClientFixture : LocalstackFixture
+{
+    protected IAmazonSQS sqs = null!;
+    private protected TopicName topic = null!;
+
+    [SetUp]
+    public async Task Setup()
+    {
+        topic = faker.TopicName(config);
+        sqs = GetService<IAmazonSQS>();
+
+        await CreateDefaultKmsKey();
+        await GetService<AwsSubdivisionsBootstrapper>().EnsureTopicExists(topic, default);
     }
 }

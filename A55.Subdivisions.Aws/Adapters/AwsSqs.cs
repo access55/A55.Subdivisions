@@ -140,8 +140,7 @@ class AwsSqs
                 var body = JsonSerializer.Deserialize<SqsMessageBody>(m.Body) ??
                            throw new SerializationException("Unable to deserialize message");
 
-                var message = serializer.Desserialize<MessagePayload>(body.Message) ??
-                              throw new SerializationException("Unable to deserialize message");
+                var message = serializer.Deserialize<MessagePayload>(body.Message);
 
                 Task DeleteMessage()
                 {
@@ -150,7 +149,7 @@ class AwsSqs
                         CancellationToken.None);
                 }
 
-                return new Message(body.MessageId, message, DeleteMessage);
+                return new Message(body.MessageId, message.Payload, message.DateTime, DeleteMessage);
             })
             .ToArray();
     }
