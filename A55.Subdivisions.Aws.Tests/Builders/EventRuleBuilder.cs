@@ -12,14 +12,14 @@ public class EventRuleBuilder
 
     string state = RuleState.ENABLED;
 
-    public EventRuleBuilder()
+    public EventRuleBuilder(SubTopicNameConfig config)
     {
         var firstPart = faker.Person.FirstName;
         var secondPart = $"{faker.Person.LastName}{faker.Random.Replace("?###?").ToLowerInvariant()}";
 
         EventName = $"{firstPart.ToLowerInvariant()}_{secondPart.ToLowerInvariant()}";
         TopicName = $"{firstPart}{secondPart}";
-        Topic = new(EventName, new() {Prefix = "The", Source = "Test"});
+        Topic = new(EventName, config);
     }
 
     internal TopicName Topic { get; }

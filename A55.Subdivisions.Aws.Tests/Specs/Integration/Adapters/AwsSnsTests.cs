@@ -11,7 +11,7 @@ public class AwsSnsTests : LocalstackFixture
     [Test]
     public async Task ShouldCreateNewTopic()
     {
-        var topicName = faker.TopicName();
+        var topicName = faker.TopicName(config);
         var aws = GetService<AwsSns>();
         await CreateDefaultKmsKey();
 
@@ -26,7 +26,7 @@ public class AwsSnsTests : LocalstackFixture
     [Test]
     public async Task CreateTopicShouldBeIdempotent()
     {
-        var topicName = faker.TopicName();
+        var topicName = faker.TopicName(config);
         var aws = GetService<AwsSns>();
         await CreateDefaultKmsKey();
 
@@ -43,7 +43,7 @@ public class AwsSnsTests : LocalstackFixture
     [Test]
     public async Task ShouldCreateNewTopicWithArn()
     {
-        var topicName = faker.TopicName();
+        var topicName = faker.TopicName(config);
         var aws = GetService<AwsSns>();
         await CreateDefaultKmsKey();
 
@@ -58,7 +58,7 @@ public class AwsSnsTests : LocalstackFixture
     [Test]
     public async Task ShouldSubscribeTopic()
     {
-        var topicName = faker.TopicName();
+        var topicName = faker.TopicName(config);
 
         var sns = GetService<IAmazonSimpleNotificationService>();
         var sqs = GetService<IAmazonSQS>();

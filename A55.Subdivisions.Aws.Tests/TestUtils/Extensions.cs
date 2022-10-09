@@ -14,7 +14,8 @@ public static class FakerExtensions
     public static string TopicNameString(this Faker faker) =>
         $"{faker.Person.FirstName}_{faker.Random.Replace("?##?_?**?")}".ToLowerInvariant();
 
-    internal static TopicName TopicName(this Faker faker) => new(faker.TopicNameString(), new() {Prefix = "The", Source = "Test"});
+    internal static TopicName TopicName(this Faker faker, SubConfig config) =>
+        new(faker.TopicNameString(), config);
 }
 
 public static class FluentAssertionsComparer

@@ -11,7 +11,7 @@ public class AwsSubClientFixtures : LocalstackFixture
     [SetUp]
     public async Task Setup()
     {
-        topic = faker.TopicName();
+        topic = faker.TopicName(config);
         sqs = GetService<IAmazonSQS>();
 
         await CreateDefaultKmsKey();

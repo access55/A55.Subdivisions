@@ -1,4 +1,5 @@
-﻿using A55.Subdivisions.Aws.Models;
+﻿using A55.Subdivisions.Aws.Extensions;
+using A55.Subdivisions.Aws.Models;
 using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
 using DotNet.Testcontainers.Builders;
@@ -31,8 +32,8 @@ public class LocalstackFixture : ServicesFixture
         c.MessageTimeoutInSeconds = faker.Random.Int(4, 60);
         c.MessageRetantionInDays = faker.Random.Int(4, 10);
         c.QueueMaxReceiveCount = faker.Random.Int(5, 10);
-        c.Prefix = "The";
-        c.Source = "Test";
+        c.Prefix = faker.Random.Replace("?##");
+        c.Source = faker.Internet.DomainWord().SnakeToPascalCase();
     }
 
     [SetUp]

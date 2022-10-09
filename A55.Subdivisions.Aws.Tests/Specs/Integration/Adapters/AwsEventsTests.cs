@@ -19,7 +19,7 @@ public class AwsEventsTests : LocalstackFixture
     public async Task TopicExistsShouldReturnTrueIfRuleExists()
     {
         var eventClient = GetService<IAmazonEventBridge>();
-        var rule = new EventRuleBuilder();
+        var rule = new EventRuleBuilder(config);
 
         await eventClient.PutRuleAsync(rule.CreateRule());
 
@@ -33,7 +33,7 @@ public class AwsEventsTests : LocalstackFixture
     public async Task TopicExistsShouldReturnFalseIfDisabled()
     {
         var eventClient = GetService<IAmazonEventBridge>();
-        var rule = new EventRuleBuilder().Disabled();
+        var rule = new EventRuleBuilder(config).Disabled();
 
         await eventClient.PutRuleAsync(rule.CreateRule());
 
@@ -47,7 +47,7 @@ public class AwsEventsTests : LocalstackFixture
     public async Task TopicExistsShouldReturnFalseIfNotExists()
     {
         var aws = GetService<AwsEvents>();
-        var result = await aws.RuleExists(faker.TopicName(), default);
+        var result = await aws.RuleExists(faker.TopicName(config), default);
         result.Should().BeFalse();
     }
 
@@ -55,7 +55,7 @@ public class AwsEventsTests : LocalstackFixture
     public async Task CreateRuleShouldPutNewRule()
     {
         var aws = GetService<AwsEvents>();
-        var ruleBuilder = new EventRuleBuilder();
+        var ruleBuilder = new EventRuleBuilder(config);
         var result = await aws.CreateRule(ruleBuilder.Topic, default);
 
         var eventClient = GetService<IAmazonEventBridge>();
@@ -75,7 +75,7 @@ public class AwsEventsTests : LocalstackFixture
         var ev = GetService<IAmazonEventBridge>();
         var sns = GetService<IAmazonSimpleNotificationService>();
 
-        var rule = new EventRuleBuilder();
+        var rule = new EventRuleBuilder(config);
         var topicName = rule.Topic;
         await ev.PutRuleAsync(rule.CreateRule());
         var topic = await sns.CreateTopicAsync(new CreateTopicRequest {Name = topicName.FullTopicName});
@@ -92,7 +92,7 @@ public class AwsEventsTests : LocalstackFixture
     public async Task ShouldPushEvent()
     {
         var sut = GetService<AwsEvents>();
-        var topic = faker.TopicName();
+        var topic = faker.TopicName(config);
         var message = JsonSerializer.Serialize(new {@event = topic.Topic, Loren = faker.Lorem.Paragraph()});
         var queue = await SetupQueueRule(topic);
 
