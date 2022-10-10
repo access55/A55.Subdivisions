@@ -8,3 +8,4 @@ global using FakeItEasy;
 global using FakeItEasy.AutoFakeIt;
 global using FluentAssertions;
 global using A55.Subdivisions.Aws.Tests.TestUtils;
+global using IMessage = A55.Subdivisions.Aws.Models.IMessage<string>;

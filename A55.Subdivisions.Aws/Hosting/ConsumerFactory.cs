@@ -56,7 +56,7 @@ class ConsumerFactory : IConsumerFactory
         }
         catch (Exception ex)
         {
-            logger.LogError("Consumer error", ex);
+            logger.LogError(ex, "Consumer error");
             var handler = describer.ErrorHandler?.Invoke(ex) ?? Task.CompletedTask;
             await Task.WhenAll(message.Release(), handler);
         }

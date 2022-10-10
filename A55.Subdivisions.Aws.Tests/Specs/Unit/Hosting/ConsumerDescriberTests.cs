@@ -2,7 +2,7 @@
 using A55.Subdivisions.Aws.Models;
 using A55.Subdivisions.Aws.Tests.Builders;
 
-namespace A55.Subdivisions.Aws.Tests.Specs.Hosting;
+namespace A55.Subdivisions.Aws.Tests.Specs.Unit.Hosting;
 
 public class ConsumerDescriberTests
 {
@@ -29,6 +29,17 @@ public class ConsumerDescriberTests
         var action = () => new ConsumerDescriber(
             topicName: "good_name",
             consumerType: typeof(ConsumerDescriberTests),
+            messageType: typeof(string));
+
+        action.Should().Throw<SubdivisionsException>();
+    }
+
+    [Test]
+    public void ShouldThrowIfConsumerIsAbstract()
+    {
+        var action = () => new ConsumerDescriber(
+            topicName: "good_name",
+            consumerType: typeof(AbstractConsumer),
             messageType: typeof(string));
 
         action.Should().Throw<SubdivisionsException>();
@@ -98,5 +109,40 @@ public class ConsumerDescriberTests
             messageType: typeof(TestMessageValue));
 
         action.Should().NotThrow();
+    }
+
+    [Test]
+    public void ShouldNotThrowIfConsumerIsDerivedClass()
+    {
+        var action = () => new ConsumerDescriber(
+            topicName: "good_name",
+            consumerType: typeof(TestDerivedConsumer),
+            messageType: typeof(string));
+
+        action.Should().NotThrow<SubdivisionsException>();
+    }
+
+    [Test]
+    public void ShouldNotThrowIfConsumerIsAnInterface()
+    {
+        var action = () => new ConsumerDescriber(
+            topicName: "good_name",
+            consumerType: typeof(ITestConsumerInterface),
+            messageType: typeof(string));
+
+        action.Should().NotThrow<SubdivisionsException>();
+    }
+
+    public abstract class AbstractConsumer : IConsumer
+    {
+        public Task Consume(string message, CancellationToken ctx) => Task.CompletedTask;
+    }
+
+    public interface ITestConsumerInterface : IConsumer
+    {
+    }
+
+    public class TestDerivedConsumer : FakeConsumer
+    {
     }
 }

@@ -1,5 +1,7 @@
 ﻿using A55.Subdivisions.Aws.Models;
 using Bogus;
+using FakeItEasy.Configuration;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
 namespace A55.Subdivisions.Aws.Tests.TestUtils;
@@ -7,6 +9,14 @@ namespace A55.Subdivisions.Aws.Tests.TestUtils;
 public static class Extensions
 {
     public static JToken AsJToken(this string json) => JToken.Parse(json);
+
+    public static IVoidArgumentValidationConfiguration CalledWith<T>(this ILogger<T> logger, LogLevel level,
+        string message, Exception? exception = null) =>
+        A.CallTo(logger)
+            .Where(call => call.Method.Name == "Log" &&
+                           call.GetArgument<LogLevel>("logLevel") == level &&
+                           call.GetArgument<Exception?>("exception") == exception
+            );
 }
 
 public static class FakerExtensions

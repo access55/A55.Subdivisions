@@ -60,6 +60,6 @@ public class TestMessageSuper : TestMessage
 
 public class FakeConsumer<T> : IConsumer<T> where T : notnull
 {
-    public IConsumer<T> Fake { get; } = A.Fake<IConsumer<T>>();
-    public Task Consume(T message, CancellationToken ctx) => Fake.Consume(message, ctx);
+    public virtual Task Consume(T message, CancellationToken ctx) => Task.CompletedTask;
+
 }

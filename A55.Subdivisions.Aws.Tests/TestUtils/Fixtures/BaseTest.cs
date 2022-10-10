@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using AutoBogus;
 using Bogus;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 
@@ -29,7 +30,25 @@ public class BaseTest
     }
 
     [SetUp]
-    public void SetupBase() => mocker = new AutoFakeIt();
+    public void SetupBase()
+    {
+        mocker = new ();
+        MockServiceProvider(mocker);
+    }
+
+    static void MockServiceProvider(AutoFakeIt autoFake)
+    {
+        var fakeProvider = autoFake.Resolve<IServiceProvider>();
+        var scopeFactory = autoFake.Resolve<IServiceScopeFactory>();
+        var scope = autoFake.Resolve<IServiceScope>();
+
+        A.CallTo(() => fakeProvider.GetService(A<Type>._))
+            .ReturnsLazily(v => autoFake
+                .Resolve(v.Arguments.Get<Type>("serviceType")!));
+
+        A.CallTo(() => scopeFactory.CreateScope()).Returns(scope);
+        A.CallTo(() => scope.ServiceProvider).Returns(fakeProvider);
+    }
 
     [OneTimeSetUp]
     public void StartTest() => Trace.Listeners.Add(new ConsoleTraceListener());

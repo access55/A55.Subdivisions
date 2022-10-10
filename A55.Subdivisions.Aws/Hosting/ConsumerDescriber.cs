@@ -48,6 +48,9 @@ sealed class ConsumerDescriber : IConsumerDescriber
         if (!consumerType.IsAssignableTo(typeof(IWeakConsumer)))
             throw new SubdivisionsException($"Invalid consumer type: {consumerType.Name}");
 
+        if (consumerType is {IsAbstract: true, IsInterface: false})
+            throw new SubdivisionsException($"Consumer should not be abstract: {consumerType.Name}");
+
         var consumerDef = consumerType.GetInterfaces().SingleOrDefault(i =>
             i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IConsumer<>));
 
