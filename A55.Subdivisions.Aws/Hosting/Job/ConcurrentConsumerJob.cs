@@ -1,58 +1,54 @@
-﻿using System.Collections.Immutable;
-using System.Threading.Channels;
+﻿using System.Threading.Channels;
 using A55.Subdivisions.Aws.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace A55.Subdivisions.Aws.Hosting.Job;
 
-class ConcurrentConsumerJob : IConsumerJob
+sealed class ConcurrentConsumerJob : IConsumerJob
 {
+    readonly IOptionsMonitor<SubConfig> config;
     readonly ConsumerFactory consumerFactory;
     readonly ILogger<ConcurrentConsumerJob> logger;
-    readonly IOptionsMonitor<SubConfig> config;
     readonly ISubdivisionsClient sub;
-
-    record struct ConsumeRequest(IMessage Message, CancellationToken Ctx);
-
-    readonly ImmutableDictionary<string, Channel<ConsumeRequest>> channels;
-    readonly ImmutableArray<IConsumerDescriber> describers;
 
     public ConcurrentConsumerJob(
         ILogger<ConcurrentConsumerJob> logger,
         IOptionsMonitor<SubConfig> config,
         ISubdivisionsClient sub,
-        ConsumerFactory consumerFactory,
-        IEnumerable<IConsumerDescriber> describers)
+        ConsumerFactory consumerFactory
+    )
     {
         this.logger = logger;
         this.config = config;
         this.sub = sub;
         this.consumerFactory = consumerFactory;
-        this.describers = describers.ToImmutableArray();
-
-        channels = this.describers.ToImmutableDictionary(
-            d => d.TopicName,
-            d => Channel.CreateBounded<ConsumeRequest>(d.MaxConcurrency ?? config.CurrentValue.QueueMaxReceiveCount));
     }
 
-    public async Task Start(CancellationToken stoppingToken)
+    public async Task Start(IReadOnlyCollection<IConsumerDescriber> describers, CancellationToken stoppingToken)
     {
-        var pollingWorkers = describers.Select(d => PollingWorker(d, stoppingToken));
-        var consumerWorkers = describers.Select(d => ConsumerWorker(d, stoppingToken));
-        await Task.WhenAll(pollingWorkers.Concat(consumerWorkers));
+        var workers =
+            from d in describers
+            let channel =
+                Channel.CreateBounded<ConsumeRequest>(d.MaxConcurrency ?? config.CurrentValue.QueueMaxReceiveCount)
+            from worker in new[]
+            {
+                PollingWorker(d, channel.Writer, stoppingToken), ConsumerWorker(d, channel.Reader, stoppingToken)
+            }
+            select worker;
+
+        await Task.WhenAll(workers);
     }
 
     async Task PollingWorker(
         IConsumerDescriber describer,
+        ChannelWriter<ConsumeRequest> channel,
         CancellationToken ctx)
     {
         var interval = describer.PollingInterval ?? TimeSpan.FromSeconds(config.CurrentValue.PollingIntervalInSeconds);
         using PeriodicTimer timer = new(interval);
-        var channel = channels[describer.TopicName].Writer;
 
         while (await timer.WaitForNextTickAsync(ctx))
-        {
             try
             {
                 await channel.WaitToWriteAsync(ctx);
@@ -64,30 +60,28 @@ class ConcurrentConsumerJob : IConsumerJob
             }
             catch (Exception ex)
             {
-                logger.LogCritical(exception: ex, message: "Subdivisions: Polling Worker Failure");
+                logger.LogCritical(ex, "Subdivisions: Polling Worker Failure");
             }
-        }
 
         channel.Complete();
     }
 
-    async Task ConsumerWorker(IConsumerDescriber describer, CancellationToken stopToken)
+    async Task ConsumerWorker(
+        IConsumerDescriber describer,
+        ChannelReader<ConsumeRequest> channel,
+        CancellationToken stopToken)
     {
-        var channel = channels[describer.TopicName].Reader;
-
         async Task TopicConsumer()
         {
             await foreach (var (message, ctx) in channel.ReadAllAsync(stopToken))
-            {
                 try
                 {
                     await consumerFactory.ConsumeScoped(describer, message, ctx);
                 }
                 catch (Exception ex)
                 {
-                    logger.LogCritical(exception: ex, message: "Subdivisions: Consumer Worker Failure");
+                    logger.LogCritical(ex, "Subdivisions: Consumer Worker Failure");
                 }
-            }
         }
 
         var tasks = Enumerable
@@ -103,4 +97,6 @@ class ConcurrentConsumerJob : IConsumerJob
         var combinedToken = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, timeoutToken.Token);
         return combinedToken.Token;
     }
+
+    record struct ConsumeRequest(IMessage Message, CancellationToken Ctx);
 }

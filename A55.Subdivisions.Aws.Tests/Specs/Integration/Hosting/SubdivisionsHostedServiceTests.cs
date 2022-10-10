@@ -8,6 +8,7 @@ using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration.Hosting;
 
@@ -39,7 +40,7 @@ public class SubdivisionsHostedServiceTests : LocalstackFixture
     [Test]
     public async Task ShouldCreateAllRules()
     {
-        var hosted = GetService<SubdivisionsHostedService>();
+        var hosted = (SubdivisionsHostedService)GetService<IHostedService>();
 
         await hosted.Bootstrap(default);
 
@@ -55,7 +56,7 @@ public class SubdivisionsHostedServiceTests : LocalstackFixture
     [Test]
     public async Task ShouldCreateAllTopics()
     {
-        var hosted = GetService<SubdivisionsHostedService>();
+        var hosted = (SubdivisionsHostedService)GetService<IHostedService>();
         await hosted.Bootstrap(default);
 
         var topics = fakeConsumers.Select(x => x.TopicName.ToPascalCase());
@@ -70,7 +71,7 @@ public class SubdivisionsHostedServiceTests : LocalstackFixture
     [Test]
     public async Task ShouldCreateAllQueues()
     {
-        var hosted = GetService<SubdivisionsHostedService>();
+        var hosted = (SubdivisionsHostedService)GetService<IHostedService>();
         await hosted.Bootstrap(default);
 
         var normalQueues = fakeConsumers.Select(x => $"x_{x.TopicName}").ToArray();

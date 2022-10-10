@@ -6,8 +6,8 @@ namespace A55.Subdivisions.Aws.Hosting;
 
 class ConsumerFactory
 {
-    readonly IServiceProvider provider;
     readonly ILogger<ConsumerFactory> logger;
+    readonly IServiceProvider provider;
     readonly ISubMessageSerializer serializer;
     readonly Stopwatch stopwatch = new();
 
@@ -23,7 +23,8 @@ class ConsumerFactory
         this.serializer = serializer;
     }
 
-    public async Task ConsumeScoped(IConsumerDescriber describer, IMessage message, CancellationToken ctx)
+    public async Task ConsumeScoped<TMessage>(IConsumerDescriber describer, TMessage message, CancellationToken ctx)
+        where TMessage : IMessage
     {
         using var _ =
             logger.BeginScope(
@@ -49,7 +50,7 @@ class ConsumerFactory
         }
         catch (Exception ex)
         {
-            logger.LogError(message: "Consumer error", ex);
+            logger.LogError("Consumer error", ex);
             var handler = describer.ErrorHandler?.Invoke(ex) ?? Task.CompletedTask;
             await Task.WhenAll(message.Release(), handler);
         }

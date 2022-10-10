@@ -8,12 +8,10 @@ using Microsoft.Extensions.Options;
 
 namespace A55.Subdivisions.Aws.Clients;
 
-record QueueInfo(Uri Url, SqsArn Arn);
+readonly record struct QueueInfo(Uri Url, SqsArn Arn);
 
 sealed class AwsSqs
 {
-    internal record MessagePayload(string Event, DateTime DateTime, string Payload);
-
     const string DeadLetterPrefix = "dead_letter_";
 
     public static readonly string IAM = JsonSerializer.Serialize(new
@@ -124,8 +122,7 @@ sealed class AwsSqs
         string queue,
         CancellationToken ctx)
     {
-        var queueInfo = await GetQueue(queue, ctx);
-        if (queueInfo is null)
+        if (await GetQueue(queue, ctx) is not { } queueInfo)
             throw new InvalidOperationException($"Unable to get '{queue}' data");
 
         var readMessagesRequest = await sqs.ReceiveMessageAsync(
@@ -176,6 +173,8 @@ sealed class AwsSqs
 
     public Task<IReadOnlyCollection<IMessage>> ReceiveDeadLetters(string queue, CancellationToken ctx) =>
         ReceiveMessages($"{DeadLetterPrefix}{queue}", ctx);
+
+    internal record MessagePayload(string Event, DateTime DateTime, string Payload);
 
     class SqsMessageBody
     {

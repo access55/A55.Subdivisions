@@ -2,5 +2,5 @@
 
 interface IConsumerJob
 {
-    public Task Start(CancellationToken stoppingToken);
+    Task Start(IReadOnlyCollection<IConsumerDescriber> describers, CancellationToken stoppingToken);
 }

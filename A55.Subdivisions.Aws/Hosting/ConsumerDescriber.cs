@@ -9,9 +9,8 @@ public interface IWeakConsumer
 
 public interface IConsumer<in TMessage> : IWeakConsumer where TMessage : notnull
 {
-    Task Consume(TMessage message, CancellationToken ctx);
-
     Task IWeakConsumer.Consume(object message, CancellationToken ctx) => Consume((TMessage)message, ctx);
+    Task Consume(TMessage message, CancellationToken ctx);
 }
 
 public interface IConsumer : IConsumer<string>
@@ -30,14 +29,6 @@ interface IConsumerDescriber
 
 sealed class ConsumerDescriber : IConsumerDescriber
 {
-    public Type ConsumerType { get; }
-    public Type MessageType { get; }
-    public string TopicName { get; }
-    public TimeSpan? PollingInterval { get; }
-    public int? MaxConcurrency { get; }
-
-    public Func<Exception, Task>? ErrorHandler { get; }
-
     public ConsumerDescriber(
         string topicName,
         Type consumerType,
@@ -68,4 +59,12 @@ sealed class ConsumerDescriber : IConsumerDescriber
         PollingInterval = pollingInterval;
         TopicName = topicName;
     }
+
+    public Type ConsumerType { get; }
+    public Type MessageType { get; }
+    public string TopicName { get; }
+    public TimeSpan? PollingInterval { get; }
+    public int? MaxConcurrency { get; }
+
+    public Func<Exception, Task>? ErrorHandler { get; }
 }
