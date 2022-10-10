@@ -26,7 +26,7 @@ public static class ServicesExtensions
 
     internal static IServiceCollection AddSubdivisionsHostedServices(this IServiceCollection services) =>
         services
-            .AddSingleton<ConsumerFactory>()
+            .AddSingleton<IConsumerFactory, ConsumerFactory>()
             .AddSingleton<IConsumerJob, ConcurrentConsumerJob>()
             .AddHostedService<SubdivisionsHostedService>();
 
@@ -62,14 +62,13 @@ public static class ServicesExtensions
             .AddSingleton<AwsKms>()
             .AddTransient<AwsEvents>()
             .AddTransient<AwsSqs>()
-            .AddTransient<AwsSns>()
-            .AddTransient<AwsSubClient>();
+            .AddTransient<AwsSns>();
 
         services
             .AddSingleton<ISubClock, UtcClock>()
             .AddSingleton<ISubMessageSerializer, SubJsonSerializer>()
             .AddTransient<ISubdivisionsBootstrapper, AwsSubdivisionsBootstrapper>()
-            .AddTransient<ISubdivisionsClient>(sp => sp.GetRequiredService<AwsSubClient>())
+            .AddTransient<ISubdivisionsClient, AwsSubClient>()
             .AddTransient<IProducer>(sp => sp.GetRequiredService<ISubdivisionsClient>())
             .AddTransient<IConsumerClient>(sp => sp.GetRequiredService<ISubdivisionsClient>());
 

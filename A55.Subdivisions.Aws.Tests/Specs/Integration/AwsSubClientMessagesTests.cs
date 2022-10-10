@@ -9,7 +9,7 @@ public class SubClientMessageActionTests : SubClientFixture
     {
         var message = faker.Lorem.Lines();
 
-        var client = GetService<AwsSubClient>();
+        var client = (AwsSubClient)GetService<ISubdivisionsClient>();
         await client.Publish(Topic, message, default);
 
         var messages = await client.Receive(Topic, default);
@@ -25,7 +25,7 @@ public class SubClientMessageActionTests : SubClientFixture
     {
         var message = faker.Lorem.Lines();
 
-        var client = GetService<AwsSubClient>();
+        var client = (AwsSubClient)GetService<ISubdivisionsClient>();
         await client.Publish(Topic, message, default);
 
         var messages = await client.Receive(Topic, default);

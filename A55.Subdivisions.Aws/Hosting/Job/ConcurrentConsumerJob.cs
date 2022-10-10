@@ -8,7 +8,7 @@ namespace A55.Subdivisions.Aws.Hosting.Job;
 sealed class ConcurrentConsumerJob : IConsumerJob
 {
     readonly IOptionsMonitor<SubConfig> config;
-    readonly ConsumerFactory consumerFactory;
+    readonly IConsumerFactory consumerFactory;
     readonly ILogger<ConcurrentConsumerJob> logger;
     readonly ISubdivisionsClient sub;
 
@@ -16,7 +16,7 @@ sealed class ConcurrentConsumerJob : IConsumerJob
         ILogger<ConcurrentConsumerJob> logger,
         IOptionsMonitor<SubConfig> config,
         ISubdivisionsClient sub,
-        ConsumerFactory consumerFactory
+        IConsumerFactory consumerFactory
     )
     {
         this.logger = logger;

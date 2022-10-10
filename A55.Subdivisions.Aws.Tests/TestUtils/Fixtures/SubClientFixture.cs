@@ -3,7 +3,6 @@ using Amazon.SQS;
 
 namespace A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 
-[Parallelizable(ParallelScope.Self)]
 public class SubClientFixture : LocalstackFixture
 {
     protected DateTime fakedDate;

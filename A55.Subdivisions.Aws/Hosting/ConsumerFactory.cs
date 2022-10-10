@@ -4,7 +4,13 @@ using Microsoft.Extensions.Logging;
 
 namespace A55.Subdivisions.Aws.Hosting;
 
-class ConsumerFactory
+interface IConsumerFactory
+{
+    Task ConsumeScoped<TMessage>(IConsumerDescriber describer, TMessage message, CancellationToken ctx)
+        where TMessage : IMessage;
+}
+
+class ConsumerFactory : IConsumerFactory
 {
     readonly ILogger<ConsumerFactory> logger;
     readonly IServiceProvider provider;
