@@ -16,7 +16,8 @@ public class SubTopicNameConfig
 
 public class SubConfig : SubTopicNameConfig
 {
-    public int QueueMaxReceiveCount { get; set; } = 1000;
+    public int QueueMaxReceiveCount { get; set; } = 5;
+    public int RetriesBeforeDeadLetter { get; set; } = 3;
     public string PubKey { get; set; } = "alias/PubSubKey";
     public int MessageRetantionInDays { get; set; } = 7;
     public int MessageTimeoutInSeconds { get; set; } = 30;

@@ -1,4 +1,5 @@
 ﻿using A55.Subdivisions.Aws.Extensions;
+using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 using Amazon.EventBridge;
 using Amazon.EventBridge.Model;
 using Amazon.SimpleNotificationService;
@@ -8,7 +9,7 @@ using Amazon.SQS.Model;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration;
 
-public class AwsSubBootstraperTests : LocalstackFixture
+public class AwsSubBootstrapperTests : LocalstackFixture
 {
     [Test]
     public async Task ShouldCreateAllTopicResources()
@@ -19,14 +20,14 @@ public class AwsSubBootstraperTests : LocalstackFixture
 
         await bootstrapper.EnsureTopicExists(topicName);
 
-        var resourses = await GetResourses();
+        var resourses = await GetResources();
 
         resourses.Queues.Should().Contain(x => x.Contains(topicName));
         resourses.Topic.TopicArn.Should().Contain(topicName.SnakeToPascalCase());
         resourses.Rule.Name.Should().Contain(topicName.SnakeToPascalCase());
     }
 
-    public async Task<(Rule Rule, Topic Topic, string[] Queues)> GetResourses()
+    public async Task<(Rule Rule, Topic Topic, string[] Queues)> GetResources()
     {
         var ev = GetService<IAmazonEventBridge>();
         var sns = GetService<IAmazonSimpleNotificationService>();

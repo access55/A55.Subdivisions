@@ -1,71 +1,49 @@
-﻿using A55.Subdivisions.Aws.Models;
-using A55.Subdivisions.Aws.Tests.Builders;
-using Amazon.SQS;
+﻿using A55.Subdivisions.Aws.Tests.Builders;
+using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration;
 
-public class AwsSubClientTests : AwsSubClientFixture
+public class SubClientTests : SubClientFixture
 {
     [Test]
     public async Task ShouldSendAndReceiveMessages()
     {
         var message = faker.Lorem.Lines();
-        var fakedDate = faker.Date.Soon();
-        A.CallTo(() => fakeClock.Now()).Returns(fakedDate);
 
         var client = GetService<AwsSubClient>();
-        await client.Publish(topic, message, default);
+        await client.Publish(Topic, message, default);
 
-        await WaitFor(() => sqs.HasMessagesOn(topic.FullQueueName), TimeSpan.FromMinutes(1));
-
-        var messages = await client.Receive(topic, default);
+        var messages = await client.Receive(Topic, default);
 
         messages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
     }
-}
 
-public class AwsSubClientInterfaceTests : AwsSubClientFixture
-{
     [Test]
     public async Task ShouldSendAndReceiveMessagesOnClassPublicApi()
     {
-        var stringTopicName = topic.Topic;
-        var queueName = topic.FullQueueName;
+        var stringTopicName = Topic.Topic;
 
         var message = faker.Lorem.Lines();
-        var fakedDate = faker.Date.Soon();
-        A.CallTo(() => fakeClock.Now()).Returns(fakedDate);
 
         var client = GetService<ISubClient>();
-        await client.Publish(stringTopicName, message, default);
+        await client.Publish(stringTopicName, message);
 
-        await WaitFor(() => sqs.HasMessagesOn(queueName), TimeSpan.FromMinutes(1));
-
-        var messages = await client.Receive(stringTopicName, default);
+        var messages = await client.Receive(stringTopicName);
 
         messages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
     }
-}
 
-public class AwsSubClientSerializerTests : AwsSubClientFixture
-{
     [Test]
     public async Task ShouldSendAndReceiveSerializedMessages()
     {
         var message = TestMessage.New();
 
-        var stringTopicName = topic.Topic;
-        var queueName = topic.FullQueueName;
-
-        var fakedDate = faker.Date.Soon();
-        A.CallTo(() => fakeClock.Now()).Returns(fakedDate);
+        var stringTopicName = Topic.Topic;
 
         var client = GetService<ISubClient>();
-        await client.Publish<TestMessage>(stringTopicName, message, default);
+        await client.Publish(stringTopicName, message);
 
-        await WaitFor(() => sqs.HasMessagesOn(queueName), TimeSpan.FromMinutes(1));
-
-        var messages = await client.Receive<TestMessage>(stringTopicName, default);
+        var messages = await client.Receive<TestMessage>(stringTopicName);
 
         messages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
     }
@@ -76,18 +54,12 @@ public class AwsSubClientSerializerTests : AwsSubClientFixture
         var strongMessage = TestMessage.New();
         var message = strongMessage.ToSnakeCaseJson();
 
-        var stringTopicName = topic.Topic;
-        var queueName = topic.FullQueueName;
-
-        var fakedDate = faker.Date.Soon();
-        A.CallTo(() => fakeClock.Now()).Returns(fakedDate);
+        var stringTopicName = Topic.Topic;
 
         var client = GetService<ISubClient>();
-        await client.Publish(stringTopicName, message, default);
+        await client.Publish(stringTopicName, message);
 
-        await WaitFor(() => sqs.HasMessagesOn(queueName), TimeSpan.FromMinutes(1));
-
-        var messages = await client.Receive<TestMessage>(stringTopicName, default);
+        var messages = await client.Receive<TestMessage>(stringTopicName);
 
         messages.Should().BeEquivalentTo(new[] {new {Body = strongMessage, Datetime = fakedDate}});
     }
@@ -97,39 +69,15 @@ public class AwsSubClientSerializerTests : AwsSubClientFixture
     {
         var message = TestMessage.New();
         var jsonMessage = message.ToSnakeCaseJson().AsJToken();
-
-        var stringTopicName = topic.Topic;
-        var queueName = topic.FullQueueName;
-
-        var fakedDate = faker.Date.Soon();
-        A.CallTo(() => fakeClock.Now()).Returns(fakedDate);
+        var stringTopicName = Topic.Topic;
 
         var client = GetService<ISubClient>();
-        await client.Publish<TestMessage>(stringTopicName, message, default);
+        await client.Publish(stringTopicName, message);
 
-        await WaitFor(() => sqs.HasMessagesOn(queueName), TimeSpan.FromMinutes(1));
-
-        var messages = await client.Receive(stringTopicName, default);
+        var messages = await client.Receive(stringTopicName);
 
         messages.Single().Body.AsJToken()
             .Should()
             .BeEquivalentTo(jsonMessage);
-    }
-}
-
-[Parallelizable(ParallelScope.Self)]
-public class AwsSubClientFixture : LocalstackFixture
-{
-    protected IAmazonSQS sqs = null!;
-    private protected TopicName topic = null!;
-
-    [SetUp]
-    public async Task Setup()
-    {
-        topic = faker.TopicName(config);
-        sqs = GetService<IAmazonSQS>();
-
-        await CreateDefaultKmsKey();
-        await GetService<AwsSubdivisionsBootstrapper>().EnsureTopicExists(topic, default);
     }
 }

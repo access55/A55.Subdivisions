@@ -4,7 +4,7 @@ using Amazon.Runtime;
 using Bogus;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace A55.Subdivisions.Aws.Tests.TestUtils;
+namespace A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 
 public class ServicesFixture
 {

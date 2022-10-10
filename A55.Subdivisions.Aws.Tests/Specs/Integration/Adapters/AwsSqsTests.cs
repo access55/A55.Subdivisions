@@ -1,4 +1,5 @@
 using A55.Subdivisions.Aws.Adapters;
+using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Newtonsoft.Json.Linq;

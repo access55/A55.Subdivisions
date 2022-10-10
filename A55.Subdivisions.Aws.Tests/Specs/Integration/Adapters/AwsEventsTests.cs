@@ -2,6 +2,7 @@ using System.Text.Json;
 using A55.Subdivisions.Aws.Adapters;
 using A55.Subdivisions.Aws.Models;
 using A55.Subdivisions.Aws.Tests.Builders;
+using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 using Amazon.EventBridge;
 using Amazon.EventBridge.Model;
 using Amazon.SimpleNotificationService;

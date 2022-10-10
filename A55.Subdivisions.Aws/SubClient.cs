@@ -16,6 +16,11 @@ interface ISubClient
 
     ValueTask<IReadOnlyCollection<Message<T>>> Receive<T>(string topic, CancellationToken ctx = default)
         where T : notnull;
+
+    Task<IReadOnlyCollection<Message>> DeadLetters(string queueName, CancellationToken ctx = default);
+
+    Task<IReadOnlyCollection<Message<T>>> DeadLetters<T>(string queueName, CancellationToken ctx = default)
+        where T : notnull;
 }
 
 sealed class AwsSubClient : ISubClient
@@ -44,11 +49,6 @@ sealed class AwsSubClient : ISubClient
         this.queue = queue;
     }
 
-    TopicName CreateTopicName(string name) => new(
-        name,
-        config.Value
-    );
-
     public Task<PublishResult> Publish<T>(string topicName, T message, CancellationToken ctx = default)
         where T : notnull
     {
@@ -58,6 +58,34 @@ sealed class AwsSubClient : ISubClient
 
     public Task<PublishResult> Publish(string topicName, string message, CancellationToken ctx = default) =>
         Publish(CreateTopicName(topicName), message, ctx);
+
+    public ValueTask<IReadOnlyCollection<Message>> Receive(string topic, CancellationToken ctx = default) =>
+        Receive(CreateTopicName(topic), ctx);
+
+    public async ValueTask<IReadOnlyCollection<Message<T>>> Receive<T>(string topic, CancellationToken ctx = default)
+        where T : notnull
+    {
+        var message = await Receive(topic, ctx);
+        return message.Select(m => m.Map(s => serializer.Deserialize<T>(s))).ToArray();
+    }
+
+    public Task<IReadOnlyCollection<Message>> DeadLetters(string queueName, CancellationToken ctx = default)
+    {
+        var topic = CreateTopicName(queueName);
+        return queue.ReceiveDeadLetters(topic.FullQueueName, ctx);
+    }
+
+    public async Task<IReadOnlyCollection<Message<T>>> DeadLetters<T>(string queueName, CancellationToken ctx = default)
+        where T : notnull
+    {
+        var message = await DeadLetters(queueName, ctx);
+        return message.Select(m => m.Map(s => serializer.Deserialize<T>(s))).ToArray();
+    }
+
+    TopicName CreateTopicName(string name) => new(
+        name,
+        config.Value
+    );
 
     internal Task<PublishResult> Publish(TopicName topic, string message, CancellationToken ctx)
     {
@@ -71,16 +99,6 @@ sealed class AwsSubClient : ISubClient
         return events.PushEvent(topic, payload, ctx);
     }
 
-    public ValueTask<IReadOnlyCollection<Message>> Receive(string topic, CancellationToken ctx = default) =>
-        Receive(CreateTopicName(topic), ctx);
-
     internal async ValueTask<IReadOnlyCollection<Message>> Receive(TopicName topic, CancellationToken ctx) =>
         await queue.ReceiveMessages(topic.FullQueueName, ctx);
-
-    public async ValueTask<IReadOnlyCollection<Message<T>>> Receive<T>(string topic, CancellationToken ctx = default)
-        where T : notnull
-    {
-        var message = await Receive(topic, ctx);
-        return message.Select(m => m.Map(s => serializer.Deserialize<T>(s))).ToArray();
-    }
 }

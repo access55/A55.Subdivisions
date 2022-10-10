@@ -13,6 +13,8 @@ record QueueInfo(Uri Url, SqsArn Arn);
 
 class AwsSqs
 {
+    const string DeadLetterPrefix = "dead_letter_";
+
     public static readonly string IAM = JsonSerializer.Serialize(new
     {
         Id = "SQSEventsPolicy",
@@ -60,9 +62,9 @@ class AwsSqs
     }
 
     public async Task<QueueInfo?> GetQueue(string queueName,
-        CancellationToken ctx, bool deadLegger = false)
+        CancellationToken ctx, bool deadLetter = false)
     {
-        var queue = $"{(deadLegger ? "dead_letter_" : string.Empty)}{queueName}";
+        var queue = $"{(deadLetter ? "dead_letter_" : string.Empty)}{queueName}";
         var responseQueues =
             await sqs.ListQueuesAsync(new ListQueuesRequest {QueueNamePrefix = queue, MaxResults = 1000}, ctx);
 
@@ -81,11 +83,11 @@ class AwsSqs
         var keyId = await kms.GetKey(ctx) ??
                     throw new InvalidOperationException("Default KMS EncryptionKey Id not found");
 
-        var deadLetter = await CreateDeadletterQueue(queueName, keyId.Value, ctx);
+        var deadLetter = await CreateDeadLetterQueue(queueName, keyId.Value, ctx);
 
         var deadLetterPolicy = new
         {
-            deadLetterTargetArn = deadLetter.Arn.Value, maxReceiveCount = config.QueueMaxReceiveCount.ToString()
+            deadLetterTargetArn = deadLetter.Arn.Value, maxReceiveCount = config.RetriesBeforeDeadLetter.ToString()
         };
 
         var q = await sqs.CreateQueueAsync(
@@ -106,12 +108,12 @@ class AwsSqs
         return await GetQueueAttributes(q.QueueUrl, ctx);
     }
 
-    async Task<QueueInfo> CreateDeadletterQueue(string queueName, string keyId, CancellationToken ctx)
+    async Task<QueueInfo> CreateDeadLetterQueue(string queueName, string keyId, CancellationToken ctx)
     {
         var q = await sqs.CreateQueueAsync(
             new CreateQueueRequest
             {
-                QueueName = $"dead_letter_{queueName}",
+                QueueName = $"{DeadLetterPrefix}{queueName}",
                 Attributes = new() {["Policy"] = IAM, ["KmsMasterKeyId"] = keyId}
             }, ctx);
         return await GetQueueAttributes(q.QueueUrl, ctx);
@@ -149,10 +151,30 @@ class AwsSqs
                         CancellationToken.None);
                 }
 
-                return new Message(body.MessageId, message.Payload, message.DateTime, DeleteMessage);
+                Task ReleaseMessage()
+                {
+                    return sqs.ChangeMessageVisibilityAsync(
+                        new()
+                        {
+                            QueueUrl = queueInfo.Url.ToString(),
+                            ReceiptHandle = m.ReceiptHandle,
+                            VisibilityTimeout = 0
+                        },
+                        CancellationToken.None);
+                }
+
+                return new Message(
+                    body.MessageId,
+                    message.Payload,
+                    message.DateTime,
+                    DeleteMessage,
+                    ReleaseMessage);
             })
             .ToArray();
     }
+
+    public Task<IReadOnlyCollection<Message>> ReceiveDeadLetters(string queue, CancellationToken ctx) =>
+        ReceiveMessages($"{DeadLetterPrefix}{queue}", ctx);
 
     class SqsMessageBody
     {

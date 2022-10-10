@@ -7,13 +7,13 @@ using Microsoft.Extensions.Options;
 
 [assembly: LevelOfParallelism(5)]
 
-namespace A55.Subdivisions.Aws.Tests.TestUtils;
+namespace A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 
 [Parallelizable(ParallelScope.Self)]
 public class LocalstackFixture : ServicesFixture
 {
-    LocalStackTestcontainer localstack = null!;
     protected SubConfig config = null!;
+    LocalStackTestcontainer localstack = null!;
 
     protected override async Task BeforeSetup()
     {
@@ -28,12 +28,14 @@ public class LocalstackFixture : ServicesFixture
     {
         c.ServiceUrl = localstack.Url;
         c.PubKey = $"alias/{faker.Random.Replace("Key????")}";
-        c.MessageDelayInSeconds = faker.Random.Int(0, 60);
-        c.MessageTimeoutInSeconds = faker.Random.Int(4, 60);
         c.MessageRetantionInDays = faker.Random.Int(4, 10);
         c.QueueMaxReceiveCount = faker.Random.Int(5, 10);
         c.Prefix = faker.Random.Replace("?##");
         c.Source = faker.Internet.UserNameUnicode().Replace(".", "").SnakeToPascalCase();
+
+        c.MessageDelayInSeconds = 0;
+        c.MessageTimeoutInSeconds = 10000;
+        c.RetriesBeforeDeadLetter = 2;
     }
 
     [SetUp]
