@@ -1,4 +1,9 @@
-﻿using System.Text.Json;
+﻿global using FakeConsumer = A55.Subdivisions.Aws.Tests.Builders.FakeConsumer<string>;
+
+global using TestConsumer =
+    A55.Subdivisions.Aws.Tests.Builders.FakeConsumer<A55.Subdivisions.Aws.Tests.Builders.TestMessage>;
+using System.Text.Json;
+using A55.Subdivisions.Aws.Hosting;
 using AutoBogus;
 
 namespace A55.Subdivisions.Aws.Tests.Builders;
@@ -24,4 +29,10 @@ public class TestMessage
         });
 
     public static TestMessage New() => AutoFaker.Generate<TestMessage>();
+}
+
+public class FakeConsumer<T> : IConsumer<T> where T : notnull
+{
+    public IConsumer<T> Fake { get; } = A.Fake<IConsumer<T>>();
+    public Task Consume(T message, CancellationToken ctx) => Fake.Consume(message, ctx);
 }

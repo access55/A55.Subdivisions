@@ -1,4 +1,4 @@
-using A55.Subdivisions.Aws.Adapters;
+using A55.Subdivisions.Aws.Clients;
 using A55.Subdivisions.Aws.Models;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 using Amazon.SimpleNotificationService;
@@ -15,7 +15,6 @@ public class AwsSnsTests : LocalstackFixture
     {
         var topicName = faker.TopicName(config);
         var aws = GetService<AwsSns>();
-        await CreateDefaultKmsKey();
 
         await aws.CreateTopic(topicName, default);
 
@@ -30,7 +29,6 @@ public class AwsSnsTests : LocalstackFixture
     {
         var topicName = faker.TopicName(config);
         var aws = GetService<AwsSns>();
-        await CreateDefaultKmsKey();
 
         var response1 = await aws.CreateTopic(topicName, default);
         var response2 = await aws.CreateTopic(topicName, default);
@@ -47,7 +45,6 @@ public class AwsSnsTests : LocalstackFixture
     {
         var topicName = faker.TopicName(config);
         var aws = GetService<AwsSns>();
-        await CreateDefaultKmsKey();
 
         var result = await aws.CreateTopic(topicName, default);
 

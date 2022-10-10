@@ -1,11 +1,16 @@
-﻿using A55.Subdivisions.Aws.Adapters;
+﻿using A55.Subdivisions.Aws.Clients;
 using A55.Subdivisions.Aws.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace A55.Subdivisions.Aws;
 
-class AwsSubdivisionsBootstrapper
+public interface ISubdivisionsBootstrapper
+{
+    ValueTask EnsureTopicExists(string topic, CancellationToken ctx);
+}
+
+class AwsSubdivisionsBootstrapper : ISubdivisionsBootstrapper
 {
     readonly SubConfig config;
     readonly AwsEvents events;
@@ -28,7 +33,7 @@ class AwsSubdivisionsBootstrapper
         this.sqs = sqs;
     }
 
-    public async ValueTask EnsureTopicExists(string topic, CancellationToken ctx = default)
+    public async ValueTask EnsureTopicExists(string topic, CancellationToken ctx)
     {
         var topicName = new TopicName(
             topic,

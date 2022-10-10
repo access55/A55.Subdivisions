@@ -1,4 +1,6 @@
-﻿using A55.Subdivisions.Aws.Adapters;
+﻿using A55.Subdivisions.Aws.Clients;
+using A55.Subdivisions.Aws.Hosting;
+using A55.Subdivisions.Aws.Hosting.Job;
 using A55.Subdivisions.Aws.Models;
 using Amazon.EventBridge;
 using Amazon.KeyManagementService;
@@ -12,15 +14,30 @@ namespace A55.Subdivisions.Aws.Extensions;
 
 public static class ServicesExtensions
 {
-    public static IServiceCollection AddSubdivisionsClient(this IServiceCollection services,
+    public static IServiceCollection AddSubdivisions(
+        this IServiceCollection services,
+        Action<SubConfig>? config = null,
+        AWSCredentials? credentials = null)
+    {
+        services.AddSubdivisionsClient(config, credentials);
+        services.AddSubdivisionsHostedServices();
+        return services;
+    }
+
+    internal static IServiceCollection AddSubdivisionsHostedServices(this IServiceCollection services) =>
+        services
+            .AddSingleton<ConsumerFactory>()
+            .AddSingleton<IConsumerJob, ConcurrentConsumerJob>()
+            .AddHostedService<SubdivisionsHostedService>();
+
+    public static IServiceCollection AddSubdivisionsClient(
+        this IServiceCollection services,
         Action<SubConfig>? config = null,
         AWSCredentials? credentials = null)
     {
         services
             .AddSingleton<IConfigureOptions<SubConfig>, ConfigureSubConfigOptions>()
-            .PostConfigure<SubConfig>(c => config?.Invoke(c))
-            .AddSingleton<ISubClock, UtcClock>()
-            .AddSingleton<ISubMessageSerializer, SubJsonSerializer>();
+            .PostConfigure<SubConfig>(c => config?.Invoke(c));
 
         services
             .AddSingleton(credentials ?? FallbackCredentialsFactory.GetCredentials())
@@ -46,27 +63,16 @@ public static class ServicesExtensions
             .AddTransient<AwsEvents>()
             .AddTransient<AwsSqs>()
             .AddTransient<AwsSns>()
-            .AddTransient<AwsSubdivisionsBootstrapper>()
-            .AddTransient<AwsSubClient>()
-            .AddTransient<ISubClient>(sp => sp.GetRequiredService<AwsSubClient>());
+            .AddTransient<AwsSubClient>();
+
+        services
+            .AddSingleton<ISubClock, UtcClock>()
+            .AddSingleton<ISubMessageSerializer, SubJsonSerializer>()
+            .AddTransient<ISubdivisionsBootstrapper, AwsSubdivisionsBootstrapper>()
+            .AddTransient<ISubdivisionsClient>(sp => sp.GetRequiredService<AwsSubClient>())
+            .AddTransient<IProducer>(sp => sp.GetRequiredService<ISubdivisionsClient>())
+            .AddTransient<IConsumerClient>(sp => sp.GetRequiredService<ISubdivisionsClient>());
 
         return services;
     }
-
-    static IServiceCollection AddAwsConfig<TConfig>(this IServiceCollection services)
-        where TConfig : ClientConfig, new() =>
-        services.AddTransient(sp =>
-        {
-            var subSettings = sp.GetRequiredService<IOptionsMonitor<SubConfig>>().CurrentValue;
-            var config = new TConfig();
-            if (!string.IsNullOrWhiteSpace(subSettings.ServiceUrl))
-                config.ServiceURL = subSettings.ServiceUrl;
-            else
-                config.RegionEndpoint = subSettings.Endpoint;
-
-            return config;
-        });
-
-    static AWSCredentials GetAwsCredentials(this IServiceProvider provider) =>
-        provider.GetRequiredService<AWSCredentials>();
 }

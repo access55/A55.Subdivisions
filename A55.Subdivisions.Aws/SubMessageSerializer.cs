@@ -8,6 +8,7 @@ public interface ISubMessageSerializer
 {
     string Serialize<TValue>(TValue something);
     TValue Deserialize<TValue>(ReadOnlySpan<char> json);
+    object? Deserialize(Type type, ReadOnlySpan<char> json);
 }
 
 class SnakeCaseNamingPolicy : JsonNamingPolicy
@@ -25,5 +26,9 @@ public class SubJsonSerializer : ISubMessageSerializer
 
     public TValue Deserialize<TValue>(ReadOnlySpan<char> json) =>
         JsonSerializer.Deserialize<TValue>(json, jsonOptions) ??
+        throw new SerializationException("Unable to deserialize message");
+
+    public object Deserialize(Type type, ReadOnlySpan<char> json) =>
+        JsonSerializer.Deserialize(json, type, jsonOptions) ??
         throw new SerializationException("Unable to deserialize message");
 }

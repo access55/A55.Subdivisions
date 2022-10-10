@@ -1,4 +1,4 @@
-using A55.Subdivisions.Aws.Adapters;
+using A55.Subdivisions.Aws.Clients;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 using Amazon.SQS;
 using Amazon.SQS.Model;
@@ -60,7 +60,6 @@ public class AwsSqsTests : LocalstackFixture
     {
         var queueName = faker.Person.FirstName.ToLowerInvariant();
         var aws = GetService<AwsSqs>();
-        await CreateDefaultKmsKey();
 
         var result = await aws.CreateQueue(queueName, default);
 
@@ -75,7 +74,6 @@ public class AwsSqsTests : LocalstackFixture
     {
         var queueName = faker.Person.FirstName.ToLowerInvariant();
         var aws = GetService<AwsSqs>();
-        await CreateDefaultKmsKey();
 
         await aws.CreateQueue(queueName, default);
 
@@ -89,7 +87,6 @@ public class AwsSqsTests : LocalstackFixture
     public async Task ShouldCreateNewQueueWithTimedAttributes()
     {
         var queueName = faker.Person.FirstName.ToLowerInvariant();
-        await CreateDefaultKmsKey();
 
         var result = await GetService<AwsSqs>().CreateQueue(queueName, default);
 
@@ -111,14 +108,13 @@ public class AwsSqsTests : LocalstackFixture
     public async Task ShouldCreateNewQueueWithKmsKey()
     {
         var queueName = faker.Person.FirstName.ToLowerInvariant();
-        var keyId = await CreateDefaultKmsKey();
 
         var result = await GetService<AwsSqs>().CreateQueue(queueName, default);
 
         var attr = await GetService<IAmazonSQS>()
             .GetQueueAttributesAsync(result.Url.ToString(), new List<string> {QueueAttributeName.KmsMasterKeyId});
 
-        attr.Attributes[QueueAttributeName.KmsMasterKeyId].Should().Be(keyId);
+        attr.Attributes[QueueAttributeName.KmsMasterKeyId].Should().Be(kmsTestKeyId);
     }
 
     [Test]
@@ -126,7 +122,6 @@ public class AwsSqsTests : LocalstackFixture
     {
         var queueName = faker.Person.FirstName.ToLowerInvariant();
         var sqs = GetService<IAmazonSQS>();
-        await CreateDefaultKmsKey();
 
         var result = await GetService<AwsSqs>().CreateQueue(queueName, default);
 

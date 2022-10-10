@@ -22,6 +22,8 @@ public class SubConfig : SubTopicNameConfig
     public int MessageRetantionInDays { get; set; } = 7;
     public int MessageTimeoutInSeconds { get; set; } = 30;
     public int MessageDelayInSeconds { get; set; }
+
+    public int PollingIntervalInSeconds { get; set; } = 5;
     public string? ServiceUrl { get; set; }
     public bool AutoCreateNewTopic { get; set; } = true;
     public string Region { get; set; } = "sa-east-1";

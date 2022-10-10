@@ -3,9 +3,9 @@ using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
 using Microsoft.Extensions.Options;
 
-namespace A55.Subdivisions.Aws.Adapters;
+namespace A55.Subdivisions.Aws.Clients;
 
-class AwsKms
+sealed class AwsKms
 {
     readonly SubConfig config;
     readonly IAmazonKeyManagementService kms;

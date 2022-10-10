@@ -6,9 +6,9 @@ using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
 using Microsoft.Extensions.Logging;
 
-namespace A55.Subdivisions.Aws.Adapters;
+namespace A55.Subdivisions.Aws.Clients;
 
-class AwsSns
+sealed class AwsSns
 {
     readonly AwsKms kms;
     readonly ILogger<AwsSns> logger;

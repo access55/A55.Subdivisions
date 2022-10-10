@@ -19,8 +19,7 @@ public class SubClientFixture : LocalstackFixture
         Topic = faker.TopicName(config);
         sqs = GetService<IAmazonSQS>();
 
-        await CreateDefaultKmsKey();
-        await GetService<AwsSubdivisionsBootstrapper>().EnsureTopicExists(Topic, default);
+        await GetService<ISubdivisionsBootstrapper>().EnsureTopicExists(TopicName, default);
 
         fakedDate = faker.Date.Soon();
         A.CallTo(() => fakeClock.Now()).Returns(fakedDate);

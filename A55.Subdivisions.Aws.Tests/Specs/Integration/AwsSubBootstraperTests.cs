@@ -15,16 +15,15 @@ public class AwsSubBootstrapperTests : LocalstackFixture
     public async Task ShouldCreateAllTopicResources()
     {
         var topicName = faker.TopicNameString();
-        var bootstrapper = GetService<AwsSubdivisionsBootstrapper>();
-        await CreateDefaultKmsKey();
+        var bootstrapper = GetService<ISubdivisionsBootstrapper>();
 
-        await bootstrapper.EnsureTopicExists(topicName);
+        await bootstrapper.EnsureTopicExists(topicName, default);
 
         var resourses = await GetResources();
 
         resourses.Queues.Should().Contain(x => x.Contains(topicName));
-        resourses.Topic.TopicArn.Should().Contain(topicName.SnakeToPascalCase());
-        resourses.Rule.Name.Should().Contain(topicName.SnakeToPascalCase());
+        resourses.Topic.TopicArn.Should().Contain(topicName.ToPascalCase());
+        resourses.Rule.Name.Should().Contain(topicName.ToPascalCase());
     }
 
     public async Task<(Rule Rule, Topic Topic, string[] Queues)> GetResources()

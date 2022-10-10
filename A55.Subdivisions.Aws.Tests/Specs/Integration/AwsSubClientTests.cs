@@ -25,7 +25,7 @@ public class SubClientTests : SubClientFixture
 
         var message = faker.Lorem.Lines();
 
-        var client = GetService<ISubClient>();
+        var client = GetService<ISubdivisionsClient>();
         await client.Publish(stringTopicName, message);
 
         var messages = await client.Receive(stringTopicName);
@@ -40,7 +40,7 @@ public class SubClientTests : SubClientFixture
 
         var stringTopicName = Topic.Topic;
 
-        var client = GetService<ISubClient>();
+        var client = GetService<ISubdivisionsClient>();
         await client.Publish(stringTopicName, message);
 
         var messages = await client.Receive<TestMessage>(stringTopicName);
@@ -56,7 +56,7 @@ public class SubClientTests : SubClientFixture
 
         var stringTopicName = Topic.Topic;
 
-        var client = GetService<ISubClient>();
+        var client = GetService<ISubdivisionsClient>();
         await client.Publish(stringTopicName, message);
 
         var messages = await client.Receive<TestMessage>(stringTopicName);
@@ -71,7 +71,7 @@ public class SubClientTests : SubClientFixture
         var jsonMessage = message.ToSnakeCaseJson().AsJToken();
         var stringTopicName = Topic.Topic;
 
-        var client = GetService<ISubClient>();
+        var client = GetService<ISubdivisionsClient>();
         await client.Publish(stringTopicName, message);
 
         var messages = await client.Receive(stringTopicName);

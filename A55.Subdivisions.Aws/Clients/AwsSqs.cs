@@ -5,14 +5,15 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Message = A55.Subdivisions.Aws.Models.Message;
 
-namespace A55.Subdivisions.Aws.Adapters;
+namespace A55.Subdivisions.Aws.Clients;
 
 record QueueInfo(Uri Url, SqsArn Arn);
 
-class AwsSqs
+sealed class AwsSqs
 {
+    internal record MessagePayload(string Event, DateTime DateTime, string Payload);
+
     const string DeadLetterPrefix = "dead_letter_";
 
     public static readonly string IAM = JsonSerializer.Serialize(new
@@ -119,7 +120,7 @@ class AwsSqs
         return await GetQueueAttributes(q.QueueUrl, ctx);
     }
 
-    public async Task<IReadOnlyCollection<Message>> ReceiveMessages(
+    public async Task<IReadOnlyCollection<IMessage>> ReceiveMessages(
         string queue,
         CancellationToken ctx)
     {
@@ -134,7 +135,7 @@ class AwsSqs
             }, ctx);
 
         if (readMessagesRequest?.Messages is not { } messages)
-            return ArraySegment<Message>.Empty;
+            return ArraySegment<IMessage>.Empty;
 
         return messages
             .Select(m =>
@@ -163,7 +164,7 @@ class AwsSqs
                         CancellationToken.None);
                 }
 
-                return new Message(
+                return (IMessage)new Message<string>(
                     body.MessageId,
                     message.Payload,
                     message.DateTime,
@@ -173,7 +174,7 @@ class AwsSqs
             .ToArray();
     }
 
-    public Task<IReadOnlyCollection<Message>> ReceiveDeadLetters(string queue, CancellationToken ctx) =>
+    public Task<IReadOnlyCollection<IMessage>> ReceiveDeadLetters(string queue, CancellationToken ctx) =>
         ReceiveMessages($"{DeadLetterPrefix}{queue}", ctx);
 
     class SqsMessageBody

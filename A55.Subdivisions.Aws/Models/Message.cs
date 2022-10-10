@@ -1,23 +1,26 @@
-﻿namespace A55.Subdivisions.Aws.Models;
+﻿global using IMessage = A55.Subdivisions.Aws.Models.IMessage<string>;
 
-public record MessagePayload(string Event, DateTime DateTime, string Payload);
+namespace A55.Subdivisions.Aws.Models;
 
-public sealed class Message : Message<string>
+public interface IMessage<out TBody> where TBody : notnull
 {
-    internal Message(Guid id, string body, DateTime datetime, Func<Task> deleteMessage, Func<Task> releaseMessage)
-        : base(id, body, datetime, deleteMessage, releaseMessage)
-    {
-    }
+    DateTime Datetime { get; }
+    Guid Id { get; }
+    TBody Body { get; }
+    Task Delete();
+    Task Release();
+
+    IMessage<TMap> Map<TMap>(Func<TBody, TMap> selector) where TMap : notnull;
 }
 
-public class Message<T> where T : notnull
+readonly struct Message<TBody> : IMessage<TBody> where TBody : notnull
 {
     readonly Func<Task> deleteMessage;
     readonly Func<Task> releaseMessage;
 
     internal Message(
         Guid id,
-        in T body,
+        in TBody body,
         DateTime datetime,
         Func<Task> deleteMessage,
         Func<Task> releaseMessage
@@ -32,12 +35,11 @@ public class Message<T> where T : notnull
 
     public DateTime Datetime { get; }
     public Guid Id { get; }
-    public T Body { get; }
+    public TBody Body { get; }
 
     public Task Delete() => deleteMessage();
     public Task Release() => releaseMessage();
 
-    internal Message<TMap> Map<TMap>(Func<T, TMap> selector) where TMap : notnull =>
-        new(Id, selector(Body), Datetime, deleteMessage,
-            releaseMessage);
+    public IMessage<TMap> Map<TMap>(Func<TBody, TMap> selector) where TMap : notnull =>
+        new Message<TMap>(Id, selector(Body), Datetime, Delete, Release);
 }

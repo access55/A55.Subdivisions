@@ -1,5 +1,5 @@
 using System.Text.Json;
-using A55.Subdivisions.Aws.Adapters;
+using A55.Subdivisions.Aws.Clients;
 using A55.Subdivisions.Aws.Models;
 using A55.Subdivisions.Aws.Tests.Builders;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;

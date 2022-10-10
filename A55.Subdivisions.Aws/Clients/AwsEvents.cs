@@ -5,11 +5,11 @@ using Amazon.EventBridge.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace A55.Subdivisions.Aws.Adapters;
+namespace A55.Subdivisions.Aws.Clients;
 
 public record PublishResult(bool IsSuccess);
 
-class AwsEvents
+sealed class AwsEvents
 {
     readonly SubConfig config;
     readonly IAmazonEventBridge eventBridge;

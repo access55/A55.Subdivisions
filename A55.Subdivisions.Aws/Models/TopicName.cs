@@ -16,7 +16,7 @@ class TopicName
                  throw new InvalidOperationException("Unable to infer the source name");
 
         FullTopicName =
-            $"{Prefix.SnakeToPascalCase()}{Topic.SnakeToPascalCase()}{Suffix.SnakeToPascalCase()}";
+            $"{Prefix.ToPascalCase()}{Topic.ToPascalCase()}{Suffix.ToPascalCase()}";
 
         FullQueueName =
             $"{Prefix}_{Source}_{Topic}_{Suffix}".TrimUnderscores();
@@ -30,7 +30,7 @@ class TopicName
     public string Prefix { get; }
     public string Suffix { get; }
 
-    static bool IsValidTopicName(string topic) =>
+    public static bool IsValidTopicName(string topic) =>
         topic.Length >= 6
         && char.IsLetter(topic[0])
         && topic.All(c => char.IsLetterOrDigit(c) || c is '_');

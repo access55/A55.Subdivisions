@@ -13,6 +13,7 @@ namespace A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 public class LocalstackFixture : ServicesFixture
 {
     protected SubConfig config = null!;
+    protected string kmsTestKeyId = "";
     LocalStackTestcontainer localstack = null!;
 
     protected override async Task BeforeSetup()
@@ -31,7 +32,7 @@ public class LocalstackFixture : ServicesFixture
         c.MessageRetantionInDays = faker.Random.Int(4, 10);
         c.QueueMaxReceiveCount = faker.Random.Int(5, 10);
         c.Prefix = faker.Random.Replace("?##");
-        c.Source = faker.Internet.UserNameUnicode().Replace(".", "").SnakeToPascalCase();
+        c.Source = faker.Internet.UserNameUnicode().Replace(".", "").ToPascalCase();
 
         c.MessageDelayInSeconds = 0;
         c.MessageTimeoutInSeconds = 10000;
@@ -39,9 +40,13 @@ public class LocalstackFixture : ServicesFixture
     }
 
     [SetUp]
-    public void LocalstackSetup() => config = GetService<IOptions<SubConfig>>().Value;
+    public async Task LocalstackSetup()
+    {
+        config = GetService<IOptions<SubConfig>>().Value;
+        kmsTestKeyId = await CreateDefaultKmsKey();
+    }
 
-    protected async Task<string> CreateDefaultKmsKey()
+    async Task<string> CreateDefaultKmsKey()
     {
         var kms = GetService<IAmazonKeyManagementService>();
         var key = await kms.CreateKeyAsync(new() {Description = "Test key"});

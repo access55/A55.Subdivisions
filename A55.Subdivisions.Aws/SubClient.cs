@@ -1,29 +1,36 @@
-﻿using A55.Subdivisions.Aws.Adapters;
+﻿using A55.Subdivisions.Aws.Clients;
 using A55.Subdivisions.Aws.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace A55.Subdivisions.Aws;
 
-interface ISubClient
+public interface IProducer
 {
     Task<PublishResult> Publish(string topicName, string message, CancellationToken ctx = default);
 
     Task<PublishResult> Publish<T>(string topicName, T message, CancellationToken ctx = default)
         where T : notnull;
+}
 
-    ValueTask<IReadOnlyCollection<Message>> Receive(string topic, CancellationToken ctx = default);
+public interface IConsumerClient
+{
+    ValueTask<IReadOnlyCollection<IMessage>> Receive(string topic, CancellationToken ctx = default);
 
-    ValueTask<IReadOnlyCollection<Message<T>>> Receive<T>(string topic, CancellationToken ctx = default)
+    ValueTask<IReadOnlyCollection<IMessage<T>>> Receive<T>(string topic, CancellationToken ctx = default)
         where T : notnull;
 
-    Task<IReadOnlyCollection<Message>> DeadLetters(string queueName, CancellationToken ctx = default);
+    Task<IReadOnlyCollection<IMessage>> DeadLetters(string queueName, CancellationToken ctx = default);
 
-    Task<IReadOnlyCollection<Message<T>>> DeadLetters<T>(string queueName, CancellationToken ctx = default)
+    Task<IReadOnlyCollection<IMessage<T>>> DeadLetters<T>(string queueName, CancellationToken ctx = default)
         where T : notnull;
 }
 
-sealed class AwsSubClient : ISubClient
+public interface ISubdivisionsClient : IProducer, IConsumerClient
+{
+}
+
+sealed class AwsSubClient : ISubdivisionsClient
 {
     readonly ISubClock clock;
     readonly IOptions<SubConfig> config;
@@ -59,23 +66,24 @@ sealed class AwsSubClient : ISubClient
     public Task<PublishResult> Publish(string topicName, string message, CancellationToken ctx = default) =>
         Publish(CreateTopicName(topicName), message, ctx);
 
-    public ValueTask<IReadOnlyCollection<Message>> Receive(string topic, CancellationToken ctx = default) =>
+    public ValueTask<IReadOnlyCollection<IMessage>> Receive(string topic, CancellationToken ctx = default) =>
         Receive(CreateTopicName(topic), ctx);
 
-    public async ValueTask<IReadOnlyCollection<Message<T>>> Receive<T>(string topic, CancellationToken ctx = default)
+    public async ValueTask<IReadOnlyCollection<IMessage<T>>> Receive<T>(string topic, CancellationToken ctx = default)
         where T : notnull
     {
         var message = await Receive(topic, ctx);
         return message.Select(m => m.Map(s => serializer.Deserialize<T>(s))).ToArray();
     }
 
-    public Task<IReadOnlyCollection<Message>> DeadLetters(string queueName, CancellationToken ctx = default)
+    public Task<IReadOnlyCollection<IMessage>> DeadLetters(string queueName, CancellationToken ctx = default)
     {
         var topic = CreateTopicName(queueName);
         return queue.ReceiveDeadLetters(topic.FullQueueName, ctx);
     }
 
-    public async Task<IReadOnlyCollection<Message<T>>> DeadLetters<T>(string queueName, CancellationToken ctx = default)
+    public async Task<IReadOnlyCollection<IMessage<T>>> DeadLetters<T>(string queueName,
+        CancellationToken ctx = default)
         where T : notnull
     {
         var message = await DeadLetters(queueName, ctx);
@@ -93,12 +101,12 @@ sealed class AwsSubClient : ISubClient
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(topic);
 
-        MessagePayload messagePayload = new(topic.Topic, clock.Now(), message);
+        AwsSqs.MessagePayload messagePayload = new(topic.Topic, clock.Now(), message);
 
         var payload = serializer.Serialize(messagePayload);
         return events.PushEvent(topic, payload, ctx);
     }
 
-    internal async ValueTask<IReadOnlyCollection<Message>> Receive(TopicName topic, CancellationToken ctx) =>
+    internal async ValueTask<IReadOnlyCollection<IMessage>> Receive(TopicName topic, CancellationToken ctx) =>
         await queue.ReceiveMessages(topic.FullQueueName, ctx);
 }

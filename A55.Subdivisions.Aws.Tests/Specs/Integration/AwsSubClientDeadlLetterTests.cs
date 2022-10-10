@@ -17,7 +17,7 @@ public class SubClientDeadLetterTests : SubClientFixture
     {
         var message = faker.Lorem.Lines();
 
-        var client = GetService<ISubClient>();
+        var client = GetService<ISubdivisionsClient>();
         await client.Publish(TopicName, message);
 
         var messages = await client.Receive(TopicName);
@@ -35,7 +35,7 @@ public class SubClientDeadLetterTests : SubClientFixture
     {
         var message = TestMessage.New();
 
-        var client = GetService<ISubClient>();
+        var client = GetService<ISubdivisionsClient>();
         await client.Publish(TopicName, message);
 
         var messages = await client.Receive(TopicName);

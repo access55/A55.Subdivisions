@@ -12,7 +12,8 @@ public static class Extensions
 public static class FakerExtensions
 {
     public static string TopicNameString(this Faker faker) =>
-        $"{faker.Person.FirstName}_{faker.Random.Replace("?##?_?**?")}".ToLowerInvariant();
+        $"{faker.Person.FirstName}_{faker.Random.Replace("?##?_?**?")}"
+            .ToLowerInvariant().Replace(".", "");
 
     internal static TopicName TopicName(this Faker faker, SubConfig config) =>
         new(faker.TopicNameString(), config);
