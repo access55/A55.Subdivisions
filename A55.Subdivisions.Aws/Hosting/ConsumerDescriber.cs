@@ -48,8 +48,10 @@ sealed class ConsumerDescriber : IConsumerDescriber
         if (!consumerType.IsAssignableTo(typeof(IWeakConsumer)))
             throw new SubdivisionsException($"Invalid consumer type: {consumerType.Name}");
 
-        if (consumerType.GetGenericTypeDefinition() == typeof(IConsumer<>) &&
-            consumerType.GetGenericArguments().Single().IsAssignableTo(messageType))
+        var consumerDef = consumerType.GetInterfaces().SingleOrDefault(i =>
+            i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IConsumer<>));
+
+        if (consumerDef is null || !consumerDef.GetGenericArguments().Single().IsAssignableFrom(messageType))
             throw new SubdivisionsException($"Invalid consumer message definition: {topicName}");
 
         MaxConcurrency = maxConcurrency;
