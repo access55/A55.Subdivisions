@@ -6,7 +6,7 @@ using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 
-namespace A55.Subdivisions.Aws.Tests.Specs.Integration.Adapters;
+namespace A55.Subdivisions.Aws.Tests.Specs.Integration.Clients;
 
 public class AwsSnsTests : LocalstackFixture
 {

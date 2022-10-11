@@ -4,7 +4,7 @@ using Amazon.EventBridge;
 using Amazon.EventBridge.Model;
 using Microsoft.Extensions.Logging;
 
-namespace A55.Subdivisions.Aws.Tests.Specs.Unit.Adapters;
+namespace A55.Subdivisions.Aws.Tests.Specs.Unit.Clients;
 
 public class AwsEventsTests : BaseTest
 {

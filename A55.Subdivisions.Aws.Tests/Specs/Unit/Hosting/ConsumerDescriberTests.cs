@@ -16,9 +16,9 @@ public class ConsumerDescriberTests
     public void ShouldThrowIfInvalidTopic(string topicName)
     {
         var action = () => new ConsumerDescriber(
-            topicName: topicName,
-            consumerType: typeof(FakeConsumer),
-            messageType: typeof(string));
+            topicName,
+            typeof(FakeConsumer),
+            typeof(string));
 
         action.Should().Throw<SubdivisionsException>();
     }
@@ -27,9 +27,9 @@ public class ConsumerDescriberTests
     public void ShouldThrowIfInvalidConsumer()
     {
         var action = () => new ConsumerDescriber(
-            topicName: "good_name",
-            consumerType: typeof(ConsumerDescriberTests),
-            messageType: typeof(string));
+            "good_name",
+            typeof(ConsumerDescriberTests),
+            typeof(string));
 
         action.Should().Throw<SubdivisionsException>();
     }
@@ -38,9 +38,9 @@ public class ConsumerDescriberTests
     public void ShouldThrowIfConsumerIsAbstract()
     {
         var action = () => new ConsumerDescriber(
-            topicName: "good_name",
-            consumerType: typeof(AbstractConsumer),
-            messageType: typeof(string));
+            "good_name",
+            typeof(AbstractConsumer),
+            typeof(string));
 
         action.Should().Throw<SubdivisionsException>();
     }
@@ -49,9 +49,9 @@ public class ConsumerDescriberTests
     public void ShouldThrowIfIsNotAConsumerOfTheType()
     {
         var action = () => new ConsumerDescriber(
-            topicName: "good_name",
-            consumerType: typeof(FakeConsumer<ConsumerDescriberTests>),
-            messageType: typeof(TestMessage));
+            "good_name",
+            typeof(FakeConsumer<ConsumerDescriberTests>),
+            typeof(TestMessage));
 
         action.Should().Throw<SubdivisionsException>();
     }
@@ -60,9 +60,9 @@ public class ConsumerDescriberTests
     public void ShouldThrowIfIsNotAConsumerMessageContravariant()
     {
         var action = () => new ConsumerDescriber(
-            topicName: "good_name",
-            consumerType: typeof(FakeConsumer<TestMessageSuper>),
-            messageType: typeof(TestMessage));
+            "good_name",
+            typeof(FakeConsumer<TestMessageSuper>),
+            typeof(TestMessage));
 
         action.Should().Throw<SubdivisionsException>();
     }
@@ -71,9 +71,9 @@ public class ConsumerDescriberTests
     public void ShouldNotThrowIfIsNotAConsumerMessageCovariant()
     {
         var action = () => new ConsumerDescriber(
-            topicName: "good_name",
-            consumerType: typeof(FakeConsumer<TestMessage>),
-            messageType: typeof(TestMessageSuper));
+            "good_name",
+            typeof(FakeConsumer<TestMessage>),
+            typeof(TestMessageSuper));
 
         action.Should().NotThrow<SubdivisionsException>();
     }
@@ -82,9 +82,9 @@ public class ConsumerDescriberTests
     public void ShouldNotThrow()
     {
         var action = () => new ConsumerDescriber(
-            topicName: "good_name",
-            consumerType: typeof(FakeConsumer),
-            messageType: typeof(string));
+            "good_name",
+            typeof(FakeConsumer),
+            typeof(string));
 
         action.Should().NotThrow();
     }
@@ -93,9 +93,9 @@ public class ConsumerDescriberTests
     public void ShouldNotThrowForRefType()
     {
         var action = () => new ConsumerDescriber(
-            topicName: "good_name",
-            consumerType: typeof(FakeConsumer<TestMessage>),
-            messageType: typeof(TestMessage));
+            "good_name",
+            typeof(FakeConsumer<TestMessage>),
+            typeof(TestMessage));
 
         action.Should().NotThrow();
     }
@@ -104,9 +104,9 @@ public class ConsumerDescriberTests
     public void ShouldNotThrowForValueType()
     {
         var action = () => new ConsumerDescriber(
-            topicName: "good_name",
-            consumerType: typeof(FakeConsumer<TestMessageValue>),
-            messageType: typeof(TestMessageValue));
+            "good_name",
+            typeof(FakeConsumer<TestMessageValue>),
+            typeof(TestMessageValue));
 
         action.Should().NotThrow();
     }
@@ -115,9 +115,9 @@ public class ConsumerDescriberTests
     public void ShouldNotThrowIfConsumerIsDerivedClass()
     {
         var action = () => new ConsumerDescriber(
-            topicName: "good_name",
-            consumerType: typeof(TestDerivedConsumer),
-            messageType: typeof(string));
+            "good_name",
+            typeof(TestDerivedConsumer),
+            typeof(string));
 
         action.Should().NotThrow<SubdivisionsException>();
     }
@@ -126,9 +126,9 @@ public class ConsumerDescriberTests
     public void ShouldNotThrowIfConsumerIsAnInterface()
     {
         var action = () => new ConsumerDescriber(
-            topicName: "good_name",
-            consumerType: typeof(ITestConsumerInterface),
-            messageType: typeof(string));
+            "good_name",
+            typeof(ITestConsumerInterface),
+            typeof(string));
 
         action.Should().NotThrow<SubdivisionsException>();
     }

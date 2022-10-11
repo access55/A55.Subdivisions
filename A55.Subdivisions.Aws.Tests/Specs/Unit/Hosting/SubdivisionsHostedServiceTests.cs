@@ -88,7 +88,7 @@ static class FakeMessageTypes
         [typeof(Seventh)] = typeof(IConsumer<Seventh>),
         [typeof(Eighth)] = typeof(IConsumer<Eighth>),
         [typeof(Ninth)] = typeof(IConsumer<Ninth>),
-        [typeof(Tenth)] = typeof(IConsumer<Tenth>),
+        [typeof(Tenth)] = typeof(IConsumer<Tenth>)
     };
 
     public record First;

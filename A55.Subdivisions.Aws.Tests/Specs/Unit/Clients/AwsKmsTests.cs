@@ -5,7 +5,7 @@ using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
 using Microsoft.Extensions.Options;
 
-namespace A55.Subdivisions.Aws.Tests.Specs.Unit.Adapters;
+namespace A55.Subdivisions.Aws.Tests.Specs.Unit.Clients;
 
 public class AwsKmsTests : BaseTest
 {

@@ -1,9 +1,9 @@
 ﻿global using FakeConsumer = A55.Subdivisions.Aws.Tests.Builders.FakeConsumer<string>;
 global using TestConsumer =
     A55.Subdivisions.Aws.Tests.Builders.FakeConsumer<A55.Subdivisions.Aws.Tests.Builders.TestMessage>;
+using System.Text.Json;
 using A55.Subdivisions.Aws.Hosting;
 using AutoBogus;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace A55.Subdivisions.Aws.Tests.Builders;
 

@@ -29,7 +29,7 @@ public static class FakerExtensions
         new(faker.TopicNameString(), config);
 
     public static IEnumerable<int> Range(this Faker faker, int min, int max) =>
-        Enumerable.Range(0, faker.Random.Int(min: min, max: max));
+        Enumerable.Range(0, faker.Random.Int(min, max));
 
     public static IEnumerable<int> Range(this Faker faker, int max) =>
         faker.Range(0, max);

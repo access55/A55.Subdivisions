@@ -4,7 +4,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Newtonsoft.Json.Linq;
 
-namespace A55.Subdivisions.Aws.Tests.Specs.Integration.Adapters;
+namespace A55.Subdivisions.Aws.Tests.Specs.Integration.Clients;
 
 public class AwsSqsTests : LocalstackFixture
 {

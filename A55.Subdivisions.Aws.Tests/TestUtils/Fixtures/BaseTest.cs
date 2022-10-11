@@ -32,7 +32,7 @@ public class BaseTest
     [SetUp]
     public void SetupBase()
     {
-        mocker = new ();
+        mocker = new();
         MockServiceProvider(mocker);
     }
 

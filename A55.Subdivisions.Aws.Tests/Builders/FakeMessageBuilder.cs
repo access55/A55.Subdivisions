@@ -1,20 +1,19 @@
-﻿using A55.Subdivisions.Aws.Hosting;
-using Bogus;
+﻿using Bogus;
 
 namespace A55.Subdivisions.Aws.Tests.Builders;
 
-internal class FakeMessageBuilder
+class FakeMessageBuilder
 {
     readonly DateTime datetime;
-    Guid id;
     string body;
+    readonly Guid id;
 
     public FakeMessageBuilder()
     {
         var faker = new Faker();
-        this.datetime = faker.Date.Soon().ToUniversalTime();
-        this.id = faker.Random.Guid();
-        this.body = TestMessage.New().ToSnakeCaseJson();
+        datetime = faker.Date.Soon().ToUniversalTime();
+        id = faker.Random.Guid();
+        body = TestMessage.New().ToSnakeCaseJson();
     }
 
     public FakeMessageBuilder WithBody(string body)

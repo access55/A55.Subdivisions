@@ -2,14 +2,14 @@
 
 namespace A55.Subdivisions.Aws.Tests.Builders;
 
-internal class ConsumerDescriberBuilder
+class ConsumerDescriberBuilder
 {
-    string topicName = "good_name";
-    TimeSpan? pollingInterval = TimeSpan.Zero;
-    int? maxConcurrency = 1;
-    Type messageType = typeof(TestMessage);
     Type consumerType = typeof(TestConsumer);
     Func<Exception, Task>? errorHandler;
+    int? maxConcurrency = 1;
+    Type messageType = typeof(TestMessage);
+    TimeSpan? pollingInterval = TimeSpan.Zero;
+    string topicName = "good_name";
 
     public ConsumerDescriberBuilder UsingConsumer<TConsumer, TMessage>() where TConsumer : IConsumer<TMessage>
         where TMessage : notnull =>

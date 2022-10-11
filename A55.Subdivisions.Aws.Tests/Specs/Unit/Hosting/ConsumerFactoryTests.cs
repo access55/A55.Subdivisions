@@ -26,7 +26,7 @@ public class ConsumerFactoryTests : BaseTest
     {
         var describer = new ConsumerDescriberBuilder().Generate();
 
-        mocker.Provide<ISubMessageSerializer>(new FakeSerializer(returnValue: null));
+        mocker.Provide<ISubMessageSerializer>(new FakeSerializer(null));
         var factory = mocker.Generate<ConsumerFactory>();
 
         var action = () => factory.ConsumeScoped(describer, A.Fake<IMessage>(), default);
