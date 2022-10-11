@@ -35,35 +35,17 @@ class BuildProject : NukeBuild
                 .EnableNoLogo()
                 .EnableNoRestore()));
 
-    Target TestUnit => _ => _
-        .Description("Run unit tests")
-        .DependsOn(Build)
-        .Executes(() => Solution
-            .GetProjects("*.Tests.Unit")
-            .ForEach(project =>
-                DotNetTest(s => s
-                    .EnableNoBuild()
-                    .EnableNoRestore()
-                    .SetConfiguration(Configuration)
-                    .SetProjectFile(project))
-            ));
-
-    Target TestIntegration => _ => _
-        .Description("Run integration tests")
-        .DependsOn(Build)
-        .Executes(() => Solution
-            .GetProjects("*.Tests.Integration")
-            .ForEach(project =>
-                DotNetTest(s => s
-                    .EnableNoBuild()
-                    .EnableNoRestore()
-                    .SetConfiguration(Configuration)
-                    .SetProjectFile(project))
-            ));
-
     Target Test => _ => _
         .Description("Run all tests")
-        .DependsOn(TestUnit, TestIntegration);
+        .DependsOn(Build)
+        .Executes(() => Solution
+            .GetProjects("*.Tests")
+            .ForEach(project =>
+                DotNetTest(s => s
+                    .EnableNoBuild()
+                    .EnableNoRestore()
+                    .SetConfiguration(Configuration)
+                    .SetProjectFile(project))));
 
     Target TestCoverage => _ => _
         .Description("Run tests with coverage")

@@ -92,9 +92,7 @@
               "Report",
               "Restore",
               "Test",
-              "TestCoverage",
-              "TestIntegration",
-              "TestUnit"
+              "TestCoverage"
             ]
           }
         },
@@ -118,9 +116,7 @@
               "Report",
               "Restore",
               "Test",
-              "TestCoverage",
-              "TestIntegration",
-              "TestUnit"
+              "TestCoverage"
             ]
           }
         },
