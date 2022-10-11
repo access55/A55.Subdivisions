@@ -156,9 +156,8 @@ public class ConsumerFactoryTests : BaseTest
             .Throws(ex);
 
         await factory.ConsumeScoped(describer, message, default);
-
         mocker.Resolve<ILogger<ConsumerFactory>>()
-            .CalledWith(LogLevel.Error, "Consumer error", ex)
+            .CalledWith(LogLevel.Error, ex)
             .MustHaveHappenedOnceExactly();
     }
 }

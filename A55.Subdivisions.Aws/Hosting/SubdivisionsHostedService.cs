@@ -33,15 +33,14 @@ class SubdivisionsHostedService : BackgroundService
         await job.Start(describers, stoppingToken);
     }
 
-    public async Task Bootstrap(CancellationToken cancellationToken)
+    public Task Bootstrap(CancellationToken cancellationToken)
     {
         logger.LogDebug("Bootstrapping Subdivisions");
         var topicBootstrapper = describers
-            .Select(d => bootstrapper
-                .EnsureTopicExists(d.TopicName, cancellationToken)
-                .AsTask());
+            .Select(async d => await bootstrapper
+                .EnsureTopicExists(d.TopicName, cancellationToken));
 
-        await Task.WhenAll(topicBootstrapper);
+        return Task.WhenAll(topicBootstrapper);
     }
 
     void ValidateConsumerConfiguration()
@@ -49,6 +48,7 @@ class SubdivisionsHostedService : BackgroundService
         var duplicated = describers
             .GroupBy(d => d.TopicName)
             .Any(g => g.Count() > 1);
+
         if (duplicated)
             throw new SubdivisionsException("Duplicated topic definition");
     }

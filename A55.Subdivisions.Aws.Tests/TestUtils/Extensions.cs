@@ -11,7 +11,7 @@ public static class Extensions
     public static JToken AsJToken(this string json) => JToken.Parse(json);
 
     public static IVoidArgumentValidationConfiguration CalledWith<T>(this ILogger<T> logger, LogLevel level,
-        string message, Exception? exception = null) =>
+        Exception? exception = null) =>
         A.CallTo(logger)
             .Where(call => call.Method.Name == "Log" &&
                            call.GetArgument<LogLevel>("logLevel") == level &&
@@ -27,6 +27,15 @@ public static class FakerExtensions
 
     internal static TopicName TopicName(this Faker faker, SubConfig config) =>
         new(faker.TopicNameString(), config);
+
+    public static IEnumerable<int> Range(this Faker faker, int min, int max) =>
+        Enumerable.Range(0, faker.Random.Int(min: min, max: max));
+
+    public static IEnumerable<int> Range(this Faker faker, int max) =>
+        faker.Range(0, max);
+
+    public static IEnumerable<T> Items<T>(this Randomizer faker, IEnumerable<T> items, int? count = null) =>
+        faker.ListItems(items.ToList(), count);
 }
 
 public static class FluentAssertionsComparer

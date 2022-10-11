@@ -5,7 +5,7 @@ namespace A55.Subdivisions.Aws.Tests.Builders;
 
 internal class FakeMessageBuilder
 {
-    DateTime datetime;
+    readonly DateTime datetime;
     Guid id;
     string body;
 
