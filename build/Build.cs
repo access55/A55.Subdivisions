@@ -12,6 +12,9 @@ class BuildProject : NukeBuild
     [Solution] readonly Solution Solution;
     [Parameter] readonly string TestResultFile = "test_result.xml";
 
+    AbsolutePath CoverageFiles => RootDirectory / "**" / "coverage.cobertura.xml";
+    AbsolutePath TestReportDirectory => RootDirectory / "TestReport";
+
     Target Clean => _ => _
         .Description("Clean project directories")
         .Executes(() => RootDirectory
@@ -82,9 +85,6 @@ class BuildProject : NukeBuild
         .Description("Run tests and generate coverage report")
         .DependsOn(TestCoverage)
         .Triggers(GenerateReport, BrowseReport);
-
-    AbsolutePath CoverageFiles => RootDirectory / "tests" / "**" / "coverage.cobertura.xml";
-    AbsolutePath TestReportDirectory => RootDirectory / "TestReport";
 
     Target GenerateReport => _ => _
         .Description("Generate test coverage report")
