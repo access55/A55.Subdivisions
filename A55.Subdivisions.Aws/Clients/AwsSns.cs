@@ -20,7 +20,7 @@ sealed class AwsSns
         this.logger = logger;
     }
 
-    public async Task<SnsArn> CreateTopic(TopicName topicName, CancellationToken ctx)
+    public async Task<SnsArn> EnsureTopic(TopicName topicName, CancellationToken ctx)
     {
         var policy = GetPolicy(topicName.Topic, RegionEndpoint.USEast1);
         var keyId = await kms.GetKey(ctx) ??

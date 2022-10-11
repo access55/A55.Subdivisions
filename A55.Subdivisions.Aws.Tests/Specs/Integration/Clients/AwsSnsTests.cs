@@ -16,7 +16,7 @@ public class AwsSnsTests : LocalstackFixture
         var topicName = faker.TopicName(config);
         var aws = GetService<AwsSns>();
 
-        await aws.CreateTopic(topicName, default);
+        await aws.EnsureTopic(topicName, default);
 
         var sns = GetService<IAmazonSimpleNotificationService>();
         var topics = await sns.ListTopicsAsync();
@@ -30,8 +30,8 @@ public class AwsSnsTests : LocalstackFixture
         var topicName = faker.TopicName(config);
         var aws = GetService<AwsSns>();
 
-        var response1 = await aws.CreateTopic(topicName, default);
-        var response2 = await aws.CreateTopic(topicName, default);
+        var response1 = await aws.EnsureTopic(topicName, default);
+        var response2 = await aws.EnsureTopic(topicName, default);
 
         var sns = GetService<IAmazonSimpleNotificationService>();
         var topics = await sns.ListTopicsAsync();
@@ -46,7 +46,7 @@ public class AwsSnsTests : LocalstackFixture
         var topicName = faker.TopicName(config);
         var aws = GetService<AwsSns>();
 
-        var result = await aws.CreateTopic(topicName, default);
+        var result = await aws.EnsureTopic(topicName, default);
 
         var sns = GetService<IAmazonSimpleNotificationService>();
         var topic = await sns.GetTopicAttributesAsync(new GetTopicAttributesRequest { TopicArn = result.Value });

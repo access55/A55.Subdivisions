@@ -15,9 +15,13 @@ public interface IConsumer : IConsumer<string>
 {
 }
 
-interface IConsumerDescriber
+interface IProducerDescriber
 {
     string TopicName { get; }
+}
+
+interface IConsumerDescriber : IProducerDescriber
+{
     TimeSpan? PollingInterval { get; }
     int? MaxConcurrency { get; }
     Type MessageType { get; }
@@ -46,7 +50,7 @@ sealed class ConsumerDescriber : IConsumerDescriber
         if (!consumerType.IsAssignableTo(typeof(IWeakConsumer)))
             throw new SubdivisionsException($"Invalid consumer type: {consumerType.Name}");
 
-        if (consumerType is { IsAbstract: true, IsInterface: false })
+        if (consumerType is {IsAbstract: true, IsInterface: false})
             throw new SubdivisionsException($"Consumer should not be abstract: {consumerType.Name}");
 
         var consumerDef = consumerType.GetInterfaces().SingleOrDefault(i =>

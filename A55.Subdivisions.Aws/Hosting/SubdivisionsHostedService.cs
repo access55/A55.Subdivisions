@@ -8,20 +8,23 @@ namespace A55.Subdivisions.Aws.Hosting;
 class SubdivisionsHostedService : BackgroundService
 {
     readonly ISubResourceManager bootstrapper;
-    readonly ImmutableArray<IConsumerDescriber> describers;
+    readonly ImmutableArray<IConsumerDescriber> consumers;
+    readonly ImmutableArray<IProducerDescriber> producers;
     readonly IConsumerJob job;
     readonly ILogger<SubdivisionsHostedService> logger;
 
     public SubdivisionsHostedService(
         ILogger<SubdivisionsHostedService> logger,
         ISubResourceManager bootstrapper,
-        IEnumerable<IConsumerDescriber> describers,
+        IEnumerable<IConsumerDescriber> consumers,
+        IEnumerable<IProducerDescriber> producers,
         IConsumerJob job)
     {
         this.logger = logger;
         this.bootstrapper = bootstrapper;
         this.job = job;
-        this.describers = describers.ToImmutableArray();
+        this.consumers = consumers.ToImmutableArray();
+        this.producers = producers.ToImmutableArray();
 
         ValidateConsumerConfiguration();
     }
@@ -29,22 +32,25 @@ class SubdivisionsHostedService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await Bootstrap(stoppingToken);
-        await job.Start(describers, stoppingToken);
+        await job.Start(consumers, stoppingToken);
     }
 
-    public Task Bootstrap(CancellationToken cancellationToken)
+    public async Task Bootstrap(CancellationToken cancellationToken)
     {
-        logger.LogDebug("Bootstrapping Subdivisions");
-        var topicBootstrapper = describers
+        logger.LogDebug("Bootstrapping Subdivisions Producers");
+        await Task.WhenAll(this.consumers
             .Select(async d => await bootstrapper
-                .EnsureTopicExists(d.TopicName, cancellationToken));
+                .EnsureTopicExists(d.TopicName, cancellationToken)));
 
-        return Task.WhenAll(topicBootstrapper);
+        logger.LogDebug("Bootstrapping Subdivisions Consumers");
+        await Task.WhenAll(this.producers
+            .Select(async d => await bootstrapper
+                .EnsureQueueExists(d.TopicName, cancellationToken)));
     }
 
     void ValidateConsumerConfiguration()
     {
-        var duplicated = describers
+        var duplicated = consumers
             .GroupBy(d => d.TopicName)
             .Any(g => g.Count() > 1);
 

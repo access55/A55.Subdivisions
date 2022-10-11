@@ -9,7 +9,7 @@ using Amazon.SQS.Model;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration;
 
-public class AwsSubBootstrapperTests : LocalstackFixture
+public class AwsResourceManagerTests : LocalstackFixture
 {
     [Test]
     public async Task ShouldCreateAllTopicResources()
@@ -19,14 +19,27 @@ public class AwsSubBootstrapperTests : LocalstackFixture
 
         await bootstrapper.EnsureTopicExists(topicName, default);
 
-        var resourses = await GetResources();
-
-        resourses.Queues.Should().Contain(x => x.Contains(topicName));
-        resourses.Topic.TopicArn.Should().Contain(topicName.ToPascalCase());
-        resourses.Rule.Name.Should().Contain(topicName.ToPascalCase());
+        var resources = await GetResources();
+        resources.Topic.Single().TopicArn.Should().Contain(topicName.ToPascalCase());
+        resources.Rule.Single().Name.Should().Contain(topicName.ToPascalCase());
+        resources.Queues.Should().BeEmpty();
     }
 
-    public async Task<(Rule Rule, Topic Topic, string[] Queues)> GetResources()
+    [Test]
+    public async Task ShouldCreateAllQueueResources()
+    {
+        var topicName = faker.TopicNameString();
+        var bootstrapper = GetService<ISubResourceManager>();
+
+        await bootstrapper.EnsureQueueExists(topicName, default);
+
+        var resources = await GetResources();
+        resources.Rule.Should().BeEmpty();
+        resources.Topic.Single().TopicArn.Should().Contain(topicName.ToPascalCase());
+        resources.Queues.Should().Contain(x => x.Contains(topicName));
+    }
+
+    public async Task<(Rule[] Rule, Topic[] Topic, string[] Queues)> GetResources()
     {
         var ev = GetService<IAmazonEventBridge>();
         var sns = GetService<IAmazonSimpleNotificationService>();
@@ -39,8 +52,8 @@ public class AwsSubBootstrapperTests : LocalstackFixture
         await Task.WhenAll(savedRules, savedTopics, savedQueues);
 
         return (
-            savedRules.Result.Rules.Single(),
-            savedTopics.Result.Topics.Single(),
+            savedRules.Result.Rules.ToArray(),
+            savedTopics.Result.Topics.ToArray(),
             savedQueues.Result.QueueUrls.Select(Path.GetFileName).Cast<string>().ToArray()
         );
     }

@@ -1,3 +1,4 @@
+using A55.Subdivisions.Aws.Extensions;
 using A55.Subdivisions.Aws.Models;
 using Amazon.SQS;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,26 +19,49 @@ public class SubClientFixture : LocalstackFixture
     {
         Topic = faker.TopicName(config);
         sqs = GetService<IAmazonSQS>();
-        await GetService<ISubResourceManager>().EnsureTopicExists(TopicName, default);
+
+        var resources = GetService<ISubResourceManager>();
+        await resources.EnsureTopicExists(TopicName, default);
+        await resources.EnsureQueueExists(TopicName, default);
+
         fakedDate = faker.Date.Soon();
         A.CallTo(() => fakeClock.Now()).Returns(fakedDate);
     }
 
-    public async Task<ISubdivisionsClient> NewSubClient(string source) =>
-        await NewSubClient(c => c.Source = source);
+    protected async Task<IConsumerClient> CreateConsumer(Action<SubConfig>? configure = null) =>
+        await NewSubClient(configure, isConsumer: true, isProducer: false);
 
-    public async Task<ISubdivisionsClient> NewSubClient(Action<SubConfig> configure)
+    protected async Task<IProducer> CreateProducer(Action<SubConfig>? configure = null) =>
+        await NewSubClient(configure, isConsumer: false, isProducer: true);
+
+    protected Task<ISubdivisionsClient> CreateSubClient(Action<SubConfig>? configure = null) =>
+        NewSubClient(configure, isConsumer: true, isProducer: true);
+
+    async Task<ISubdivisionsClient> NewSubClient(
+        Action<SubConfig>? configure,
+        bool isConsumer,
+        bool isProducer
+    )
     {
         var services = CreateSubdivisionsServices(c =>
-        {
-            ConfigureSubdivisions(c);
-            c.Prefix = config.Prefix;
-            c.Suffix = config.Suffix;
-            c.PubKey = config.PubKey;
-            configure(c);
-        });
+            {
+                ConfigureSubdivisions(c);
+                c.Prefix = config.Prefix;
+                c.Suffix = config.Suffix;
+                c.PubKey = config.PubKey;
+                c.Source = $"s{Math.Abs(Guid.NewGuid().GetHashCode())}";
+                configure?.Invoke(c);
+                c.MessageDelayInSeconds = 0;
+            })
+            .AddSingleton(fakeClock);
         var provider = services.BuildServiceProvider();
-        await provider.GetRequiredService<ISubResourceManager>().EnsureTopicExists(TopicName, default);
+        var resources = provider.GetRequiredService<ISubResourceManager>();
+
+        if (isProducer)
+            await resources.EnsureTopicExists(TopicName, default);
+
+        if (isConsumer)
+            await resources.EnsureQueueExists(TopicName, default);
 
         return provider.GetRequiredService<ISubdivisionsClient>();
     }

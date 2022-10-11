@@ -1,5 +1,7 @@
+using A55.Subdivisions.Aws.Hosting;
 using A55.Subdivisions.Aws.Tests.Builders;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
+using Microsoft.Extensions.Configuration;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration;
 
@@ -53,19 +55,24 @@ public class SubClientTests : SubClientFixture
     public async Task ShouldDeliverMessagesToAllConsumers()
     {
         var message = TestMessage.New();
-        var stringTopicName = Topic.Topic;
 
-        var defaultSource = GetService<ISubdivisionsClient>();
-        var firstSource = await NewSubClient("first");
-        var secondSource = await NewSubClient("second");
+        var producer = await CreateProducer();
+        var consumer1 = GetService<IConsumerClient>();
+        var consumer2 = await CreateConsumer();
+        var consumer3 = await CreateConsumer();
 
-        await defaultSource.Publish(stringTopicName, message);
+        var published = await producer.Publish(TopicName, message);
+        await Task.Delay(100);
 
-        var messages1 = await firstSource.Receive<TestMessage>(stringTopicName);
-        var messages2 = await secondSource.Receive<TestMessage>(stringTopicName);
+        var messages1 = await consumer1.Receive<TestMessage>(TopicName);
+        var messages2 = await consumer2.Receive<TestMessage>(TopicName);
+        var messages3 = await consumer3.Receive<TestMessage>(TopicName);
 
-        messages1.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
-        messages2.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
+        var expected = new[] {new {Body = message, Datetime = fakedDate, published.MessageId}};
+
+        messages1.Should().BeEquivalentTo(expected);
+        messages2.Should().BeEquivalentTo(expected);
+        messages3.Should().BeEquivalentTo(expected);
     }
 
     [Test]

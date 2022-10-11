@@ -34,7 +34,9 @@ public class SubdivisionsHostedServiceTests : LocalstackFixture
             .AddSubdivisionsHostedServices();
 
         foreach (var consumer in fakeConsumers)
-            services.AddSingleton<IConsumerDescriber>(consumer);
+            services
+                .AddSingleton<IConsumerDescriber>(consumer)
+                .AddSingleton<IProducerDescriber>(consumer);
     }
 
     [Test]
