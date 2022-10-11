@@ -1,13 +1,10 @@
 using System.Reflection;
-using A55.Subdivisions.Aws.Models;
 using Amazon.EventBridge;
 using Amazon.EventBridge.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace A55.Subdivisions.Aws.Clients;
-
-public record PublishResult(bool IsSuccess);
 
 sealed class AwsEvents
 {
@@ -24,7 +21,7 @@ sealed class AwsEvents
 
     public async Task<bool> RuleExists(TopicName topicName, CancellationToken ctx)
     {
-        var rules = await eventBridge.ListRulesAsync(new() { Limit = 100, NamePrefix = topicName.FullTopicName }, ctx);
+        var rules = await eventBridge.ListRulesAsync(new() {Limit = 100, NamePrefix = topicName.FullTopicName}, ctx);
 
         return rules is not null &&
                rules.Rules.Any(r => r.Name.Trim() == topicName.FullTopicName && r.State == RuleState.ENABLED);
@@ -62,14 +59,13 @@ sealed class AwsEvents
         return new(response.RuleArn);
     }
 
-    public async Task<PublishResult> PushEvent(TopicName topic, string message, CancellationToken ctx)
+    public async Task<bool> PushEvent(TopicName topic, string message, CancellationToken ctx)
     {
         PutEventsRequest request = new()
         {
-            Entries = new() { new() { DetailType = topic.Topic, Source = config.Source, Detail = message } }
+            Entries = new() {new() {DetailType = topic.Topic, Source = config.Source, Detail = message}}
         };
         var response = await eventBridge.PutEventsAsync(request, ctx);
-
-        return new(response.FailedEntryCount == 0);
+        return response.FailedEntryCount is 0;
     }
 }

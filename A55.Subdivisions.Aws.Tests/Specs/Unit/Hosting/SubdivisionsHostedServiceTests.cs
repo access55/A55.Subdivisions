@@ -36,7 +36,7 @@ public class SubdivisionsHostedServiceTests : BaseTest
 
         await service.StartAsync(default);
 
-        var bootstrapper = mocker.Resolve<ISubdivisionsBootstrapper>();
+        var bootstrapper = mocker.Resolve<ISubResourceManager>();
         foreach (var describer in describers)
             A.CallTo(() => bootstrapper.EnsureTopicExists(describer.TopicName, A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();

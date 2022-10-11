@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using A55.Subdivisions.Aws.Hosting.Job;
-using A55.Subdivisions.Aws.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -8,14 +7,14 @@ namespace A55.Subdivisions.Aws.Hosting;
 
 class SubdivisionsHostedService : BackgroundService
 {
-    readonly ISubdivisionsBootstrapper bootstrapper;
+    readonly ISubResourceManager bootstrapper;
     readonly ImmutableArray<IConsumerDescriber> describers;
     readonly IConsumerJob job;
     readonly ILogger<SubdivisionsHostedService> logger;
 
     public SubdivisionsHostedService(
         ILogger<SubdivisionsHostedService> logger,
-        ISubdivisionsBootstrapper bootstrapper,
+        ISubResourceManager bootstrapper,
         IEnumerable<IConsumerDescriber> describers,
         IConsumerJob job)
     {

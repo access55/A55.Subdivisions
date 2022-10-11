@@ -27,7 +27,7 @@ public class SubClientDeadLetterTests : SubClientFixture
         messageRetries.Should().BeEmpty();
 
         var deadMessages = await client.DeadLetters(TopicName);
-        deadMessages.Should().BeEquivalentTo(new[] { new { Body = message, Datetime = fakedDate } });
+        deadMessages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
     }
 
     [Test]
@@ -45,6 +45,38 @@ public class SubClientDeadLetterTests : SubClientFixture
         messageRetries.Should().BeEmpty();
 
         var deadMessages = await client.DeadLetters<TestMessage>(TopicName);
-        deadMessages.Should().BeEquivalentTo(new[] { new { Body = message, Datetime = fakedDate } });
+        deadMessages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
+    }
+}
+
+public class SubClientRetryTests : SubClientFixture
+{
+    protected override void ConfigureSubdivisions(SubConfig c)
+    {
+        base.ConfigureSubdivisions(c);
+        c.RetriesBeforeDeadLetter = 2;
+    }
+
+    [Test]
+    public async Task MessageShouldGoToDeadLetterQueue()
+    {
+        var message = faker.Lorem.Lines();
+
+        var client = GetService<ISubdivisionsClient>();
+        await client.Publish(TopicName, message);
+
+        var messages1 = await client.Receive(TopicName);
+        await messages1.Single().Release();
+        messages1.Should().ContainSingle();
+
+        var messages2 = await client.Receive(TopicName);
+        await messages2.Single().Release();
+        messages2.Should().ContainSingle();
+
+        var messageRetries = await client.Receive(TopicName);
+        messageRetries.Should().BeEmpty();
+
+        var deadMessages = await client.DeadLetters(TopicName);
+        deadMessages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
     }
 }

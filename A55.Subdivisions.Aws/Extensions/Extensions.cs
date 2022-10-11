@@ -1,5 +1,4 @@
-using A55.Subdivisions.Aws.Hosting;
-using A55.Subdivisions.Aws.Models;
+﻿using A55.Subdivisions.Aws.Hosting;
 using Amazon.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

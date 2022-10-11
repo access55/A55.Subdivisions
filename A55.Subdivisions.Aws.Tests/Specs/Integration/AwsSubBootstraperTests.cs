@@ -15,7 +15,7 @@ public class AwsSubBootstrapperTests : LocalstackFixture
     public async Task ShouldCreateAllTopicResources()
     {
         var topicName = faker.TopicNameString();
-        var bootstrapper = GetService<ISubdivisionsBootstrapper>();
+        var bootstrapper = GetService<ISubResourceManager>();
 
         await bootstrapper.EnsureTopicExists(topicName, default);
 

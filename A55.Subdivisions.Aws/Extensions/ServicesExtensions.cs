@@ -1,7 +1,6 @@
 using A55.Subdivisions.Aws.Clients;
 using A55.Subdivisions.Aws.Hosting;
 using A55.Subdivisions.Aws.Hosting.Job;
-using A55.Subdivisions.Aws.Models;
 using Amazon.EventBridge;
 using Amazon.KeyManagementService;
 using Amazon.Runtime;
@@ -67,7 +66,7 @@ public static class ServicesExtensions
         services
             .AddSingleton<ISubClock, UtcClock>()
             .AddSingleton<ISubMessageSerializer, SubJsonSerializer>()
-            .AddTransient<ISubdivisionsBootstrapper, AwsSubdivisionsBootstrapper>()
+            .AddTransient<ISubResourceManager, AwsResourceManager>()
             .AddTransient<ISubdivisionsClient, AwsSubClient>()
             .AddTransient<IProducer>(sp => sp.GetRequiredService<ISubdivisionsClient>())
             .AddTransient<IConsumerClient>(sp => sp.GetRequiredService<ISubdivisionsClient>());

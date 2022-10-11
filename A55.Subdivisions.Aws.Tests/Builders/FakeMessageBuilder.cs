@@ -25,7 +25,7 @@ class FakeMessageBuilder
     public IMessage Generate()
     {
         var value = A.Fake<IMessage>();
-        A.CallTo(() => value.Id).Returns(id);
+        A.CallTo(() => value.MessageId).Returns(id);
         A.CallTo(() => value.Datetime).Returns(datetime);
         A.CallTo(() => value.Body).Returns(body);
         return value;

@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using A55.Subdivisions.Aws.Models;
 using Amazon.EventBridge;
 using Amazon.EventBridge.Model;
@@ -14,11 +14,12 @@ public class EventRuleBuilder
 
     public EventRuleBuilder(SubTopicNameConfig config)
     {
-        var firstPart = faker.Person.FirstName;
-        var secondPart = $"{faker.Person.LastName}{faker.Random.Replace("?###?").ToLowerInvariant()}";
+        EventName = faker.TopicNameString();
+        TopicName = EventName
+            .Split("_")
+            .Select(x => x.ToTitleCase())
+            .Concat();
 
-        EventName = $"{firstPart.ToLowerInvariant()}_{secondPart.ToLowerInvariant()}";
-        TopicName = $"{firstPart}{secondPart}";
         Topic = new(EventName, config);
     }
 

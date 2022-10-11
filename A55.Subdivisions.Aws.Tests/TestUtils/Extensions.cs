@@ -1,3 +1,4 @@
+using System.Globalization;
 using A55.Subdivisions.Aws.Models;
 using Bogus;
 using FakeItEasy.Configuration;
@@ -8,7 +9,16 @@ namespace A55.Subdivisions.Aws.Tests.TestUtils;
 
 public static class Extensions
 {
+    public static string OnlyLetterOrDigit(this string str) =>
+        string.Concat(str.Where(char.IsLetterOrDigit));
+
     public static JToken AsJToken(this string json) => JToken.Parse(json);
+
+    public static string Concat(this IEnumerable<string> strings, string separator = "") =>
+        string.Join(separator, strings);
+
+    public static string ToTitleCase(this string str) =>
+        CultureInfo.InvariantCulture.TextInfo.ToTitleCase(str);
 
     public static IVoidArgumentValidationConfiguration CalledWith<T>(this ILogger<T> logger, LogLevel level,
         Exception? exception = null) =>
@@ -22,8 +32,7 @@ public static class Extensions
 public static class FakerExtensions
 {
     public static string TopicNameString(this Faker faker) =>
-        $"{faker.Person.FirstName}_{faker.Random.Replace("?##?_?**?")}"
-            .ToLowerInvariant().Replace(".", "");
+        $"{faker.Person.FirstName}_{faker.Random.Guid():N}".ToLowerInvariant();
 
     internal static TopicName TopicName(this Faker faker, SubConfig config) =>
         new(faker.TopicNameString(), config);

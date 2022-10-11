@@ -28,6 +28,7 @@ public class SubConfig : SubTopicNameConfig
     public bool AutoCreateNewTopic { get; set; } = true;
     public string Region { get; set; } = "sa-east-1";
     public RegionEndpoint Endpoint => RegionEndpoint.GetBySystemName(Region);
+    public int WaitMessageInSeconds { get; set; }
 }
 
 public class ConfigureSubConfigOptions : IConfigureOptions<SubConfig>

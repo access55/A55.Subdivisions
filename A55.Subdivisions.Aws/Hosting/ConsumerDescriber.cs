@@ -1,5 +1,3 @@
-using A55.Subdivisions.Aws.Models;
-
 namespace A55.Subdivisions.Aws.Hosting;
 
 public interface IWeakConsumer

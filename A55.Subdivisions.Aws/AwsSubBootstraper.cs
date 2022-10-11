@@ -1,25 +1,24 @@
 using A55.Subdivisions.Aws.Clients;
-using A55.Subdivisions.Aws.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace A55.Subdivisions.Aws;
 
-public interface ISubdivisionsBootstrapper
+public interface ISubResourceManager
 {
     ValueTask EnsureTopicExists(string topic, CancellationToken ctx);
 }
 
-class AwsSubdivisionsBootstrapper : ISubdivisionsBootstrapper
+class AwsResourceManager : ISubResourceManager
 {
     readonly SubConfig config;
     readonly AwsEvents events;
-    readonly ILogger<AwsSubdivisionsBootstrapper> logger;
+    readonly ILogger<AwsResourceManager> logger;
     readonly AwsSns sns;
     readonly AwsSqs sqs;
 
-    public AwsSubdivisionsBootstrapper(
-        ILogger<AwsSubdivisionsBootstrapper> logger,
+    public AwsResourceManager(
+        ILogger<AwsResourceManager> logger,
         IOptions<SubConfig> config,
         AwsEvents events,
         AwsSns sns,

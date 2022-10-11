@@ -19,13 +19,7 @@ public class ServicesFixture
     {
         await BeforeSetup();
 
-        var services =
-            new ServiceCollection()
-                .AddLogging()
-                .AddSubdivisionsClient(
-                    credentials: new AnonymousAWSCredentials(),
-                    config: ConfigureSubdivisions);
-
+        var services = CreateSubdivisionsServices(ConfigureSubdivisions);
         services.AddSingleton(fakeClock);
         ConfigureServices(services);
         serviceProvider = services.BuildServiceProvider();
@@ -33,6 +27,13 @@ public class ServicesFixture
         Fake.ClearConfiguration(fakeClock);
         Fake.ClearRecordedCalls(fakeClock);
     }
+
+    protected IServiceCollection CreateSubdivisionsServices(Action<SubConfig> configure) =>
+        new ServiceCollection()
+            .AddLogging()
+            .AddSubdivisionsClient(
+                credentials: new AnonymousAWSCredentials(),
+                config: configure);
 
     protected virtual Task BeforeSetup() => Task.CompletedTask;
 

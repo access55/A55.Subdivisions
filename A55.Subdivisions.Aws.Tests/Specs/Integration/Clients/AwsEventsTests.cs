@@ -98,7 +98,7 @@ public class AwsEventsTests : LocalstackFixture
         var queue = await SetupQueueRule(topic);
 
         var result = await sut.PushEvent(topic, message, default);
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeTrue();
 
         var messages = await GetService<IAmazonSQS>().ReceiveMessageAsync(queue);
         messages.Messages.Single().Body.AsJToken().Should().BeEquivalentTo(message.AsJToken());

@@ -34,7 +34,7 @@ class ConsumerFactory : IConsumerFactory
     {
         using var _ =
             logger.BeginScope(
-                $"Consumer[{describer.TopicName},{Environment.CurrentManagedThreadId}] Message[{message.Id}]");
+                $"Consumer[{describer.TopicName},{Environment.CurrentManagedThreadId}] Message[{message.MessageId}]");
 
         logger.LogInformation("Consuming message published at {MessageDate}", message.Datetime);
         await using var scope = provider.CreateAsyncScope();

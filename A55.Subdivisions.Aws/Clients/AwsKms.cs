@@ -1,4 +1,3 @@
-using A55.Subdivisions.Aws.Models;
 using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
 using Microsoft.Extensions.Options;

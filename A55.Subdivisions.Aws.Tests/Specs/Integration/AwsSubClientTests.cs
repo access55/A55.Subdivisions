@@ -11,11 +11,12 @@ public class SubClientTests : SubClientFixture
         var message = faker.Lorem.Lines();
 
         var client = (AwsSubClient)GetService<ISubdivisionsClient>();
-        await client.Publish(Topic, message, default);
+        var published = await client.Publish(Topic, message, default);
 
         var messages = await client.Receive(Topic, default);
 
-        messages.Should().BeEquivalentTo(new[] { new { Body = message, Datetime = fakedDate } });
+        messages.Should()
+            .BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate, published.MessageId}});
     }
 
     [Test]
@@ -26,11 +27,11 @@ public class SubClientTests : SubClientFixture
         var message = faker.Lorem.Lines();
 
         var client = GetService<ISubdivisionsClient>();
-        await client.Publish(stringTopicName, message);
+        var published = await client.Publish(stringTopicName, message);
 
         var messages = await client.Receive(stringTopicName);
 
-        messages.Should().BeEquivalentTo(new[] { new { Body = message, Datetime = fakedDate } });
+        messages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate, published.MessageId}});
     }
 
     [Test]
@@ -45,7 +46,26 @@ public class SubClientTests : SubClientFixture
 
         var messages = await client.Receive<TestMessage>(stringTopicName);
 
-        messages.Should().BeEquivalentTo(new[] { new { Body = message, Datetime = fakedDate } });
+        messages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
+    }
+
+    [Test]
+    public async Task ShouldDeliverMessagesToAllConsumers()
+    {
+        var message = TestMessage.New();
+        var stringTopicName = Topic.Topic;
+
+        var defaultSource = GetService<ISubdivisionsClient>();
+        var firstSource = await NewSubClient("first");
+        var secondSource = await NewSubClient("second");
+
+        await defaultSource.Publish(stringTopicName, message);
+
+        var messages1 = await firstSource.Receive<TestMessage>(stringTopicName);
+        var messages2 = await secondSource.Receive<TestMessage>(stringTopicName);
+
+        messages1.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
+        messages2.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
     }
 
     [Test]
@@ -61,7 +81,7 @@ public class SubClientTests : SubClientFixture
 
         var messages = await client.Receive<TestMessage>(stringTopicName);
 
-        messages.Should().BeEquivalentTo(new[] { new { Body = strongMessage, Datetime = fakedDate } });
+        messages.Should().BeEquivalentTo(new[] {new {Body = strongMessage, Datetime = fakedDate}});
     }
 
     [Test]

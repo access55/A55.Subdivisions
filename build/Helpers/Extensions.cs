@@ -1,5 +1,3 @@
-using static Nuke.Common.IO.SerializationTasks;
-
 namespace Helpers;
 
 public static class Extensions
