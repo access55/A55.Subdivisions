@@ -1,4 +1,4 @@
-﻿using System.Runtime.Serialization;
+using System.Runtime.Serialization;
 using System.Text.Json;
 using A55.Subdivisions.Aws.Models;
 using Amazon.SQS;
@@ -54,7 +54,7 @@ sealed class AwsSqs
 
     public async Task<QueueInfo> GetQueueAttributes(string queueUrl, CancellationToken ctx)
     {
-        var response = await sqs.GetQueueAttributesAsync(queueUrl, new List<string> {QueueAttributeName.QueueArn}, ctx);
+        var response = await sqs.GetQueueAttributesAsync(queueUrl, new List<string> { QueueAttributeName.QueueArn }, ctx);
         logger.LogDebug("Queue Attributes Response is: {Response}", JsonSerializer.Serialize(response.Attributes));
 
         return new(new(queueUrl), new(response.QueueARN));
@@ -65,7 +65,7 @@ sealed class AwsSqs
     {
         var queue = $"{(deadLetter ? "dead_letter_" : string.Empty)}{queueName}";
         var responseQueues =
-            await sqs.ListQueuesAsync(new ListQueuesRequest {QueueNamePrefix = queue, MaxResults = 1000}, ctx);
+            await sqs.ListQueuesAsync(new ListQueuesRequest { QueueNamePrefix = queue, MaxResults = 1000 }, ctx);
 
         var url = responseQueues.QueueUrls.Find(name => name.Contains(queue));
         if (url is null) return null;
@@ -86,7 +86,8 @@ sealed class AwsSqs
 
         var deadLetterPolicy = new
         {
-            deadLetterTargetArn = deadLetter.Arn.Value, maxReceiveCount = config.RetriesBeforeDeadLetter.ToString()
+            deadLetterTargetArn = deadLetter.Arn.Value,
+            maxReceiveCount = config.RetriesBeforeDeadLetter.ToString()
         };
 
         var q = await sqs.CreateQueueAsync(
@@ -113,7 +114,7 @@ sealed class AwsSqs
             new CreateQueueRequest
             {
                 QueueName = $"{DeadLetterPrefix}{queueName}",
-                Attributes = new() {["Policy"] = IAM, ["KmsMasterKeyId"] = keyId}
+                Attributes = new() { ["Policy"] = IAM, ["KmsMasterKeyId"] = keyId }
             }, ctx);
         return await GetQueueAttributes(q.QueueUrl, ctx);
     }
@@ -128,7 +129,8 @@ sealed class AwsSqs
         var readMessagesRequest = await sqs.ReceiveMessageAsync(
             new ReceiveMessageRequest
             {
-                QueueUrl = queueInfo.Url.ToString(), MaxNumberOfMessages = config.QueueMaxReceiveCount
+                QueueUrl = queueInfo.Url.ToString(),
+                MaxNumberOfMessages = config.QueueMaxReceiveCount
             }, ctx);
 
         if (readMessagesRequest?.Messages is not { } messages)
@@ -145,7 +147,7 @@ sealed class AwsSqs
                 Task DeleteMessage()
                 {
                     return sqs.DeleteMessageAsync(
-                        new() {QueueUrl = queueInfo.Url.ToString(), ReceiptHandle = m.ReceiptHandle},
+                        new() { QueueUrl = queueInfo.Url.ToString(), ReceiptHandle = m.ReceiptHandle },
                         CancellationToken.None);
                 }
 

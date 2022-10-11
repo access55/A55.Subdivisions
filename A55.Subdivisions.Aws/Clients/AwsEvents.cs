@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using A55.Subdivisions.Aws.Models;
 using Amazon.EventBridge;
 using Amazon.EventBridge.Model;
@@ -24,7 +24,7 @@ sealed class AwsEvents
 
     public async Task<bool> RuleExists(TopicName topicName, CancellationToken ctx)
     {
-        var rules = await eventBridge.ListRulesAsync(new() {Limit = 100, NamePrefix = topicName.FullTopicName}, ctx);
+        var rules = await eventBridge.ListRulesAsync(new() { Limit = 100, NamePrefix = topicName.FullTopicName }, ctx);
 
         return rules is not null &&
                rules.Rules.Any(r => r.Name.Trim() == topicName.FullTopicName && r.State == RuleState.ENABLED);
@@ -66,7 +66,7 @@ sealed class AwsEvents
     {
         PutEventsRequest request = new()
         {
-            Entries = new() {new() {DetailType = topic.Topic, Source = config.Source, Detail = message}}
+            Entries = new() { new() { DetailType = topic.Topic, Source = config.Source, Detail = message } }
         };
         var response = await eventBridge.PutEventsAsync(request, ctx);
 

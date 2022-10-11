@@ -1,11 +1,11 @@
-﻿using A55.Subdivisions.Aws.Models;
+using A55.Subdivisions.Aws.Models;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Unit;
 
 public class TopicNameTests
 {
     public static readonly SubTopicNameConfig EmptyConfig =
-        new() {Prefix = string.Empty, Suffix = string.Empty, Source = "source"};
+        new() { Prefix = string.Empty, Suffix = string.Empty, Source = "source" };
 
     [TestCase("0name")]
     [TestCase("name@bad")]
@@ -46,7 +46,7 @@ public class TopicNameTests
         const string sufix = "TheSufix";
         const string name = "NameToNormalize";
         const string expected = "ThePrefixNameToNormalizeTheSufix";
-        var topic = new TopicName(name, new SubTopicNameConfig {Prefix = prefix, Suffix = sufix, Source = "source"});
+        var topic = new TopicName(name, new SubTopicNameConfig { Prefix = prefix, Suffix = sufix, Source = "source" });
 
         topic.FullTopicName.Should().Be(expected);
     }
@@ -60,7 +60,7 @@ public class TopicNameTests
         const string name = "NameToNormalize";
         const string expected = "the_prefix_the_source_name_to_normalize_the_suffix";
 
-        var topic = new TopicName(name, new SubTopicNameConfig {Prefix = prefix, Suffix = suffix, Source = source});
+        var topic = new TopicName(name, new SubTopicNameConfig { Prefix = prefix, Suffix = suffix, Source = source });
 
         topic.FullQueueName.Should().Be(expected);
     }
@@ -73,7 +73,7 @@ public class TopicNameTests
         const string source = "TheSource";
         const string name = "NameToNormalize";
 
-        var topic = new TopicName(name, new SubTopicNameConfig {Prefix = "", Suffix = suffix, Source = source});
+        var topic = new TopicName(name, new SubTopicNameConfig { Prefix = "", Suffix = suffix, Source = source });
 
         topic.FullQueueName.Should().NotStartWith("_").And.NotEndWith("_");
     }
@@ -86,7 +86,7 @@ public class TopicNameTests
         const string sourceFallBack = "TheFallback";
         const string name = "NameToNormalize";
         const string expected = "the_prefix_the_fallback_name_to_normalize_the_suffix";
-        var config = new SubTopicNameConfig {Prefix = prefix, Suffix = suffix, Source = null};
+        var config = new SubTopicNameConfig { Prefix = prefix, Suffix = suffix, Source = null };
         config.SetFallbackSource(sourceFallBack);
         var topic = new TopicName(name, config);
 

@@ -1,4 +1,4 @@
-﻿global using IMessage = A55.Subdivisions.Aws.Models.IMessage<string>;
+global using IMessage = A55.Subdivisions.Aws.Models.IMessage<string>;
 
 namespace A55.Subdivisions.Aws.Models;
 

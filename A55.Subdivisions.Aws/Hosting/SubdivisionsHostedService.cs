@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using A55.Subdivisions.Aws.Hosting.Job;
 using A55.Subdivisions.Aws.Models;
 using Microsoft.Extensions.Hosting;

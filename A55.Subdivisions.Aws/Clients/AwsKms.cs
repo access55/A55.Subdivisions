@@ -1,4 +1,4 @@
-﻿using A55.Subdivisions.Aws.Models;
+using A55.Subdivisions.Aws.Models;
 using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
 using Microsoft.Extensions.Options;
@@ -22,7 +22,7 @@ sealed class AwsKms
         if (keyCache is not null)
             return keyCache;
 
-        var aliases = await kms.ListAliasesAsync(new ListAliasesRequest {Limit = 100}, ctx);
+        var aliases = await kms.ListAliasesAsync(new ListAliasesRequest { Limit = 100 }, ctx);
         var key = aliases.Aliases.Find(x => x.AliasName == config.PubKey)?.TargetKeyId;
 
         if (string.IsNullOrWhiteSpace(key))

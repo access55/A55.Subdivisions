@@ -1,4 +1,4 @@
-﻿using Bogus;
+using Bogus;
 
 namespace A55.Subdivisions.Aws.Tests.Builders;
 

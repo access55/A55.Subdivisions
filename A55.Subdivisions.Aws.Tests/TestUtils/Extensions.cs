@@ -1,4 +1,4 @@
-﻿using A55.Subdivisions.Aws.Models;
+using A55.Subdivisions.Aws.Models;
 using Bogus;
 using FakeItEasy.Configuration;
 using Microsoft.Extensions.Logging;

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using AutoBogus;
 using Bogus;
 using Microsoft.Extensions.DependencyInjection;

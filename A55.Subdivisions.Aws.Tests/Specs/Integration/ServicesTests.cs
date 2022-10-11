@@ -1,4 +1,4 @@
-﻿using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
+using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration;
 
@@ -10,7 +10,7 @@ public class ServicesTests : ServicesFixture
         var producer = GetService<IProducer>();
         var consumer = GetService<IConsumerClient>();
         var client = GetService<ISubdivisionsClient>();
-        new object[] {producer, consumer, client}
+        new object[] { producer, consumer, client }
             .Should().NotContainNulls();
     }
 

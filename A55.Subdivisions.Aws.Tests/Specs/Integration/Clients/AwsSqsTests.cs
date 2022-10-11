@@ -112,7 +112,7 @@ public class AwsSqsTests : LocalstackFixture
         var result = await GetService<AwsSqs>().CreateQueue(queueName, default);
 
         var attr = await GetService<IAmazonSQS>()
-            .GetQueueAttributesAsync(result.Url.ToString(), new List<string> {QueueAttributeName.KmsMasterKeyId});
+            .GetQueueAttributesAsync(result.Url.ToString(), new List<string> { QueueAttributeName.KmsMasterKeyId });
 
         attr.Attributes[QueueAttributeName.KmsMasterKeyId].Should().Be(kmsTestKeyId);
     }
@@ -126,13 +126,13 @@ public class AwsSqsTests : LocalstackFixture
         var result = await GetService<AwsSqs>().CreateQueue(queueName, default);
 
         var attr = await sqs.GetQueueAttributesAsync(result.Url.ToString(),
-            new List<string> {QueueAttributeName.RedrivePolicy});
+            new List<string> { QueueAttributeName.RedrivePolicy });
         var policy = JToken.Parse(attr.Attributes[QueueAttributeName.RedrivePolicy]);
 
         var qs = await sqs.ListQueuesAsync(new ListQueuesRequest());
         var deadletter = qs.QueueUrls.Single(q => q.Contains($"dead_letter_{queueName}"));
         var deadletterAttr =
-            await sqs.GetQueueAttributesAsync(deadletter, new List<string> {QueueAttributeName.QueueArn});
+            await sqs.GetQueueAttributesAsync(deadletter, new List<string> { QueueAttributeName.QueueArn });
 
         var expected =
             @$"{{""deadLetterTargetArn"": ""{deadletterAttr.QueueARN}"", ""maxReceiveCount"": ""{config.QueueMaxReceiveCount}""}}";

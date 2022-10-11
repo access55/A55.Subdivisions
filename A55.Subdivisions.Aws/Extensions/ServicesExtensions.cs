@@ -1,4 +1,4 @@
-﻿using A55.Subdivisions.Aws.Clients;
+using A55.Subdivisions.Aws.Clients;
 using A55.Subdivisions.Aws.Hosting;
 using A55.Subdivisions.Aws.Hosting.Job;
 using A55.Subdivisions.Aws.Models;

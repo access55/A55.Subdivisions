@@ -1,4 +1,4 @@
-﻿using A55.Subdivisions.Aws.Extensions;
+using A55.Subdivisions.Aws.Extensions;
 using A55.Subdivisions.Aws.Models;
 using Amazon.Runtime;
 using Bogus;

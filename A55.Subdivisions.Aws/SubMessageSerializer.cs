@@ -1,4 +1,4 @@
-﻿using System.Runtime.Serialization;
+using System.Runtime.Serialization;
 using System.Text.Json;
 using A55.Subdivisions.Aws.Extensions;
 
@@ -19,7 +19,7 @@ class SnakeCaseNamingPolicy : JsonNamingPolicy
 
 public class SubJsonSerializer : ISubMessageSerializer
 {
-    static readonly JsonSerializerOptions jsonOptions = new() {PropertyNamingPolicy = SnakeCaseNamingPolicy.Instance};
+    static readonly JsonSerializerOptions jsonOptions = new() { PropertyNamingPolicy = SnakeCaseNamingPolicy.Instance };
 
     public string Serialize<TValue>(TValue something) =>
         JsonSerializer.Serialize(something, jsonOptions);

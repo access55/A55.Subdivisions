@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Reflection;
 using A55.Subdivisions.Aws.Hosting;
 using A55.Subdivisions.Aws.Hosting.Job;
@@ -16,7 +16,7 @@ public class SubdivisionsHostedServiceTests : BaseTest
         var builder = new ConsumerDescriberBuilder()
             .WithTopicName(faker.TopicNameString());
 
-        mocker.Provide<IEnumerable<IConsumerDescriber>>(new[] {builder.Generate(), builder.Generate()});
+        mocker.Provide<IEnumerable<IConsumerDescriber>>(new[] { builder.Generate(), builder.Generate() });
         var action = () => mocker.Generate<SubdivisionsHostedService>();
 
         action.Should().Throw<ArgumentException>()

@@ -1,4 +1,4 @@
-﻿namespace A55.Subdivisions.Aws.Hosting.Job;
+namespace A55.Subdivisions.Aws.Hosting.Job;
 
 interface IConsumerJob
 {

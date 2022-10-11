@@ -1,4 +1,4 @@
-﻿namespace A55.Subdivisions.Aws.Models;
+namespace A55.Subdivisions.Aws.Models;
 
 readonly record struct RuleArn(in string Value);
 

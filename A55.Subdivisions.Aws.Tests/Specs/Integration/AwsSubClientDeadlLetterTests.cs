@@ -1,4 +1,4 @@
-﻿using A55.Subdivisions.Aws.Models;
+using A55.Subdivisions.Aws.Models;
 using A55.Subdivisions.Aws.Tests.Builders;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 
@@ -27,7 +27,7 @@ public class SubClientDeadLetterTests : SubClientFixture
         messageRetries.Should().BeEmpty();
 
         var deadMessages = await client.DeadLetters(TopicName);
-        deadMessages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
+        deadMessages.Should().BeEquivalentTo(new[] { new { Body = message, Datetime = fakedDate } });
     }
 
     [Test]
@@ -45,6 +45,6 @@ public class SubClientDeadLetterTests : SubClientFixture
         messageRetries.Should().BeEmpty();
 
         var deadMessages = await client.DeadLetters<TestMessage>(TopicName);
-        deadMessages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
+        deadMessages.Should().BeEquivalentTo(new[] { new { Body = message, Datetime = fakedDate } });
     }
 }

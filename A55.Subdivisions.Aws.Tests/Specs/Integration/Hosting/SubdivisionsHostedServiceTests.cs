@@ -1,4 +1,4 @@
-﻿using A55.Subdivisions.Aws.Extensions;
+using A55.Subdivisions.Aws.Extensions;
 using A55.Subdivisions.Aws.Hosting;
 using A55.Subdivisions.Aws.Models;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;

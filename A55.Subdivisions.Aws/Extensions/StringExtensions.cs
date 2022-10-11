@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 
 namespace A55.Subdivisions.Aws.Extensions;
 

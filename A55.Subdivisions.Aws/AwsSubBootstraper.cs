@@ -1,4 +1,4 @@
-﻿using A55.Subdivisions.Aws.Clients;
+using A55.Subdivisions.Aws.Clients;
 using A55.Subdivisions.Aws.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

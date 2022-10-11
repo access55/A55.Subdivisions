@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using A55.Subdivisions.Aws.Models;
 using Amazon.EventBridge;
 using Amazon.EventBridge.Model;

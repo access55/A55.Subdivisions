@@ -1,4 +1,4 @@
-﻿using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
+using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration;
 

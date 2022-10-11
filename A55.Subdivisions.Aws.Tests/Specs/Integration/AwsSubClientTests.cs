@@ -1,4 +1,4 @@
-﻿using A55.Subdivisions.Aws.Tests.Builders;
+using A55.Subdivisions.Aws.Tests.Builders;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration;
@@ -15,7 +15,7 @@ public class SubClientTests : SubClientFixture
 
         var messages = await client.Receive(Topic, default);
 
-        messages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
+        messages.Should().BeEquivalentTo(new[] { new { Body = message, Datetime = fakedDate } });
     }
 
     [Test]
@@ -30,7 +30,7 @@ public class SubClientTests : SubClientFixture
 
         var messages = await client.Receive(stringTopicName);
 
-        messages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
+        messages.Should().BeEquivalentTo(new[] { new { Body = message, Datetime = fakedDate } });
     }
 
     [Test]
@@ -45,7 +45,7 @@ public class SubClientTests : SubClientFixture
 
         var messages = await client.Receive<TestMessage>(stringTopicName);
 
-        messages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
+        messages.Should().BeEquivalentTo(new[] { new { Body = message, Datetime = fakedDate } });
     }
 
     [Test]
@@ -61,7 +61,7 @@ public class SubClientTests : SubClientFixture
 
         var messages = await client.Receive<TestMessage>(stringTopicName);
 
-        messages.Should().BeEquivalentTo(new[] {new {Body = strongMessage, Datetime = fakedDate}});
+        messages.Should().BeEquivalentTo(new[] { new { Body = strongMessage, Datetime = fakedDate } });
     }
 
     [Test]

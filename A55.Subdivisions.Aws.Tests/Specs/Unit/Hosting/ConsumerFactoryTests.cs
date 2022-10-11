@@ -1,4 +1,4 @@
-﻿using A55.Subdivisions.Aws.Hosting;
+using A55.Subdivisions.Aws.Hosting;
 using A55.Subdivisions.Aws.Tests.Builders;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 using Microsoft.Extensions.Logging;
