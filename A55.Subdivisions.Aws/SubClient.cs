@@ -12,12 +12,14 @@ sealed class AwsSubClient : ISubdivisionsClient
     readonly ILogger<AwsSubClient> logger;
     readonly AwsSqs queue;
     readonly ISubMessageSerializer serializer;
+    readonly ISubResourceManager resources;
 
     public AwsSubClient(
         ILogger<AwsSubClient> logger,
         IOptions<SubConfig> config,
         ISubClock clock,
         ISubMessageSerializer serializer,
+        ISubResourceManager resources,
         AwsEvents events,
         AwsSqs queue
     )
@@ -26,6 +28,7 @@ sealed class AwsSubClient : ISubdivisionsClient
         this.config = config;
         this.clock = clock;
         this.serializer = serializer;
+        this.resources = resources;
         this.events = events;
         this.queue = queue;
     }
@@ -73,6 +76,7 @@ sealed class AwsSubClient : ISubdivisionsClient
     internal async Task<PublishResult> Publish(TopicName topic, string message, CancellationToken ctx)
     {
         logger.LogDebug("Publishing message on {Topic}", topic.FullTopicName);
+        await resources.EnsureTopicExists(topic.Topic, ctx);
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(topic);
 

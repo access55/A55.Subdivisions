@@ -50,11 +50,11 @@ class AwsResourceManager : ISubResourceManager
     public async ValueTask EnsureTopicExists(string topic, CancellationToken ctx)
     {
         TopicName topicName = new(topic, config);
-        logger.LogDebug("Setting topic '{Topic}' up: Region={Region}", topicName.Topic,
-            config.Endpoint.SystemName);
-
         if (await events.RuleExists(topicName, ctx))
             return;
+
+        logger.LogDebug("Setting topic '{Topic}' up: Region={Region}", topicName.Topic,
+            config.Endpoint.SystemName);
 
         if (!config.AutoCreateNewTopic)
             throw new InvalidOperationException(

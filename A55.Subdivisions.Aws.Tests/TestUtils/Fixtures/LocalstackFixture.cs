@@ -76,6 +76,6 @@ public class LocalstackFixture : ServicesFixture
         WaitFor(
             checkTask,
             timeout ?? TimeSpan.FromSeconds(5000),
-            next ?? TimeSpan.FromSeconds(1)
+            next ?? TimeSpan.FromMilliseconds(500)
         );
 }

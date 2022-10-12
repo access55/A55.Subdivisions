@@ -1,5 +1,7 @@
 using A55.Subdivisions.Aws.Tests.Builders;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
+using Amazon.SimpleNotificationService;
+using Amazon.SimpleNotificationService.Model;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration;
 
@@ -60,14 +62,14 @@ public class SubClientTests : SubClientFixture
         var consumer3 = await CreateConsumer();
 
         var published = await producer.Publish(TopicName, message);
-        await Task.Delay(100);
+
+        await WaitFor(() => sqs.HasMessagesOn(Topic.FullQueueName));
 
         var messages1 = await consumer1.Receive<TestMessage>(TopicName);
         var messages2 = await consumer2.Receive<TestMessage>(TopicName);
         var messages3 = await consumer3.Receive<TestMessage>(TopicName);
 
         var expected = new[] {new {Body = message, Datetime = fakedDate, published.MessageId}};
-
         messages1.Should().BeEquivalentTo(expected);
         messages2.Should().BeEquivalentTo(expected);
         messages3.Should().BeEquivalentTo(expected);

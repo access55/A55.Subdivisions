@@ -80,6 +80,9 @@ sealed class ConcurrentConsumerJob : IConsumerJob
                 catch (Exception ex)
                 {
                     logger.LogCritical(ex, "Subdivisions: Consumer Worker Failure");
+
+                    if (describer.ErrorHandler is not null)
+                        await describer.ErrorHandler(ex);
                 }
         }
 
