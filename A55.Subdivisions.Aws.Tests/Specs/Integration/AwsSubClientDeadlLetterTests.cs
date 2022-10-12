@@ -61,22 +61,24 @@ public class SubClientRetryTests : SubClientFixture
     public async Task MessageShouldGoToDeadLetterQueue()
     {
         var message = faker.Lorem.Lines();
+        var expectedMessage = new {Body = message, Datetime = fakedDate, RetryNumber = 0};
 
         var client = GetService<ISubdivisionsClient>();
         await client.Publish(TopicName, message);
 
         var messages1 = await client.Receive(TopicName);
         await messages1.Single().Release();
-        messages1.Should().ContainSingle();
+        messages1.Should().BeEquivalentTo(new[] {expectedMessage});
 
         var messages2 = await client.Receive(TopicName);
         await messages2.Single().Release();
-        messages2.Should().ContainSingle();
+        messages2.Should().BeEquivalentTo(new[] {expectedMessage with{ RetryNumber = 1 }});
 
         var messageRetries = await client.Receive(TopicName);
         messageRetries.Should().BeEmpty();
 
         var deadMessages = await client.DeadLetters(TopicName);
-        deadMessages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
+        messages2.Should().BeEquivalentTo(new[] {expectedMessage with{ RetryNumber = 1 }});
+        deadMessages.Should().BeEquivalentTo(new[] {expectedMessage});
     }
 }

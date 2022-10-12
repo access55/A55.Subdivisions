@@ -137,16 +137,16 @@ sealed class AwsSqs
             return ArraySegment<IMessage>.Empty;
 
         return messages
-            .Select(m =>
+            .Select(sqsMessage =>
             {
-                var body = JsonSerializer.Deserialize<SqsEnvelope>(m.Body) ??
-                           throw new SerializationException("Unable to deserialize message");
+                var envelope = JsonSerializer.Deserialize<SqsEnvelope>(sqsMessage.Body) ??
+                               throw new SerializationException("Unable to deserialize message");
 
-                var message = serializer.Deserialize<MessageEnvelope>(body.Message);
+                var message = serializer.Deserialize<MessageEnvelope>(envelope.Message);
 
                 Task DeleteMessage() =>
                     sqs.DeleteMessageAsync(
-                        new() {QueueUrl = queueInfo.Url.ToString(), ReceiptHandle = m.ReceiptHandle},
+                        new() {QueueUrl = queueInfo.Url.ToString(), ReceiptHandle = sqsMessage.ReceiptHandle},
                         CancellationToken.None);
 
                 Task ReleaseMessage() =>
@@ -154,17 +154,26 @@ sealed class AwsSqs
                         new()
                         {
                             QueueUrl = queueInfo.Url.ToString(),
-                            ReceiptHandle = m.ReceiptHandle,
+                            ReceiptHandle = sqsMessage.ReceiptHandle,
                             VisibilityTimeout = 0
                         },
                         CancellationToken.None);
+
+                var receivedCount =
+                    sqsMessage.Attributes
+                        .TryGetValue(MessageSystemAttributeName.ApproximateReceiveCount, out var receiveString) &&
+                    receiveString is not null &&
+                    uint.TryParse(receiveString, out var received)
+                        ? received
+                        : 0;
 
                 return new Message<string>(
                     message.MessageId,
                     message.Payload,
                     message.DateTime,
                     DeleteMessage,
-                    ReleaseMessage);
+                    ReleaseMessage,
+                    retryNumber: receivedCount - 1);
             })
             .Cast<IMessage>()
             .ToArray();

@@ -9,7 +9,6 @@ class SubdivisionsHostedService : BackgroundService
 {
     readonly ISubResourceManager bootstrapper;
     readonly ImmutableArray<IConsumerDescriber> consumers;
-    readonly ImmutableArray<IProducerDescriber> producers;
     readonly IConsumerJob job;
     readonly ILogger<SubdivisionsHostedService> logger;
 
@@ -17,14 +16,12 @@ class SubdivisionsHostedService : BackgroundService
         ILogger<SubdivisionsHostedService> logger,
         ISubResourceManager bootstrapper,
         IEnumerable<IConsumerDescriber> consumers,
-        IEnumerable<IProducerDescriber> producers,
         IConsumerJob job)
     {
         this.logger = logger;
         this.bootstrapper = bootstrapper;
         this.job = job;
         this.consumers = consumers.ToImmutableArray();
-        this.producers = producers.ToImmutableArray();
 
         ValidateConsumerConfiguration();
     }
@@ -37,15 +34,13 @@ class SubdivisionsHostedService : BackgroundService
 
     public async Task Bootstrap(CancellationToken cancellationToken)
     {
-        logger.LogDebug("Bootstrapping Subdivisions Producers");
+        logger.LogDebug("Bootstrapping Subdivisions");
         await Task.WhenAll(this.consumers
-            .Select(async d => await bootstrapper
-                .EnsureTopicExists(d.TopicName, cancellationToken)));
-
-        logger.LogDebug("Bootstrapping Subdivisions Consumers");
-        await Task.WhenAll(this.producers
-            .Select(async d => await bootstrapper
-                .EnsureQueueExists(d.TopicName, cancellationToken)));
+            .Select(async d =>
+            {
+                await bootstrapper.EnsureTopicExists(d.TopicName, cancellationToken);
+                await bootstrapper.EnsureQueueExists(d.TopicName, cancellationToken);
+            }));
     }
 
     void ValidateConsumerConfiguration()

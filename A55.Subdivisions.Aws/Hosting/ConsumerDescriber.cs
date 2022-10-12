@@ -15,13 +15,9 @@ public interface IConsumer : IConsumer<string>
 {
 }
 
-interface IProducerDescriber
+interface IConsumerDescriber
 {
     string TopicName { get; }
-}
-
-interface IConsumerDescriber : IProducerDescriber
-{
     TimeSpan? PollingInterval { get; }
     int? MaxConcurrency { get; }
     Type MessageType { get; }

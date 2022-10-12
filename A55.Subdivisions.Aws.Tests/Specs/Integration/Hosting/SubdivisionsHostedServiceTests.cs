@@ -35,8 +35,7 @@ public class SubdivisionsHostedServiceTests : LocalstackFixture
 
         foreach (var consumer in fakeConsumers)
             services
-                .AddSingleton<IConsumerDescriber>(consumer)
-                .AddSingleton<IProducerDescriber>(consumer);
+                .AddSingleton<IConsumerDescriber>(consumer);
     }
 
     [Test]
@@ -71,7 +70,7 @@ public class SubdivisionsHostedServiceTests : LocalstackFixture
     }
 
     [Test]
-    public async Task ShouldCreateAllQueues()
+    public async Task ShouldNotCreateAnyQueue()
     {
         var hosted = (SubdivisionsHostedService)GetService<IHostedService>();
         await hosted.Bootstrap(default);
