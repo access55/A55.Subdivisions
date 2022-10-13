@@ -59,6 +59,7 @@ public static class ServicesExtensions
 
         services
             .AddSingleton<ISubClock, UtcClock>()
+            .AddSingleton<IRetryStrategy, Power2RetryStrategy>()
             .AddSingleton<ISubMessageSerializer, SubJsonSerializer>()
             .AddTransient<ISubResourceManager, AwsResourceManager>()
             .AddTransient<ISubdivisionsClient, AwsSubClient>()

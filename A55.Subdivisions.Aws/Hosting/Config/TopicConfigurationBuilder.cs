@@ -7,19 +7,19 @@ namespace A55.Subdivisions.Hosting.Config;
 
 interface ITopicConfigurationBuilder
 {
-    IConsumerDescriber CreateConsumerDescriber(IServiceProvider sp);
     bool HasConsumer { get; }
+    IConsumerDescriber CreateConsumerDescriber(IServiceProvider sp);
 }
 
 public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBuilder where TMessage : notnull
 {
     readonly IServiceCollection services;
     readonly string topicName;
-
-    TimeSpan? pollingTime;
     int? concurrency;
     Type? consumerType;
     Func<Exception, Task>? errorHandler;
+
+    TimeSpan? pollingTime;
 
     internal TopicConfigurationBuilder(IServiceCollection services, string topicName)
     {
@@ -27,24 +27,6 @@ public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBui
         this.topicName = topicName;
         services.AddSingleton<IProducer<TMessage>>(sp =>
             new TypedProducer<TMessage>(topicName, sp.GetRequiredService<IProducerClient>()));
-    }
-
-    public TopicConfigurationBuilder<TMessage> WithConsumer<TConsumer>(
-        TimeSpan? pollingInterval = null,
-        int? maxConcurrency = null)
-        where TConsumer : class, IConsumer<TMessage>
-    {
-        services.TryAddScoped<TConsumer>();
-        this.consumerType = typeof(TConsumer);
-        this.concurrency = maxConcurrency;
-        this.pollingTime = pollingInterval;
-        return this;
-    }
-
-    public TopicConfigurationBuilder<TMessage> OnError(Func<Exception, Task> handler)
-    {
-        this.errorHandler = handler;
-        return this;
     }
 
     public bool HasConsumer => consumerType is not null;
@@ -58,7 +40,7 @@ public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBui
                 ErrorHandler = errorHandler,
                 MaxConcurrency = concurrency ?? settings.QueueMaxReceiveCount,
                 PollingInterval =
-                    pollingTime ?? TimeSpan.FromSeconds(settings.PollingIntervalInSeconds),
+                    pollingTime ?? TimeSpan.FromSeconds(settings.PollingIntervalInSeconds)
             };
 
         if (config.PollingInterval < TimeSpan.FromSeconds(settings.LongPollingWaitInSeconds))
@@ -70,5 +52,23 @@ public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBui
             consumerType ?? throw new InvalidOperationException("Consumer type should be specified"),
             typeof(TMessage),
             config);
+    }
+
+    public TopicConfigurationBuilder<TMessage> WithConsumer<TConsumer>(
+        TimeSpan? pollingInterval = null,
+        int? maxConcurrency = null)
+        where TConsumer : class, IConsumer<TMessage>
+    {
+        services.TryAddScoped<TConsumer>();
+        consumerType = typeof(TConsumer);
+        concurrency = maxConcurrency;
+        pollingTime = pollingInterval;
+        return this;
+    }
+
+    public TopicConfigurationBuilder<TMessage> OnError(Func<Exception, Task> handler)
+    {
+        errorHandler = handler;
+        return this;
     }
 }

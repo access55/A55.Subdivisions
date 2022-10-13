@@ -45,7 +45,7 @@ class SubdivisionsHostedService : BackgroundService
         if (config.Localstack)
             await bootstrapper.SetupLocalstack(cancellationToken);
 
-        await Task.WhenAll(this.consumers
+        await Task.WhenAll(consumers
             .Select(async d =>
             {
                 await bootstrapper.EnsureTopicExists(d.TopicName, cancellationToken);

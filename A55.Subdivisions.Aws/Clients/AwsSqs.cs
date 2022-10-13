@@ -146,20 +146,24 @@ sealed class AwsSqs
 
                 var message = serializer.Deserialize<MessageEnvelope>(envelope.Message);
 
-                Task DeleteMessage() =>
-                    sqs.DeleteMessageAsync(
+                Task DeleteMessage()
+                {
+                    return sqs.DeleteMessageAsync(
                         new() {QueueUrl = queueInfo.Url.ToString(), ReceiptHandle = sqsMessage.ReceiptHandle},
                         CancellationToken.None);
+                }
 
-                Task ReleaseMessage() =>
-                    sqs.ChangeMessageVisibilityAsync(
+                Task ReleaseMessage(TimeSpan delay)
+                {
+                    return sqs.ChangeMessageVisibilityAsync(
                         new()
                         {
                             QueueUrl = queueInfo.Url.ToString(),
                             ReceiptHandle = sqsMessage.ReceiptHandle,
-                            VisibilityTimeout = 0
+                            VisibilityTimeout = delay.Seconds
                         },
                         CancellationToken.None);
+                }
 
                 var receivedCount =
                     sqsMessage.Attributes
@@ -175,7 +179,7 @@ sealed class AwsSqs
                     message.DateTime,
                     DeleteMessage,
                     ReleaseMessage,
-                    retryNumber: receivedCount - 1);
+                    receivedCount - 1);
             })
             .Cast<IMessage<string>>()
             .ToArray();

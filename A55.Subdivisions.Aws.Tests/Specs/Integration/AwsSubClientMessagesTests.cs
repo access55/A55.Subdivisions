@@ -30,7 +30,7 @@ public class SubClientMessageActionTests : SubClientFixture
         await client.Publish(Topic, message, default);
 
         var messages = await client.Receive(Topic, default);
-        await messages.Single().Release();
+        await messages.Single().Release(TimeSpan.Zero);
 
         (await sqs.HasMessagesOn(Topic.FullQueueName)).Should().BeTrue();
     }

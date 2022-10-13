@@ -3,7 +3,6 @@ using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 using A55.Subdivisions.Hosting;
 using A55.Subdivisions.Hosting.Job;
 using A55.Subdivisions.Models;
-using A55.Subdivisions.Services;
 using Microsoft.Extensions.Options;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Unit.Hosting.Job;
@@ -20,9 +19,9 @@ public class ConcurrentConsumerJobTests : BaseTest
         A.CallTo(() => mocker.Resolve<IOptionsMonitor<SubConfig>>().CurrentValue)
             .Returns(new SubConfig {MessageTimeoutInSeconds = 100, PollingIntervalInSeconds = 0.1f});
 
-        A.CallTo(() => mocker.Resolve<ISubdivisionsClient>()
-                .Receive(consumer.TopicName, A<CancellationToken>._))
-            .ReturnsNextFromSequence(new[] {message});
+        ValueTaskReturnValueConfigurationExtensions.ReturnsNextFromSequence<>(A.CallTo(() => mocker
+            .Resolve<ISubdivisionsClient>()
+            .Receive(consumer.TopicName, A<CancellationToken>._)), new[] {message});
 
         A.CallTo(() => mocker.Resolve<IConsumerFactory>()
                 .ConsumeScoped(A<IConsumerDescriber>._, A<IMessage>._, A<CancellationToken>._))
@@ -50,9 +49,9 @@ public class ConcurrentConsumerJobTests : BaseTest
         A.CallTo(() => mocker.Resolve<IOptionsMonitor<SubConfig>>().CurrentValue)
             .Returns(new SubConfig {MessageTimeoutInSeconds = timeoutInSeconds, PollingIntervalInSeconds = 0.1f});
 
-        A.CallTo(() => mocker.Resolve<ISubdivisionsClient>()
-                .Receive(consumer.TopicName, A<CancellationToken>._))
-            .ReturnsNextFromSequence(new[] {message});
+        ValueTaskReturnValueConfigurationExtensions.ReturnsNextFromSequence<>(A.CallTo(() => mocker
+            .Resolve<ISubdivisionsClient>()
+            .Receive(consumer.TopicName, A<CancellationToken>._)), new[] {message});
 
         A.CallTo(() => mocker.Resolve<IConsumerFactory>()
                 .ConsumeScoped(A<IConsumerDescriber>._, A<IMessage>._, A<CancellationToken>._))
@@ -81,7 +80,7 @@ public class ConcurrentConsumerJobTests : BaseTest
         var message2 = new FakeMessageBuilder().Generate();
 
         A.CallTo(() => mocker.Resolve<IOptionsMonitor<SubConfig>>().CurrentValue)
-            .Returns(new SubConfig {MessageTimeoutInSeconds = 100, PollingIntervalInSeconds = 0.1f,});
+            .Returns(new SubConfig {MessageTimeoutInSeconds = 100, PollingIntervalInSeconds = 0.1f});
 
         A.CallTo(() => mocker.Resolve<ISubdivisionsClient>()
                 .Receive(consumer.TopicName, A<CancellationToken>._))

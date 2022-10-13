@@ -1,7 +1,6 @@
 using A55.Subdivisions.Aws.Tests.Builders;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 using A55.Subdivisions.Models;
-using A55.Subdivisions.Services;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration;
 
@@ -22,7 +21,7 @@ public class SubClientDeadLetterTests : SubClientFixture
         await client.Publish(TopicName, message);
 
         var messages = await client.Receive(TopicName);
-        await messages.Single().Release();
+        await messages.Single().Release(TimeSpan.Zero);
 
         var messageRetries = await client.Receive(TopicName);
         messageRetries.Should().BeEmpty();
@@ -40,7 +39,7 @@ public class SubClientDeadLetterTests : SubClientFixture
         await client.Publish(TopicName, message);
 
         var messages = await client.Receive(TopicName);
-        await messages.Single().Release();
+        await messages.Single().Release(TimeSpan.Zero);
 
         var messageRetries = await client.Receive(TopicName);
         messageRetries.Should().BeEmpty();
@@ -68,18 +67,18 @@ public class SubClientRetryTests : SubClientFixture
         await client.Publish(TopicName, message);
 
         var messages1 = await client.Receive(TopicName);
-        await messages1.Single().Release();
+        await messages1.Single().Release(TimeSpan.Zero);
         messages1.Should().BeEquivalentTo(new[] {expectedMessage});
 
         var messages2 = await client.Receive(TopicName);
-        await messages2.Single().Release();
-        messages2.Should().BeEquivalentTo(new[] {expectedMessage with{ RetryNumber = 1 }});
+        await messages2.Single().Release(TimeSpan.Zero);
+        messages2.Should().BeEquivalentTo(new[] {expectedMessage with {RetryNumber = 1}});
 
         var messageRetries = await client.Receive(TopicName);
         messageRetries.Should().BeEmpty();
 
         var deadMessages = await client.DeadLetters(TopicName);
-        messages2.Should().BeEquivalentTo(new[] {expectedMessage with{ RetryNumber = 1 }});
+        messages2.Should().BeEquivalentTo(new[] {expectedMessage with {RetryNumber = 1}});
         deadMessages.Should().BeEquivalentTo(new[] {expectedMessage});
     }
 }

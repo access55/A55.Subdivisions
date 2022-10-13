@@ -15,13 +15,13 @@ public class AwsKmsTests : BaseTest
         var keyName = faker.Random.Word();
         var keyId = faker.Random.Guid().ToString();
 
-        mocker.Provide(Options.Create(new SubConfig { PubKey = keyName }));
+        mocker.Provide(Options.Create(new SubConfig {PubKey = keyName}));
         var aws = mocker.Generate<AwsKms>();
 
-        var request = new ListAliasesRequest { Limit = 100 };
+        var request = new ListAliasesRequest {Limit = 100};
         var response = new ListAliasesResponse
         {
-            Aliases = new List<AliasListEntry> { new() { AliasName = keyName, TargetKeyId = keyId } }
+            Aliases = new List<AliasListEntry> {new() {AliasName = keyName, TargetKeyId = keyId}}
         };
 
         A.CallTo(() => mocker.Resolve<IAmazonKeyManagementService>()
@@ -39,13 +39,13 @@ public class AwsKmsTests : BaseTest
         var keyName = faker.Random.Word();
         var keyId = faker.Random.Guid().ToString();
 
-        mocker.Provide(Options.Create(new SubConfig { PubKey = keyName }));
+        mocker.Provide(Options.Create(new SubConfig {PubKey = keyName}));
         var aws = mocker.Generate<AwsKms>();
 
-        var request = new ListAliasesRequest { Limit = 100 };
+        var request = new ListAliasesRequest {Limit = 100};
         var response = new ListAliasesResponse
         {
-            Aliases = new List<AliasListEntry> { new() { AliasName = keyName, TargetKeyId = keyId } }
+            Aliases = new List<AliasListEntry> {new() {AliasName = keyName, TargetKeyId = keyId}}
         };
 
         var service = mocker.Resolve<IAmazonKeyManagementService>();
@@ -67,13 +67,13 @@ public class AwsKmsTests : BaseTest
         var keyName = faker.Random.Word();
         var keyId = faker.Random.Guid().ToString();
 
-        mocker.Provide(Options.Create(new SubConfig { PubKey = keyName }));
+        mocker.Provide(Options.Create(new SubConfig {PubKey = keyName}));
         var aws = mocker.Generate<AwsKms>();
 
-        var request = new ListAliasesRequest { Limit = 100 };
+        var request = new ListAliasesRequest {Limit = 100};
         var response = new ListAliasesResponse
         {
-            Aliases = new List<AliasListEntry> { new() { AliasName = keyName, TargetKeyId = keyId } }
+            Aliases = new List<AliasListEntry> {new() {AliasName = keyName, TargetKeyId = keyId}}
         };
 
         var service = mocker.Resolve<IAmazonKeyManagementService>();

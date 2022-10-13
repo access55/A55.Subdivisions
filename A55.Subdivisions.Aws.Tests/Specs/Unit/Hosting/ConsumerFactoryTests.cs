@@ -112,7 +112,31 @@ public class ConsumerFactoryTests : BaseTest
 
         await factory.ConsumeScoped(describer, message, default);
 
-        A.CallTo(() => message.Release()).MustHaveHappenedOnceExactly();
+        A.CallTo(() => message.Release(A<TimeSpan>._)).MustHaveHappenedOnceExactly();
+    }
+
+    [Test]
+    public async Task ShouldReleaseMessageWithDelay()
+    {
+        var describer = new ConsumerDescriberBuilder()
+            .UsingConsumer<FakeConsumer, string>()
+            .Generate();
+
+        var message = new FakeMessageBuilder().WithRetry(1).Generate();
+
+        var factory = mocker.Generate<ConsumerFactory>();
+        var consumer = mocker.Resolve<FakeConsumer>();
+        var delay = faker.Date.Timespan();
+        A.CallTo(() => mocker.Resolve<IRetryStrategy>().Evaluate(1))
+            .Returns(delay);
+
+        A.CallTo(() => consumer
+                .Consume(message.Body, A<CancellationToken>._))
+            .Throws(new Exception());
+
+        await factory.ConsumeScoped(describer, message, default);
+
+        A.CallTo(() => message.Release(delay)).MustHaveHappenedOnceExactly();
     }
 
     [Test]

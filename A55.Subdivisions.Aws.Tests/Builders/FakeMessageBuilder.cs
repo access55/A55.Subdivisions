@@ -1,4 +1,3 @@
-using A55.Subdivisions.Models;
 using Bogus;
 
 namespace A55.Subdivisions.Aws.Tests.Builders;
@@ -6,8 +5,9 @@ namespace A55.Subdivisions.Aws.Tests.Builders;
 class FakeMessageBuilder
 {
     readonly DateTime datetime;
-    string body;
     readonly Guid id;
+    string body;
+    uint retryNumber;
 
     public FakeMessageBuilder()
     {
@@ -23,12 +23,19 @@ class FakeMessageBuilder
         return this;
     }
 
-    public IMessage<string> Generate()
+    public IMessage Generate()
     {
-        var value = A.Fake<IMessage<string>>();
+        var value = A.Fake<IMessage>();
         A.CallTo(() => value.MessageId).Returns(id);
         A.CallTo(() => value.Datetime).Returns(datetime);
+        A.CallTo(() => value.RetryNumber).Returns(retryNumber);
         A.CallTo(() => value.Body).Returns(body);
         return value;
+    }
+
+    public FakeMessageBuilder WithRetry(uint retry)
+    {
+        retryNumber = retry;
+        return this;
     }
 }

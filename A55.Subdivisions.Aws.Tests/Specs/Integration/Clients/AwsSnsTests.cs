@@ -49,7 +49,7 @@ public class AwsSnsTests : LocalstackFixture
         var result = await aws.EnsureTopic(topicName, default);
 
         var sns = GetService<IAmazonSimpleNotificationService>();
-        var topic = await sns.GetTopicAttributesAsync(new GetTopicAttributesRequest { TopicArn = result.Value });
+        var topic = await sns.GetTopicAttributesAsync(new GetTopicAttributesRequest {TopicArn = result.Value});
 
         topic.Attributes.Should().HaveCountGreaterThan(0);
     }
@@ -61,10 +61,10 @@ public class AwsSnsTests : LocalstackFixture
 
         var sns = GetService<IAmazonSimpleNotificationService>();
         var sqs = GetService<IAmazonSQS>();
-        var topic = await sns.CreateTopicAsync(new CreateTopicRequest { Name = topicName.FullTopicName });
-        var queueResponse = await sqs.CreateQueueAsync(new CreateQueueRequest { QueueName = topicName.FullQueueName });
+        var topic = await sns.CreateTopicAsync(new CreateTopicRequest {Name = topicName.FullTopicName});
+        var queueResponse = await sqs.CreateQueueAsync(new CreateQueueRequest {QueueName = topicName.FullQueueName});
         var queue = await sqs.GetQueueAttributesAsync(queueResponse.QueueUrl,
-            new List<string> { QueueAttributeName.QueueArn });
+            new List<string> {QueueAttributeName.QueueArn});
 
         var aws = GetService<AwsSns>();
 
@@ -73,9 +73,7 @@ public class AwsSnsTests : LocalstackFixture
         var subs = await sns.ListSubscriptionsAsync();
         subs.Subscriptions.Should().ContainEquivalentOf(new
         {
-            topic.TopicArn,
-            Protocol = "sqs",
-            Endpoint = queue.QueueARN
+            topic.TopicArn, Protocol = "sqs", Endpoint = queue.QueueARN
         });
     }
 }

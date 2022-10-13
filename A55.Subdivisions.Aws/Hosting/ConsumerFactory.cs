@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using A55.Subdivisions.Models;
 using A55.Subdivisions.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -9,7 +8,7 @@ namespace A55.Subdivisions.Hosting;
 interface IConsumerFactory
 {
     Task ConsumeScoped<TMessage>(IConsumerDescriber describer, TMessage message, CancellationToken ctx)
-        where TMessage : IMessage<string>;
+        where TMessage : IMessage;
 }
 
 class ConsumerFactory : IConsumerFactory
@@ -32,7 +31,7 @@ class ConsumerFactory : IConsumerFactory
     }
 
     public async Task ConsumeScoped<TMessage>(IConsumerDescriber describer, TMessage message, CancellationToken ctx)
-        where TMessage : IMessage<string>
+        where TMessage : IMessage
     {
         var header =
             $"-> {describer.TopicName}[{message.MessageId}]";
@@ -58,8 +57,11 @@ class ConsumerFactory : IConsumerFactory
         catch (Exception ex)
         {
             logger.LogError(ex, "{Header} Consumer error", header);
+            var retryStrategy = scope.ServiceProvider.GetRequiredService<IRetryStrategy>();
+            var delay = retryStrategy.Evaluate(message.RetryNumber);
+
             var handler = describer.ErrorHandler?.Invoke(ex) ?? Task.CompletedTask;
-            await Task.WhenAll(message.Release(), handler);
+            await Task.WhenAll(message.Release(delay), handler);
         }
         finally
         {

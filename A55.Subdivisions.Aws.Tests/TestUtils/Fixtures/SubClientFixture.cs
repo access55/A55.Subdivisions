@@ -28,13 +28,13 @@ public class SubClientFixture : LocalstackFixture
     }
 
     protected async Task<IConsumerClient> CreateConsumer(Action<SubConfig>? configure = null) =>
-        await NewSubClient(configure, isConsumer: true, isProducer: false);
+        await NewSubClient(configure, true, false);
 
     protected async Task<IProducerClient> CreateProducer(Action<SubConfig>? configure = null) =>
-        await NewSubClient(configure, isConsumer: false, isProducer: true);
+        await NewSubClient(configure, false, true);
 
     protected Task<ISubdivisionsClient> CreateSubClient(Action<SubConfig>? configure = null) =>
-        NewSubClient(configure, isConsumer: true, isProducer: true);
+        NewSubClient(configure, true, true);
 
     async Task<ISubdivisionsClient> NewSubClient(
         Action<SubConfig>? configure,

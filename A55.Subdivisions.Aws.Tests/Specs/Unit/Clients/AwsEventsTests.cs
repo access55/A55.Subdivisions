@@ -11,15 +11,15 @@ public class AwsEventsTests : BaseTest
     [Test]
     public async Task TopicExistsShouldReturnTrueIfRuleExists()
     {
-        var topicName = faker.TopicName(new() { Source = "Source" });
+        var topicName = faker.TopicName(new() {Source = "Source"});
         mocker.Provide(A.Fake<ILogger<AwsEvents>>());
         var aws = mocker.Generate<AwsEvents>();
 
-        ListRulesRequest request = new() { Limit = 100, NamePrefix = topicName.FullTopicName };
+        ListRulesRequest request = new() {Limit = 100, NamePrefix = topicName.FullTopicName};
 
         ListRulesResponse response = new()
         {
-            Rules = new List<Rule> { new() { Name = topicName.FullTopicName, State = RuleState.ENABLED } }
+            Rules = new List<Rule> {new() {Name = topicName.FullTopicName, State = RuleState.ENABLED}}
         };
 
         A.CallTo(() => mocker.Resolve<IAmazonEventBridge>()

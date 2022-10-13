@@ -16,7 +16,7 @@ public class SubConfigBuilderTests : BaseTest
     {
         var services = new ServiceCollection();
         var client = A.Fake<IProducerClient>();
-        services.AddSingleton<IProducerClient>(client);
+        services.AddSingleton(client);
 
         var config = new SubConfigBuilder(services);
         config.MapTopic<TestMessage>("test-topic");
@@ -37,14 +37,14 @@ public class SubConfigBuilderTests : BaseTest
         var services = new ServiceCollection();
 
         var polling = faker.Date.Timespan();
-        var concurrency = faker.Random.Int(min: 1);
+        var concurrency = faker.Random.Int(1);
 
         services.AddSubdivisions(sub =>
         {
             sub.MapTopic<TestMessage>("test_topic")
                 .WithConsumer<TestConsumer>(
-                    pollingInterval: polling,
-                    maxConcurrency: concurrency
+                    polling,
+                    concurrency
                 );
         });
 

@@ -17,7 +17,7 @@ public class SubdivisionsHostedServiceTests : BaseTest
         var builder = new ConsumerDescriberBuilder()
             .WithTopicName(faker.TopicNameString());
 
-        mocker.Provide<IEnumerable<IConsumerDescriber>>(new[] { builder.Generate(), builder.Generate() });
+        mocker.Provide<IEnumerable<IConsumerDescriber>>(new[] {builder.Generate(), builder.Generate()});
         var action = () => mocker.Generate<SubdivisionsHostedService>();
 
         action.Should().Throw<ArgumentException>()

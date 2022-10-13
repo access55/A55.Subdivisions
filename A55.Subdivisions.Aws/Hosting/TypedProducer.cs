@@ -2,8 +2,8 @@
 
 class TypedProducer<TMessage> : IProducer<TMessage> where TMessage : notnull
 {
-    readonly string topicName;
     readonly IProducerClient producer;
+    readonly string topicName;
 
     public TypedProducer(string topicName, IProducerClient producer)
     {
@@ -11,5 +11,6 @@ class TypedProducer<TMessage> : IProducer<TMessage> where TMessage : notnull
         this.producer = producer;
     }
 
-    public Task<PublishResult> Publish(TMessage message) => producer.Publish(topicName, message);
+    public Task<PublishResult> Publish(TMessage message, CancellationToken ctx = default) =>
+        producer.Publish(topicName, message, ctx);
 }

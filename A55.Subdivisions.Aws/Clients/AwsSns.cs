@@ -32,8 +32,7 @@ sealed class AwsSns
             Name = topicName.FullTopicName,
             Attributes = new()
             {
-                [QueueAttributeName.KmsMasterKeyId] = keyId.Value,
-                [QueueAttributeName.Policy] = policy
+                [QueueAttributeName.KmsMasterKeyId] = keyId.Value, [QueueAttributeName.Policy] = policy
             }
         };
         var response = await sns.CreateTopicAsync(request, ctx);
@@ -43,7 +42,7 @@ sealed class AwsSns
     }
 
     public Task Subscribe(SnsArn snsArn, SqsArn sqsArn, CancellationToken ctx) => sns.SubscribeAsync(
-        new SubscribeRequest { TopicArn = snsArn.Value, Protocol = "sqs", Endpoint = sqsArn.Value }, ctx);
+        new SubscribeRequest {TopicArn = snsArn.Value, Protocol = "sqs", Endpoint = sqsArn.Value}, ctx);
 
     static string GetPolicy(string resourceName, RegionEndpoint region) => JsonSerializer.Serialize(
         new

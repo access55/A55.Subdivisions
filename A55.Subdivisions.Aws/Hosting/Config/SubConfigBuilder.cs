@@ -1,6 +1,5 @@
 ﻿using A55.Subdivisions.Models;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace A55.Subdivisions.Hosting.Config;
 
@@ -11,7 +10,7 @@ public sealed class SubConfigBuilder : SubConfig
     public SubConfigBuilder(IServiceCollection services)
     {
         this.services = services;
-        services.AddSingleton<IEnumerable<IConsumerDescriber>>(sp =>
+        services.AddSingleton(sp =>
             sp.GetService<IEnumerable<ITopicConfigurationBuilder>>()
                 ?.Where(x => x.HasConsumer)
                 .Select(x => x.CreateConsumerDescriber(sp))

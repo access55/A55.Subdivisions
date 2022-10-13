@@ -16,10 +16,10 @@ class AwsResourceManager : ISubResourceManager
 {
     readonly SubConfig config;
     readonly AwsEvents events;
+    readonly AwsKms kms;
     readonly ILogger<AwsResourceManager> logger;
     readonly AwsSns sns;
     readonly AwsSqs sqs;
-    readonly AwsKms kms;
 
     public AwsResourceManager(
         ILogger<AwsResourceManager> logger,

@@ -12,8 +12,8 @@ sealed class AwsSubClient : ISubdivisionsClient
     readonly AwsEvents events;
     readonly ILogger<AwsSubClient> logger;
     readonly AwsSqs queue;
-    readonly ISubMessageSerializer serializer;
     readonly ISubResourceManager resources;
+    readonly ISubMessageSerializer serializer;
 
     public AwsSubClient(
         ILogger<AwsSubClient> logger,
@@ -34,8 +34,6 @@ sealed class AwsSubClient : ISubdivisionsClient
         this.queue = queue;
     }
 
-    TopicName CreateTopicName(string name) => new(name, config.Value);
-
     public ValueTask<IReadOnlyCollection<IMessage>> Receive(string topic, CancellationToken ctx = default) =>
         Receive(CreateTopicName(topic), ctx);
 
@@ -45,9 +43,6 @@ sealed class AwsSubClient : ISubdivisionsClient
         var message = await Receive(topic, ctx);
         return message.Select(m => m.Map(s => serializer.Deserialize<T>(s))).ToArray();
     }
-
-    internal async ValueTask<IReadOnlyCollection<IMessage>> Receive(TopicName topic, CancellationToken ctx) =>
-        await queue.ReceiveMessages(topic.FullQueueName, ctx);
 
     public Task<IReadOnlyCollection<IMessage>> DeadLetters(string queueName, CancellationToken ctx = default)
     {
@@ -74,6 +69,11 @@ sealed class AwsSubClient : ISubdivisionsClient
     public Task<PublishResult> Publish(string topicName, string message, CancellationToken ctx = default) =>
         Publish(CreateTopicName(topicName), message, ctx);
 
+    TopicName CreateTopicName(string name) => new(name, config.Value);
+
+    internal async ValueTask<IReadOnlyCollection<IMessage>> Receive(TopicName topic, CancellationToken ctx) =>
+        await queue.ReceiveMessages(topic.FullQueueName, ctx);
+
     internal async Task<PublishResult> Publish(TopicName topic, string message, CancellationToken ctx)
     {
         logger.LogDebug("Publishing message on {Topic}", topic.FullTopicName);
@@ -83,8 +83,8 @@ sealed class AwsSubClient : ISubdivisionsClient
 
         var messageId = Guid.NewGuid();
         AwsSqs.MessageEnvelope messagePayload = new(
-            Event: topic.Topic, DateTime: clock.Now(), Payload: message,
-            MessageId: messageId);
+            topic.Topic, clock.Now(), message,
+            messageId);
 
         var payload = serializer.Serialize(messagePayload);
         var publishResult = await events.PushEvent(topic, payload, ctx);
