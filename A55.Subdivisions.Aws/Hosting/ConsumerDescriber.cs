@@ -18,11 +18,18 @@ public interface IConsumer : IConsumer<string>
 interface IConsumerDescriber
 {
     string TopicName { get; }
-    TimeSpan? PollingInterval { get; }
-    int? MaxConcurrency { get; }
+    TimeSpan PollingInterval { get; }
+    int MaxConcurrency { get; }
     Type MessageType { get; }
     public Type ConsumerType { get; }
     Func<Exception, Task>? ErrorHandler { get; }
+}
+
+sealed class ConsumerConfig
+{
+    public int MaxConcurrency { get; set; }
+    public TimeSpan PollingInterval { get; set; }
+    public Func<Exception, Task>? ErrorHandler { get; set; }
 }
 
 sealed class ConsumerDescriber : IConsumerDescriber
@@ -31,14 +38,13 @@ sealed class ConsumerDescriber : IConsumerDescriber
         string topicName,
         Type consumerType,
         Type messageType,
-        int? maxConcurrency = null,
-        TimeSpan? pollingInterval = null,
-        Func<Exception, Task>? errorHandler = null
+        ConsumerConfig? config = null
     )
     {
         ArgumentNullException.ThrowIfNull(topicName);
         ArgumentNullException.ThrowIfNull(consumerType);
         ArgumentNullException.ThrowIfNull(messageType);
+        config ??= new ConsumerConfig();
 
         if (!Models.TopicName.IsValidTopicName(topicName))
             throw new SubdivisionsException($"Invalid topic names: {topicName}");
@@ -55,19 +61,20 @@ sealed class ConsumerDescriber : IConsumerDescriber
         if (consumerDef is null || !consumerDef.GetGenericArguments().Single().IsAssignableFrom(messageType))
             throw new SubdivisionsException($"Invalid consumer message definition: {topicName}");
 
-        MaxConcurrency = maxConcurrency;
-        ConsumerType = consumerType;
-        MessageType = messageType;
-        ErrorHandler = errorHandler;
-        PollingInterval = pollingInterval;
         TopicName = topicName;
+        MessageType = messageType;
+        ConsumerType = consumerType;
+
+        ErrorHandler = config.ErrorHandler;
+        PollingInterval = config.PollingInterval;
+        MaxConcurrency = config.MaxConcurrency;
     }
 
     public Type ConsumerType { get; }
     public Type MessageType { get; }
     public string TopicName { get; }
-    public TimeSpan? PollingInterval { get; }
-    public int? MaxConcurrency { get; }
+    public TimeSpan PollingInterval { get; }
+    public int MaxConcurrency { get; }
 
     public Func<Exception, Task>? ErrorHandler { get; }
 }

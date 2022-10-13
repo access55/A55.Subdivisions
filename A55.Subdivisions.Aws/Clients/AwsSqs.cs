@@ -129,7 +129,7 @@ sealed class AwsSqs
             {
                 QueueUrl = queueInfo.Url.ToString(),
                 MaxNumberOfMessages = config.QueueMaxReceiveCount,
-                WaitTimeSeconds = config.WaitMessageInSeconds,
+                WaitTimeSeconds = config.LongPollingWaitInSeconds,
                 AttributeNames = new() {MessageSystemAttributeName.ApproximateReceiveCount}
             }, ctx);
 

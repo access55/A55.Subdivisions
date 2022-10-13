@@ -29,7 +29,7 @@ sealed class ConcurrentConsumerJob : IConsumerJob
         var workers =
             from d in describers
             let channel =
-                Channel.CreateBounded<ConsumeRequest>(d.MaxConcurrency ?? config.CurrentValue.QueueMaxReceiveCount)
+                Channel.CreateBounded<ConsumeRequest>(d.MaxConcurrency)
             from worker in new[]
             {
                 PollingWorker(d, channel.Writer, stoppingToken), ConsumerWorker(d, channel.Reader, stoppingToken)
@@ -44,8 +44,7 @@ sealed class ConcurrentConsumerJob : IConsumerJob
         ChannelWriter<ConsumeRequest> channel,
         CancellationToken ctx)
     {
-        var interval = describer.PollingInterval ?? TimeSpan.FromSeconds(config.CurrentValue.PollingIntervalInSeconds);
-        using PeriodicTimer timer = new(interval);
+        using PeriodicTimer timer = new(describer.PollingInterval);
 
         while (await timer.WaitForNextTickAsync(ctx))
             try
@@ -88,8 +87,8 @@ sealed class ConcurrentConsumerJob : IConsumerJob
         }
 
         var tasks = Enumerable
-            .Range(0, describer.MaxConcurrency ?? config.CurrentValue.QueueMaxReceiveCount)
-            .Select(_ => TopicConsumer());
+            .Range(0, describer.MaxConcurrency)
+            .Select(_ => Task.Run(TopicConsumer, stopToken));
         await Task.WhenAll(tasks);
     }
 

@@ -13,16 +13,6 @@ namespace A55.Subdivisions.Aws.Extensions;
 
 public static class ServicesExtensions
 {
-    public static IServiceCollection AddSubdivisions(
-        this IServiceCollection services,
-        Action<SubConfig>? config = null,
-        AWSCredentials? credentials = null)
-    {
-        services.AddSubdivisionsClient(config, credentials);
-        services.AddSubdivisionsHostedServices();
-        return services;
-    }
-
     internal static IServiceCollection AddSubdivisionsHostedServices(this IServiceCollection services) =>
         services
             .AddSingleton<IConsumerFactory, ConsumerFactory>()

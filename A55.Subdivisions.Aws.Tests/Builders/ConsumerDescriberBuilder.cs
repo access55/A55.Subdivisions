@@ -6,9 +6,9 @@ class ConsumerDescriberBuilder
 {
     Type consumerType = typeof(TestConsumer);
     Func<Exception, Task>? errorHandler;
-    int? maxConcurrency = 1;
+    int maxConcurrency = 1;
     Type messageType = typeof(TestMessage);
-    TimeSpan? pollingInterval;
+    TimeSpan pollingInterval = TimeSpan.FromMilliseconds(1);
     string topicName = "good_name";
 
     public ConsumerDescriberBuilder UsingConsumer<TConsumer, TMessage>() where TConsumer : IConsumer<TMessage>

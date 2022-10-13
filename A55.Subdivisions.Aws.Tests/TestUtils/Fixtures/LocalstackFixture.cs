@@ -38,7 +38,7 @@ public class LocalstackFixture : ServicesFixture
         c.QueueMaxReceiveCount = 10;
         c.MessageRetantionInDays = 0;
         c.MessageDelayInSeconds = 0;
-        c.WaitMessageInSeconds = 0;
+        c.LongPollingWaitInSeconds = 0;
         c.MessageTimeoutInSeconds = 10000;
         c.RetriesBeforeDeadLetter = 2;
     }

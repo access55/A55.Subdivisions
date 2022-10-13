@@ -1,4 +1,4 @@
-﻿using A55.Subdivisions.Aws.Hosting;
+﻿using System.Reflection;
 using Amazon.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -23,19 +23,4 @@ static class Extensions
 
     public static AWSCredentials GetAwsCredentials(this IServiceProvider provider) =>
         provider.GetRequiredService<AWSCredentials>();
-
-    public static IServiceCollection AddSubdivisionsConsumer<TMessage, TConsumer>(
-        this IServiceCollection services,
-        string topic, int? maxConcurrent = null, TimeSpan? pollingInterval = null)
-        where TMessage : notnull
-        where TConsumer : class, IConsumer<TMessage>
-        => services.AddSubdivisionsConsumer(
-            new ConsumerDescriber(topic, typeof(TConsumer), typeof(TMessage), maxConcurrent, pollingInterval));
-
-    public static IServiceCollection AddSubdivisionsConsumer(
-        this IServiceCollection services,
-        ConsumerDescriber consumer) =>
-        services
-            .AddSingleton<IConsumerDescriber>(consumer)
-            .AddScoped(consumer.ConsumerType);
 }

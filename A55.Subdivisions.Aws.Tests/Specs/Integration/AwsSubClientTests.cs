@@ -1,7 +1,5 @@
 using A55.Subdivisions.Aws.Tests.Builders;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
-using Amazon.SimpleNotificationService;
-using Amazon.SimpleNotificationService.Model;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration;
 
