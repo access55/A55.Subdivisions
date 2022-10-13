@@ -8,7 +8,7 @@ class ConsumerDescriberBuilder
     Func<Exception, Task>? errorHandler;
     int? maxConcurrency = 1;
     Type messageType = typeof(TestMessage);
-    TimeSpan? pollingInterval = TimeSpan.Zero;
+    TimeSpan? pollingInterval;
     string topicName = "good_name";
 
     public ConsumerDescriberBuilder UsingConsumer<TConsumer, TMessage>() where TConsumer : IConsumer<TMessage>
@@ -54,6 +54,9 @@ class ConsumerDescriberBuilder
         pollingInterval = interval;
         return this;
     }
+
+    public ConsumerDescriberBuilder WithErrorHandler() =>
+        WithErrorHandler(A.Fake<Func<Exception, Task>>());
 
     public ConsumerDescriberBuilder WithErrorHandler(Func<Exception, Task> handler)
     {

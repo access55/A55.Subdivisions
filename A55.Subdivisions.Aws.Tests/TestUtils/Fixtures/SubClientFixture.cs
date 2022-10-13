@@ -20,8 +20,7 @@ public class SubClientFixture : LocalstackFixture
         sqs = GetService<IAmazonSQS>();
 
         var resources = GetService<ISubResourceManager>();
-        // await resources.EnsureTopicExists(TopicName, default);
-         await resources.EnsureQueueExists(TopicName, default);
+        await resources.EnsureQueueExists(TopicName, default);
 
         fakedDate = faker.Date.Soon();
         A.CallTo(() => fakeClock.Now()).Returns(fakedDate);

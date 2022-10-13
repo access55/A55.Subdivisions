@@ -75,6 +75,7 @@ sealed class ConcurrentConsumerJob : IConsumerJob
             await foreach (var (message, ctx) in channel.ReadAllAsync(stopToken))
                 try
                 {
+                    ctx.ThrowIfCancellationRequested();
                     await consumerFactory.ConsumeScoped(describer, message, ctx);
                 }
                 catch (Exception ex)
@@ -94,8 +95,9 @@ sealed class ConcurrentConsumerJob : IConsumerJob
 
     CancellationToken GetTimeoutToken(CancellationToken stoppingToken)
     {
-        var timeoutToken =
-            new CancellationTokenSource(TimeSpan.FromSeconds(config.CurrentValue.MessageTimeoutInSeconds));
+        var timeoutToken = new CancellationTokenSource();
+        var timeoutSeconds = config.CurrentValue.MessageTimeoutInSeconds;
+        timeoutToken.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
         var combinedToken = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, timeoutToken.Token);
         return combinedToken.Token;
     }
