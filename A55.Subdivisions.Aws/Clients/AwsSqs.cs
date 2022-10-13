@@ -1,11 +1,13 @@
 using System.Runtime.Serialization;
 using System.Text.Json;
+using A55.Subdivisions.Models;
+using A55.Subdivisions.Services;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace A55.Subdivisions.Aws.Clients;
+namespace A55.Subdivisions.Clients;
 
 readonly record struct QueueInfo(Uri Url, SqsArn Arn);
 
@@ -117,7 +119,7 @@ sealed class AwsSqs
         return await GetQueueAttributes(q.QueueUrl, ctx);
     }
 
-    public async Task<IReadOnlyCollection<IMessage>> ReceiveMessages(
+    public async Task<IReadOnlyCollection<IMessage<string>>> ReceiveMessages(
         string queue,
         CancellationToken ctx)
     {
@@ -134,7 +136,7 @@ sealed class AwsSqs
             }, ctx);
 
         if (readMessagesRequest?.Messages is not { } messages)
-            return ArraySegment<IMessage>.Empty;
+            return ArraySegment<IMessage<string>>.Empty;
 
         return messages
             .Select(sqsMessage =>
@@ -175,11 +177,11 @@ sealed class AwsSqs
                     ReleaseMessage,
                     retryNumber: receivedCount - 1);
             })
-            .Cast<IMessage>()
+            .Cast<IMessage<string>>()
             .ToArray();
     }
 
-    public Task<IReadOnlyCollection<IMessage>> ReceiveDeadLetters(string queue, CancellationToken ctx) =>
+    public Task<IReadOnlyCollection<IMessage<string>>> ReceiveDeadLetters(string queue, CancellationToken ctx) =>
         ReceiveMessages($"{DeadLetterPrefix}{queue}", ctx);
 
     internal record MessageEnvelope(string Event, DateTime DateTime, string Payload, Guid? MessageId = null,

@@ -1,7 +1,6 @@
-global using A55.Subdivisions.Aws.Models;
-global using IMessage = A55.Subdivisions.Aws.Models.IMessage<string>;
+global using IMessage = A55.Subdivisions.Models.IMessage<string>;
 
-namespace A55.Subdivisions.Aws.Models;
+namespace A55.Subdivisions.Models;
 
 public interface IMessage<out TBody> where TBody : notnull
 {

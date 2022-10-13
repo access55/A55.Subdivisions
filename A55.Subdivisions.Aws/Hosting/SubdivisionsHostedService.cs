@@ -1,9 +1,11 @@
 using System.Collections.Immutable;
-using A55.Subdivisions.Aws.Hosting.Job;
+using A55.Subdivisions.Hosting.Job;
+using A55.Subdivisions.Models;
+using A55.Subdivisions.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace A55.Subdivisions.Aws.Hosting;
+namespace A55.Subdivisions.Hosting;
 
 class SubdivisionsHostedService : BackgroundService
 {

@@ -1,5 +1,6 @@
-using A55.Subdivisions.Aws.Extensions;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
+using A55.Subdivisions.Extensions;
+using A55.Subdivisions.Services;
 using Amazon.EventBridge;
 using Amazon.EventBridge.Model;
 using Amazon.SimpleNotificationService;

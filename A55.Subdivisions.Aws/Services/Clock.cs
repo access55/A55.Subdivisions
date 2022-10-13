@@ -1,4 +1,4 @@
-namespace A55.Subdivisions.Aws;
+namespace A55.Subdivisions.Services;
 
 public interface ISubClock
 {

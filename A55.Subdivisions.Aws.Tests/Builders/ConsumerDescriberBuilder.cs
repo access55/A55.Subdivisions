@@ -1,4 +1,4 @@
-using A55.Subdivisions.Aws.Hosting;
+using A55.Subdivisions.Hosting;
 
 namespace A55.Subdivisions.Aws.Tests.Builders;
 

@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>A55.Subdivisions</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

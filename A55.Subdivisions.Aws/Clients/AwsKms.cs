@@ -1,8 +1,9 @@
+using A55.Subdivisions.Models;
 using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
 using Microsoft.Extensions.Options;
 
-namespace A55.Subdivisions.Aws.Clients;
+namespace A55.Subdivisions.Clients;
 
 sealed class AwsKms
 {

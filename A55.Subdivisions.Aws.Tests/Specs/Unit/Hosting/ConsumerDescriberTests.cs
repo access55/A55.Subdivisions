@@ -1,6 +1,6 @@
-using A55.Subdivisions.Aws.Hosting;
-using A55.Subdivisions.Aws.Models;
 using A55.Subdivisions.Aws.Tests.Builders;
+using A55.Subdivisions.Hosting;
+using A55.Subdivisions.Models;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Unit.Hosting;
 

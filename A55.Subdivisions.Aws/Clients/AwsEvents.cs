@@ -1,10 +1,11 @@
 using System.Reflection;
+using A55.Subdivisions.Models;
 using Amazon.EventBridge;
 using Amazon.EventBridge.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace A55.Subdivisions.Aws.Clients;
+namespace A55.Subdivisions.Clients;
 
 sealed class AwsEvents
 {

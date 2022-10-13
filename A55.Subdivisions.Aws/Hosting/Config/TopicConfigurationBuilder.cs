@@ -1,8 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using A55.Subdivisions.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
-namespace A55.Subdivisions.Aws.Hosting.Extensions;
+namespace A55.Subdivisions.Hosting.Config;
 
 public sealed class TopicConfigurationBuilder<TMessage> where TMessage : notnull
 {
@@ -14,7 +15,7 @@ public sealed class TopicConfigurationBuilder<TMessage> where TMessage : notnull
     Type? consumerType;
     Func<Exception, Task>? errorHandler;
 
-    public TopicConfigurationBuilder(IServiceCollection services, string topicName)
+    internal TopicConfigurationBuilder(IServiceCollection services, string topicName)
     {
         this.services = services;
         this.topicName = topicName;
@@ -23,7 +24,7 @@ public sealed class TopicConfigurationBuilder<TMessage> where TMessage : notnull
     public TopicConfigurationBuilder<TMessage> WithConsumer<TConsumer>(
         TimeSpan? pollingInterval = null,
         int? maxConcurrency = null)
-        where TConsumer : class, IConsumer<TConsumer>
+        where TConsumer : class, IConsumer<TMessage>
     {
         services.TryAddScoped<TConsumer>();
         this.consumerType = typeof(TConsumer);

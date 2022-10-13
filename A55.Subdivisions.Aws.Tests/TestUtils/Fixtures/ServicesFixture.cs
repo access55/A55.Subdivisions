@@ -1,5 +1,5 @@
-using A55.Subdivisions.Aws.Extensions;
-using A55.Subdivisions.Aws.Models;
+using A55.Subdivisions.Models;
+using A55.Subdivisions.Services;
 using Amazon.Runtime;
 using Bogus;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +31,7 @@ public class ServicesFixture
     protected IServiceCollection CreateSubdivisionsServices(Action<SubConfig> configure) =>
         new ServiceCollection()
             .AddLogging()
-            .AddSubdivisionsClient(
+            .AddSubdivisionsServices(
                 credentials: new AnonymousAWSCredentials(),
                 config: configure);
 

@@ -1,8 +1,8 @@
 using System.Text.Json;
-using A55.Subdivisions.Aws.Clients;
-using A55.Subdivisions.Aws.Models;
 using A55.Subdivisions.Aws.Tests.Builders;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
+using A55.Subdivisions.Clients;
+using A55.Subdivisions.Models;
 using Amazon.EventBridge;
 using Amazon.EventBridge.Model;
 using Amazon.SimpleNotificationService;

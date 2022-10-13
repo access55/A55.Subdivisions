@@ -1,6 +1,6 @@
-using A55.Subdivisions.Aws.Extensions;
+using A55.Subdivisions.Extensions;
 
-namespace A55.Subdivisions.Aws.Models;
+namespace A55.Subdivisions.Models;
 
 class TopicName
 {

@@ -1,4 +1,4 @@
-namespace A55.Subdivisions.Aws.Models;
+namespace A55.Subdivisions.Models;
 
 public sealed class SubdivisionsException : Exception
 {

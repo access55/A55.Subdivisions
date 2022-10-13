@@ -1,3 +1,4 @@
+using A55.Subdivisions.Models;
 using Bogus;
 
 namespace A55.Subdivisions.Aws.Tests.Builders;
@@ -22,9 +23,9 @@ class FakeMessageBuilder
         return this;
     }
 
-    public IMessage Generate()
+    public IMessage<string> Generate()
     {
-        var value = A.Fake<IMessage>();
+        var value = A.Fake<IMessage<string>>();
         A.CallTo(() => value.MessageId).Returns(id);
         A.CallTo(() => value.Datetime).Returns(datetime);
         A.CallTo(() => value.Body).Returns(body);

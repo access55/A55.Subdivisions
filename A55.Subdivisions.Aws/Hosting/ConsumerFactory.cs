@@ -1,13 +1,15 @@
 using System.Diagnostics;
+using A55.Subdivisions.Models;
+using A55.Subdivisions.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace A55.Subdivisions.Aws.Hosting;
+namespace A55.Subdivisions.Hosting;
 
 interface IConsumerFactory
 {
     Task ConsumeScoped<TMessage>(IConsumerDescriber describer, TMessage message, CancellationToken ctx)
-        where TMessage : IMessage;
+        where TMessage : IMessage<string>;
 }
 
 class ConsumerFactory : IConsumerFactory
@@ -30,7 +32,7 @@ class ConsumerFactory : IConsumerFactory
     }
 
     public async Task ConsumeScoped<TMessage>(IConsumerDescriber describer, TMessage message, CancellationToken ctx)
-        where TMessage : IMessage
+        where TMessage : IMessage<string>
     {
         using var _ =
             logger.BeginScope(

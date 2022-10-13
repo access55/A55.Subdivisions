@@ -1,8 +1,9 @@
-using A55.Subdivisions.Aws.Clients;
+using A55.Subdivisions.Clients;
+using A55.Subdivisions.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace A55.Subdivisions.Aws;
+namespace A55.Subdivisions.Services;
 
 public interface ISubResourceManager
 {

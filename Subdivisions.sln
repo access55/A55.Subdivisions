@@ -6,6 +6,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "A55.Subdivisions.Aws.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "_build", "build\_build.csproj", "{E4B2FA4B-5F42-47B5-AB8F-AA37D6C78DAE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestApps", "TestApps", "{DDB8312F-5BE4-4A8C-B4E7-0CE8FE79825A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubConsumer", "SubConsumer\SubConsumer.csproj", "{3E01F4F6-D780-4EDC-8ACF-CDB6071E6688}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubPublisher", "SubPublisher\SubPublisher.csproj", "{F9D19BA3-8EF2-4E2D-9957-F5BD66306D64}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,5 +28,17 @@ Global
 		{5FDF6409-925E-4520-8507-40942A5CA31F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E4B2FA4B-5F42-47B5-AB8F-AA37D6C78DAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E4B2FA4B-5F42-47B5-AB8F-AA37D6C78DAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E01F4F6-D780-4EDC-8ACF-CDB6071E6688}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E01F4F6-D780-4EDC-8ACF-CDB6071E6688}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E01F4F6-D780-4EDC-8ACF-CDB6071E6688}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E01F4F6-D780-4EDC-8ACF-CDB6071E6688}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9D19BA3-8EF2-4E2D-9957-F5BD66306D64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9D19BA3-8EF2-4E2D-9957-F5BD66306D64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9D19BA3-8EF2-4E2D-9957-F5BD66306D64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9D19BA3-8EF2-4E2D-9957-F5BD66306D64}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3E01F4F6-D780-4EDC-8ACF-CDB6071E6688} = {DDB8312F-5BE4-4A8C-B4E7-0CE8FE79825A}
+		{F9D19BA3-8EF2-4E2D-9957-F5BD66306D64} = {DDB8312F-5BE4-4A8C-B4E7-0CE8FE79825A}
 	EndGlobalSection
 EndGlobal

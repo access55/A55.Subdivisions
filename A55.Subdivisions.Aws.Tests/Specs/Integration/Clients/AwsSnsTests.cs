@@ -1,6 +1,6 @@
-using A55.Subdivisions.Aws.Clients;
-using A55.Subdivisions.Aws.Models;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
+using A55.Subdivisions.Clients;
+using A55.Subdivisions.Models;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
-namespace A55.Subdivisions.Aws.Models;
+namespace A55.Subdivisions.Models;
 
 public class SubTopicNameConfig
 {

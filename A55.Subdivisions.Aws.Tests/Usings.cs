@@ -8,4 +8,4 @@ global using FakeItEasy;
 global using FakeItEasy.AutoFakeIt;
 global using FluentAssertions;
 global using NUnit.Framework;
-global using IMessage = A55.Subdivisions.Aws.Models.IMessage<string>;
+global using IMessage = A55.Subdivisions.Models.IMessage<string>;

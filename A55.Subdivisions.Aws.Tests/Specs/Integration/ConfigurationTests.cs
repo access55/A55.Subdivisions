@@ -1,5 +1,5 @@
-using A55.Subdivisions.Aws.Models;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
+using A55.Subdivisions.Models;
 using AutoBogus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

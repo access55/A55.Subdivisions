@@ -1,8 +1,8 @@
 using System.Runtime.Serialization;
 using System.Text.Json;
-using A55.Subdivisions.Aws.Extensions;
+using A55.Subdivisions.Extensions;
 
-namespace A55.Subdivisions.Aws;
+namespace A55.Subdivisions.Services;
 
 public interface ISubMessageSerializer
 {

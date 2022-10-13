@@ -1,5 +1,5 @@
-using A55.Subdivisions.Aws.Extensions;
-using A55.Subdivisions.Aws.Models;
+using A55.Subdivisions.Extensions;
+using A55.Subdivisions.Models;
 using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
 using DotNet.Testcontainers.Builders;

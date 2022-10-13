@@ -1,11 +1,12 @@
 using System.Text.Json;
+using A55.Subdivisions.Models;
 using Amazon;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
 using Microsoft.Extensions.Logging;
 
-namespace A55.Subdivisions.Aws.Clients;
+namespace A55.Subdivisions.Clients;
 
 sealed class AwsSns
 {

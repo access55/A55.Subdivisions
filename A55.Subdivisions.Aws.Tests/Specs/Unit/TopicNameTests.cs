@@ -1,4 +1,4 @@
-using A55.Subdivisions.Aws.Models;
+using A55.Subdivisions.Models;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Unit;
 

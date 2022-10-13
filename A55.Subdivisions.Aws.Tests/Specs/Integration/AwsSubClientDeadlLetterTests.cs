@@ -1,6 +1,7 @@
-using A55.Subdivisions.Aws.Models;
 using A55.Subdivisions.Aws.Tests.Builders;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
+using A55.Subdivisions.Models;
+using A55.Subdivisions.Services;
 
 namespace A55.Subdivisions.Aws.Tests.Specs.Integration;
 

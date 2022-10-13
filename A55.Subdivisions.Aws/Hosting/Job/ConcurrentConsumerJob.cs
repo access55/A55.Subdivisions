@@ -1,8 +1,10 @@
 using System.Threading.Channels;
+using A55.Subdivisions.Models;
+using A55.Subdivisions.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace A55.Subdivisions.Aws.Hosting.Job;
+namespace A55.Subdivisions.Hosting.Job;
 
 sealed class ConcurrentConsumerJob : IConsumerJob
 {
@@ -101,5 +103,5 @@ sealed class ConcurrentConsumerJob : IConsumerJob
         return combinedToken.Token;
     }
 
-    record struct ConsumeRequest(IMessage Message, CancellationToken Ctx);
+    record struct ConsumeRequest(IMessage<string> Message, CancellationToken Ctx);
 }

@@ -1,3 +1,5 @@
+using A55.Subdivisions.Services;
+
 namespace A55.Subdivisions.Aws.Tests.TestUtils;
 
 class FakeSerializer : ISubMessageSerializer

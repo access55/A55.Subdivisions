@@ -1,4 +1,6 @@
-﻿namespace A55.Subdivisions.Aws;
+﻿using A55.Subdivisions.Models;
+
+namespace A55.Subdivisions.Services;
 
 public record PublishResult(bool IsSuccess, Guid MessageId);
 

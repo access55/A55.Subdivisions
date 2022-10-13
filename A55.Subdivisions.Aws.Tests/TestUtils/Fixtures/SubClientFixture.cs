@@ -1,4 +1,5 @@
-using A55.Subdivisions.Aws.Models;
+using A55.Subdivisions.Models;
+using A55.Subdivisions.Services;
 using Amazon.SQS;
 using Microsoft.Extensions.DependencyInjection;
 

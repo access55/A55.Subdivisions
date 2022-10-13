@@ -1,6 +1,6 @@
-using A55.Subdivisions.Aws.Clients;
-using A55.Subdivisions.Aws.Models;
 using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
+using A55.Subdivisions.Clients;
+using A55.Subdivisions.Models;
 using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
 using Microsoft.Extensions.Options;

@@ -2,7 +2,6 @@ global using TestConsumer =
     A55.Subdivisions.Aws.Tests.Builders.FakeConsumer<A55.Subdivisions.Aws.Tests.Builders.TestMessage>;
 global using FakeConsumer = A55.Subdivisions.Aws.Tests.Builders.FakeConsumer<string>;
 using System.Text.Json;
-using A55.Subdivisions.Aws.Hosting;
 using AutoBogus;
 
 namespace A55.Subdivisions.Aws.Tests.Builders;

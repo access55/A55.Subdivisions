@@ -1,6 +1,7 @@
-using A55.Subdivisions.Aws.Clients;
-using A55.Subdivisions.Aws.Hosting;
-using A55.Subdivisions.Aws.Hosting.Job;
+﻿using A55.Subdivisions.Clients;
+using A55.Subdivisions.Extensions;
+using A55.Subdivisions.Models;
+using A55.Subdivisions.Services;
 using Amazon.EventBridge;
 using Amazon.KeyManagementService;
 using Amazon.Runtime;
@@ -9,17 +10,11 @@ using Amazon.SQS;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace A55.Subdivisions.Aws.Extensions;
+namespace A55.Subdivisions;
 
 public static class ServicesExtensions
 {
-    internal static IServiceCollection AddSubdivisionsHostedServices(this IServiceCollection services) =>
-        services
-            .AddSingleton<IConsumerFactory, ConsumerFactory>()
-            .AddSingleton<IConsumerJob, ConcurrentConsumerJob>()
-            .AddHostedService<SubdivisionsHostedService>();
-
-    public static IServiceCollection AddSubdivisionsClient(
+    public static IServiceCollection AddSubdivisionsServices(
         this IServiceCollection services,
         Action<SubConfig>? config = null,
         AWSCredentials? credentials = null)
