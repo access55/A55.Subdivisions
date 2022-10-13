@@ -1,4 +1,5 @@
-﻿using A55.Subdivisions.Models;
+﻿using A55.Subdivisions.Hosting.Job;
+using A55.Subdivisions.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -54,15 +55,27 @@ public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBui
             config);
     }
 
-    public TopicConfigurationBuilder<TMessage> WithConsumer<TConsumer>(
+    public TopicConfigurationBuilder<TMessage> Configure(
         TimeSpan? pollingInterval = null,
         int? maxConcurrency = null)
+    {
+        concurrency = maxConcurrency;
+        pollingTime = pollingInterval;
+        return this;
+    }
+
+    public TopicConfigurationBuilder<TMessage> WithConsumer<TConsumer>()
         where TConsumer : class, IConsumer<TMessage>
     {
         services.TryAddScoped<TConsumer>();
         consumerType = typeof(TConsumer);
-        concurrency = maxConcurrency;
-        pollingTime = pollingInterval;
+        return this;
+    }
+
+    public TopicConfigurationBuilder<TMessage> WithConsumer(Delegate handler)
+    {
+        services.TryAddScoped(sp => new ConsumerDelegate<TMessage>(handler, sp));
+        consumerType = typeof(ConsumerDelegate<TMessage>);
         return this;
     }
 

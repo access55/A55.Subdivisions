@@ -42,10 +42,8 @@ public class SubConfigBuilderTests : BaseTest
         services.AddSubdivisions(sub =>
         {
             sub.MapTopic<TestMessage>("test_topic")
-                .WithConsumer<TestConsumer>(
-                    polling,
-                    concurrency
-                );
+                .WithConsumer<TestConsumer>()
+                .Configure(polling, concurrency);
         });
 
         var sp = services.BuildServiceProvider();

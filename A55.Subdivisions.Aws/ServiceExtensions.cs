@@ -28,7 +28,8 @@ public static class ServicesExtensions
             {
                 if (credentials is not null)
                     return credentials;
-                if (sp.GetRequiredService<IOptions<SubConfig>>().Value.Localstack)
+                var config = sp.GetRequiredService<IOptions<SubConfig>>();
+                if (config.Value.Localstack)
                     return new AnonymousAWSCredentials();
                 return FallbackCredentialsFactory.GetCredentials();
             });

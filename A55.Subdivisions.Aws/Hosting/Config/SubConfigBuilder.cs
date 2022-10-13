@@ -33,17 +33,20 @@ public sealed class SubConfigBuilder : SubConfig
 
     public void Configure(SubConfig config) => CopyPropertiesTo(this, config);
 
-    static void CopyPropertiesTo<TSource, TDest>(TSource source, TDest dest)
+    static void CopyPropertiesTo<TSource, TDest>(TSource source, TDest dest) where TDest : new()
     {
         var sourceProps = typeof(TSource).GetProperties().Where(x => x.CanRead).ToArray();
         var destProps = typeof(TDest).GetProperties().Where(x => x.CanWrite);
-
+        var defaultDest = new TDest();
         foreach (var destProp in destProps)
         {
             var prop = sourceProps
                 .SingleOrDefault(p =>
                     p.Name == destProp.Name && destProp.PropertyType == p.PropertyType);
-            if (prop is not null)
+            if (prop is not null &&
+                prop.GetValue(source, null) is { } newValue &&
+                prop.GetValue(defaultDest, null) is { } defaultValue &&
+                !newValue.Equals(defaultValue))
                 destProp.SetValue(dest, prop.GetValue(source, null), null);
         }
     }
