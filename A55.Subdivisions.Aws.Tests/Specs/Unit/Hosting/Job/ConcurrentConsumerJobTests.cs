@@ -19,9 +19,9 @@ public class ConcurrentConsumerJobTests : BaseTest
         A.CallTo(() => mocker.Resolve<IOptionsMonitor<SubConfig>>().CurrentValue)
             .Returns(new SubConfig {MessageTimeoutInSeconds = 100, PollingIntervalInSeconds = 0.1f});
 
-        ValueTaskReturnValueConfigurationExtensions.ReturnsNextFromSequence<>(A.CallTo(() => mocker
+        A.CallTo(() => mocker
             .Resolve<ISubdivisionsClient>()
-            .Receive(consumer.TopicName, A<CancellationToken>._)), new[] {message});
+            .Receive(consumer.TopicName, A<CancellationToken>._)).ReturnsNextFromSequence(new[] {message});
 
         A.CallTo(() => mocker.Resolve<IConsumerFactory>()
                 .ConsumeScoped(A<IConsumerDescriber>._, A<IMessage>._, A<CancellationToken>._))
@@ -49,9 +49,9 @@ public class ConcurrentConsumerJobTests : BaseTest
         A.CallTo(() => mocker.Resolve<IOptionsMonitor<SubConfig>>().CurrentValue)
             .Returns(new SubConfig {MessageTimeoutInSeconds = timeoutInSeconds, PollingIntervalInSeconds = 0.1f});
 
-        ValueTaskReturnValueConfigurationExtensions.ReturnsNextFromSequence<>(A.CallTo(() => mocker
+        A.CallTo(() => mocker
             .Resolve<ISubdivisionsClient>()
-            .Receive(consumer.TopicName, A<CancellationToken>._)), new[] {message});
+            .Receive(consumer.TopicName, A<CancellationToken>._)).ReturnsNextFromSequence(new[] {message});
 
         A.CallTo(() => mocker.Resolve<IConsumerFactory>()
                 .ConsumeScoped(A<IConsumerDescriber>._, A<IMessage>._, A<CancellationToken>._))
