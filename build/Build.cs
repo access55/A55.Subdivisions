@@ -71,6 +71,16 @@ class BuildProject : NukeBuild
             ReadAllLines(TestReportDirectory / "Summary.txt").ForEach(l => Console.WriteLine(l));
         });
 
+    Target Localstack => _ => _
+        .Description("Configure or start the localstack container in docker")
+        .OnlyWhenStatic(() => !DotnetRunningInContainer)
+        .Executes(() => DockerRun(c => c
+            .SetName("sub-localstack")
+            .SetImage("localstack/localstack:1.1.0")
+            .SetPublish("4566:4566")
+            .EnableRm()
+            .EnableDetach()));
+
     Target Lint => _ => _
         .Description("Check for codebase formatting and analysers")
         .DependsOn(Build)
