@@ -1,5 +1,6 @@
 ﻿using A55.Subdivisions.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace A55.Subdivisions.Hosting.Config;
 
@@ -41,7 +42,8 @@ public sealed class SubConfigBuilder : SubConfig
         foreach (var destProp in destProps)
         {
             var prop = sourceProps
-                .SingleOrDefault(p => p.Name == destProp.Name && destProp.PropertyType.IsInstanceOfType(p));
+                .SingleOrDefault(p =>
+                    p.Name == destProp.Name && destProp.PropertyType == p.PropertyType);
             if (prop is not null)
                 destProp.SetValue(dest, prop.GetValue(source, null), null);
         }
