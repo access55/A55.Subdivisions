@@ -24,7 +24,16 @@ public static class ServicesExtensions
             .PostConfigure<SubConfig>(c => config?.Invoke(c));
 
         services
-            .AddSingleton(credentials ?? FallbackCredentialsFactory.GetCredentials())
+            .AddSingleton(sp =>
+            {
+                if (credentials is not null)
+                    return credentials;
+                if (sp.GetRequiredService<IOptions<SubConfig>>().Value.Localstack)
+                    return new AnonymousAWSCredentials();
+                return FallbackCredentialsFactory.GetCredentials();
+            });
+
+        services
             .AddAwsConfig<AmazonSQSConfig>()
             .AddAwsConfig<AmazonEventBridgeConfig>()
             .AddAwsConfig<AmazonKeyManagementServiceConfig>()
@@ -53,7 +62,7 @@ public static class ServicesExtensions
             .AddSingleton<ISubMessageSerializer, SubJsonSerializer>()
             .AddTransient<ISubResourceManager, AwsResourceManager>()
             .AddTransient<ISubdivisionsClient, AwsSubClient>()
-            .AddTransient<IProducer>(sp => sp.GetRequiredService<ISubdivisionsClient>())
+            .AddTransient<IProducerClient>(sp => sp.GetRequiredService<ISubdivisionsClient>())
             .AddTransient<IConsumerClient>(sp => sp.GetRequiredService<ISubdivisionsClient>());
 
         return services;

@@ -6,4 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\A55.Subdivisions.Aws\A55.Subdivisions.Aws.csproj" />
+  </ItemGroup>
+
 </Project>

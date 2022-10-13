@@ -22,7 +22,7 @@ sealed class AwsKms
         if (keyCache is not null)
             return keyCache;
 
-        var aliases = await kms.ListAliasesAsync(new ListAliasesRequest { Limit = 100 }, ctx);
+        var aliases = await kms.ListAliasesAsync(new ListAliasesRequest {Limit = 100}, ctx);
         var key = aliases.Aliases.Find(x => x.AliasName == config.PubKey)?.TargetKeyId;
 
         if (string.IsNullOrWhiteSpace(key))
@@ -30,6 +30,15 @@ sealed class AwsKms
 
         keyCache = new(key);
         return keyCache;
+    }
+
+    public async Task CreteKey()
+    {
+        var key = await kms.CreateKeyAsync(new() {Description = "Test key"});
+        await kms.CreateAliasAsync(new CreateAliasRequest
+        {
+            AliasName = config.PubKey, TargetKeyId = key.KeyMetadata.KeyId
+        });
     }
 
     public record struct KeyId(string Value);

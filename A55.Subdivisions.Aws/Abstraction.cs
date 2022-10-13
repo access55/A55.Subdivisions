@@ -14,3 +14,8 @@ public interface IConsumer<in TMessage> : IWeakConsumer where TMessage : notnull
 public interface IConsumer : IConsumer<string>
 {
 }
+
+public interface IProducer<TMessage> where TMessage : notnull
+{
+    public Task<PublishResult> Publish(TMessage message);
+}

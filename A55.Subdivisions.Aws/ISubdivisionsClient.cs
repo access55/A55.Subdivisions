@@ -1,10 +1,10 @@
 ﻿using A55.Subdivisions.Models;
 
-namespace A55.Subdivisions.Services;
+namespace A55.Subdivisions;
 
 public record PublishResult(bool IsSuccess, Guid MessageId);
 
-public interface IProducer
+public interface IProducerClient
 {
     Task<PublishResult> Publish(string topicName, string message, CancellationToken ctx = default);
 
@@ -25,6 +25,6 @@ public interface IConsumerClient
         where T : notnull;
 }
 
-public interface ISubdivisionsClient : IProducer, IConsumerClient
+public interface ISubdivisionsClient : IProducerClient, IConsumerClient
 {
 }

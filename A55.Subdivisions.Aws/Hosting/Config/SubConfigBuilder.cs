@@ -7,13 +7,21 @@ public sealed class SubConfigBuilder : SubConfig
 {
     readonly IServiceCollection services;
 
-    public SubConfigBuilder(IServiceCollection services) => this.services = services;
+    public SubConfigBuilder(IServiceCollection services)
+    {
+        this.services = services;
+        services.AddSingleton<IEnumerable<IConsumerDescriber>>(sp =>
+            sp.GetService<IEnumerable<ITopicConfigurationBuilder>>()
+                ?.Where(x => x.HasConsumer)
+                .Select(x => x.CreateConsumerDescriber(sp))
+            ?? ArraySegment<IConsumerDescriber>.Empty);
+    }
 
     public TopicConfigurationBuilder<TMessage> MapTopic<TMessage>(string topicName)
         where TMessage : notnull
     {
         var builder = new TopicConfigurationBuilder<TMessage>(services, topicName);
-        services.AddSingleton(sp => builder.CreateDescriber(sp));
+        services.AddSingleton<ITopicConfigurationBuilder>(builder);
         return builder;
     }
 

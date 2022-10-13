@@ -33,7 +33,7 @@ public class ConsumerFactoryTests : BaseTest
         var action = () => factory.ConsumeScoped(describer, A.Fake<IMessage>(), default);
 
         await action.Should().ThrowAsync<NullReferenceException>()
-            .WithMessage("Message body is NULL");
+            .WithMessage("Message body is NULL*");
     }
 
     [Test]

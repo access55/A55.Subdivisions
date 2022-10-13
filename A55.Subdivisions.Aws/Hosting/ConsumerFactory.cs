@@ -34,21 +34,20 @@ class ConsumerFactory : IConsumerFactory
     public async Task ConsumeScoped<TMessage>(IConsumerDescriber describer, TMessage message, CancellationToken ctx)
         where TMessage : IMessage<string>
     {
-        using var _ =
-            logger.BeginScope(
-                $"Consumer[{describer.TopicName},{Environment.CurrentManagedThreadId}] Message[{message.MessageId}]");
+        var header =
+            $"-> {describer.TopicName}[{message.MessageId}]";
 
-        logger.LogInformation("Consuming message published at {MessageDate}", message.Datetime);
+        logger.LogInformation("{Header} Consuming [published at {MessageDate}]", header, message.Datetime);
         await using var scope = provider.CreateAsyncScope();
         var instance = scope.ServiceProvider.GetRequiredService(describer.ConsumerType);
 
         if (instance is not IWeakConsumer consumer)
-            throw new InvalidOperationException($"Invalid consumer type: {describer.ConsumerType}");
+            throw new InvalidOperationException($"Invalid consumer type: {describer.ConsumerType} in {header}");
 
         var payload = describer.MessageType == typeof(string)
             ? message.Body
             : serializer.Deserialize(describer.MessageType, message.Body)
-              ?? throw new NullReferenceException("Message body is NULL");
+              ?? throw new NullReferenceException($"Message body is NULL in {header}");
 
         stopwatch.Restart();
         try
@@ -58,14 +57,14 @@ class ConsumerFactory : IConsumerFactory
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Consumer error");
+            logger.LogError(ex, "{Header} Consumer error", header);
             var handler = describer.ErrorHandler?.Invoke(ex) ?? Task.CompletedTask;
             await Task.WhenAll(message.Release(), handler);
         }
         finally
         {
             stopwatch.Stop();
-            logger.LogInformation("Finished in {Time}ms", stopwatch.ElapsedMilliseconds);
+            logger.LogInformation("{Header} Finished in {Time}ms", header, stopwatch.ElapsedMilliseconds);
         }
     }
 }

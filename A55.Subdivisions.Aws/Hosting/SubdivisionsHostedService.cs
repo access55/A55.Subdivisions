@@ -4,12 +4,14 @@ using A55.Subdivisions.Models;
 using A55.Subdivisions.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace A55.Subdivisions.Hosting;
 
 class SubdivisionsHostedService : BackgroundService
 {
     readonly ISubResourceManager bootstrapper;
+    readonly SubConfig config;
     readonly ImmutableArray<IConsumerDescriber> consumers;
     readonly IConsumerJob job;
     readonly ILogger<SubdivisionsHostedService> logger;
@@ -18,10 +20,12 @@ class SubdivisionsHostedService : BackgroundService
         ILogger<SubdivisionsHostedService> logger,
         ISubResourceManager bootstrapper,
         IEnumerable<IConsumerDescriber> consumers,
+        IOptions<SubConfig> config,
         IConsumerJob job)
     {
         this.logger = logger;
         this.bootstrapper = bootstrapper;
+        this.config = config.Value;
         this.job = job;
         this.consumers = consumers.ToImmutableArray();
 
@@ -37,6 +41,10 @@ class SubdivisionsHostedService : BackgroundService
     public async Task Bootstrap(CancellationToken cancellationToken)
     {
         logger.LogDebug("Bootstrapping Subdivisions");
+
+        if (config.Localstack)
+            await bootstrapper.SetupLocalstack(cancellationToken);
+
         await Task.WhenAll(this.consumers
             .Select(async d =>
             {

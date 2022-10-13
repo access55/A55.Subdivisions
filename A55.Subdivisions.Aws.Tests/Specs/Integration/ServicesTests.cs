@@ -8,7 +8,7 @@ public class ServicesTests : ServicesFixture
     [Test]
     public void ShouldRegisterPublicServices()
     {
-        var producer = GetService<IProducer>();
+        var producer = GetService<IProducerClient>();
         var consumer = GetService<IConsumerClient>();
         var client = GetService<ISubdivisionsClient>();
         new object[] { producer, consumer, client }
@@ -27,7 +27,7 @@ public class ServicesTests : ServicesFixture
     public void ShouldProducerShouldBeSameSubClient()
     {
         var client = GetService<ISubdivisionsClient>();
-        var producer = GetService<IProducer>();
+        var producer = GetService<IProducerClient>();
         producer.Should().BeOfType(client.GetType());
     }
 }

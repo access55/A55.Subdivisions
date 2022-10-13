@@ -5,7 +5,13 @@ using Microsoft.Extensions.Options;
 
 namespace A55.Subdivisions.Hosting.Config;
 
-public sealed class TopicConfigurationBuilder<TMessage> where TMessage : notnull
+interface ITopicConfigurationBuilder
+{
+    IConsumerDescriber CreateConsumerDescriber(IServiceProvider sp);
+    bool HasConsumer { get; }
+}
+
+public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBuilder where TMessage : notnull
 {
     readonly IServiceCollection services;
     readonly string topicName;
@@ -19,6 +25,8 @@ public sealed class TopicConfigurationBuilder<TMessage> where TMessage : notnull
     {
         this.services = services;
         this.topicName = topicName;
+        services.AddSingleton<IProducer<TMessage>>(sp =>
+            new TypedProducer<TMessage>(topicName, sp.GetRequiredService<IProducerClient>()));
     }
 
     public TopicConfigurationBuilder<TMessage> WithConsumer<TConsumer>(
@@ -39,7 +47,9 @@ public sealed class TopicConfigurationBuilder<TMessage> where TMessage : notnull
         return this;
     }
 
-    internal IConsumerDescriber CreateDescriber(IServiceProvider sp)
+    public bool HasConsumer => consumerType is not null;
+
+    IConsumerDescriber ITopicConfigurationBuilder.CreateConsumerDescriber(IServiceProvider sp)
     {
         var settings = sp.GetRequiredService<IOptions<SubConfig>>().Value;
         var config =

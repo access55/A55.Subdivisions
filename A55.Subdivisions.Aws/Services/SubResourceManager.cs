@@ -9,6 +9,7 @@ public interface ISubResourceManager
 {
     ValueTask EnsureQueueExists(string topic, CancellationToken ctx);
     ValueTask EnsureTopicExists(string topic, CancellationToken ctx);
+    Task SetupLocalstack(CancellationToken ctx);
 }
 
 class AwsResourceManager : ISubResourceManager
@@ -18,13 +19,15 @@ class AwsResourceManager : ISubResourceManager
     readonly ILogger<AwsResourceManager> logger;
     readonly AwsSns sns;
     readonly AwsSqs sqs;
+    readonly AwsKms kms;
 
     public AwsResourceManager(
         ILogger<AwsResourceManager> logger,
         IOptions<SubConfig> config,
         AwsEvents events,
         AwsSns sns,
-        AwsSqs sqs
+        AwsSqs sqs,
+        AwsKms kms
     )
     {
         this.config = config.Value;
@@ -32,6 +35,7 @@ class AwsResourceManager : ISubResourceManager
         this.events = events;
         this.sns = sns;
         this.sqs = sqs;
+        this.kms = kms;
     }
 
     public async ValueTask EnsureQueueExists(string topic, CancellationToken ctx)
@@ -64,5 +68,12 @@ class AwsResourceManager : ISubResourceManager
         await events.CreateRule(topicName, ctx);
         var topicArn = await sns.EnsureTopic(topicName, ctx);
         await events.PutTarget(topicName, topicArn, ctx);
+    }
+
+    public async Task SetupLocalstack(CancellationToken ctx)
+    {
+        var keyId = await kms.GetKey(ctx);
+        if (keyId is null)
+            await kms.CreteKey();
     }
 }

@@ -22,9 +22,9 @@ public class SubConfig : SubTopicNameConfig
     public int MessageRetantionInDays { get; set; } = 7;
     public int MessageTimeoutInSeconds { get; set; } = 30;
     public int MessageDelayInSeconds { get; set; }
-
     public double PollingIntervalInSeconds { get; set; } = 5;
     public string? ServiceUrl { get; set; }
+    public bool Localstack { get; set; }
     public bool AutoCreateNewTopic { get; set; } = true;
     public string Region { get; set; } = "sa-east-1";
     public int LongPollingWaitInSeconds { get; set; }
@@ -49,6 +49,8 @@ public class ConfigureSubConfigOptions : IConfigureOptions<SubConfig>
     public void Configure(SubConfig options)
     {
         configuration?.GetSection(ConfigSection).Bind(options);
+        if (options.Localstack && options.ServiceUrl is null)
+            options.ServiceUrl = "http://localhost:4566";
 
         if (hostEnvironment is not null && options.FallbackSource is null)
             options.SetFallbackSource(hostEnvironment.ApplicationName);

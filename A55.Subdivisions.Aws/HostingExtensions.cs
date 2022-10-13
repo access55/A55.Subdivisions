@@ -14,22 +14,13 @@ public static class HostingExtensions
             .AddSingleton<IConsumerJob, ConcurrentConsumerJob>()
             .AddHostedService<SubdivisionsHostedService>();
 
-    public static TopicConfigurationBuilder<TMessage> MapTopic<TMessage>(
-        this IServiceCollection services, string topicName)
-        where TMessage : notnull
-    {
-        var builder = new TopicConfigurationBuilder<TMessage>(services, topicName);
-        services.AddSingleton(sp => builder.CreateDescriber(sp));
-        return builder;
-    }
-
     public static IServiceCollection AddSubdivisions(
         this IServiceCollection services,
-        Action<SubConfigBuilder> config,
+        Action<SubConfigBuilder>? config = null,
         AWSCredentials? credentials = null)
     {
         var builder = new SubConfigBuilder(services);
-        config(builder);
+        config?.Invoke(builder);
         services.AddSubdivisionsServices(builder.Configure, credentials);
         services.AddSubdivisionsHostedServices();
         return services;
