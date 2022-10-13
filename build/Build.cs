@@ -78,8 +78,7 @@ class BuildProject : NukeBuild
             .SetName("sub-localstack")
             .SetImage("localstack/localstack:1.1.0")
             .SetPublish("4566:4566")
-            .EnableRm()
-            .EnableDetach()));
+            .EnableRm()));
 
     Target Lint => _ => _
         .Description("Check for codebase formatting and analysers")
