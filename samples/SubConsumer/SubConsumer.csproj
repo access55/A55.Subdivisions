@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\A55.Subdivisions.Aws\A55.Subdivisions.Aws.csproj" />
+    <ProjectReference Include="..\..\src\Subdivisions.Aws\Subdivisions.Aws.csproj" />
   </ItemGroup>
 
 </Project>

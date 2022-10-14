@@ -1,4 +1,4 @@
-using A55.Subdivisions;
+using Subdivisions;
 using SubPublisher;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,7 +19,10 @@ app.MapGet("/publish/{name}", async (
     logger.LogInformation("Publishing message");
     var message = new MyMessage
     {
-        Id = Guid.NewGuid(), Name = name, BirthDate = DateTime.Now, Age = Random.Shared.Next()
+        Id = Guid.NewGuid(),
+        Name = name,
+        BirthDate = DateTime.Now,
+        Age = Random.Shared.Next()
     };
     await publisher.Publish(message);
 });

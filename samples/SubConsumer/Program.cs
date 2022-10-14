@@ -1,12 +1,12 @@
-using A55.Subdivisions;
 using SubConsumer;
+using Subdivisions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSubdivisions(sub =>
 {
     sub.MapTopic<MyMessage>("my_topic")
-        .WithConsumer<MyConsumer>();
+         .WithConsumer<MyConsumer>();
 });
 
 var app = builder.Build();

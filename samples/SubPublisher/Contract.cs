@@ -1,4 +1,4 @@
-﻿namespace SubPublisher;
+namespace SubPublisher;
 
 public record MyMessage
 {

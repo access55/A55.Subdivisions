@@ -1,4 +1,4 @@
-﻿using A55.Subdivisions;
+using Subdivisions;
 
 namespace SubConsumer;
 

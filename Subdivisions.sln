@@ -8,13 +8,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D5573387
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{F7389E2C-19A4-4640-9B19-777FBB65403C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "A55.Subdivisions.Aws", "src\A55.Subdivisions.Aws\A55.Subdivisions.Aws.csproj", "{6E7A843A-6662-465B-BEF7-AE9DCB28E34A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subdivisions.Aws", "src\Subdivisions.Aws\Subdivisions.Aws.csproj", "{6E7A843A-6662-465B-BEF7-AE9DCB28E34A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "A55.Subdivisions.Aws.Tests", "tests\A55.Subdivisions.Aws.Tests\A55.Subdivisions.Aws.Tests.csproj", "{0654330D-A8AC-4A3F-84DD-97EAD5A146A9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subdivisions.Aws.Tests", "tests\Subdivisions.Aws.Tests\Subdivisions.Aws.Tests.csproj", "{0654330D-A8AC-4A3F-84DD-97EAD5A146A9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubConsumer", "samples\SubConsumer\SubConsumer.csproj", "{956B693B-F333-4C76-BA16-C47DDBD7915B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubPublisher", "samples\SubPublisher\SubPublisher.csproj", "{86564D5E-A0A7-4137-92BB-3ECD48093FB6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subdivisions.Testing", "src\Subdivisions.Testing\Subdivisions.Testing.csproj", "{68476127-816C-41AD-A07F-633AD553FAC9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,11 +42,16 @@ Global
 		{86564D5E-A0A7-4137-92BB-3ECD48093FB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86564D5E-A0A7-4137-92BB-3ECD48093FB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86564D5E-A0A7-4137-92BB-3ECD48093FB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68476127-816C-41AD-A07F-633AD553FAC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68476127-816C-41AD-A07F-633AD553FAC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68476127-816C-41AD-A07F-633AD553FAC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68476127-816C-41AD-A07F-633AD553FAC9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6E7A843A-6662-465B-BEF7-AE9DCB28E34A} = {FF1D026A-5C92-45C4-9089-DA3B223E91A9}
 		{0654330D-A8AC-4A3F-84DD-97EAD5A146A9} = {D5573387-0766-4541-9135-B29A93FCF4E8}
 		{956B693B-F333-4C76-BA16-C47DDBD7915B} = {F7389E2C-19A4-4640-9B19-777FBB65403C}
 		{86564D5E-A0A7-4137-92BB-3ECD48093FB6} = {F7389E2C-19A4-4640-9B19-777FBB65403C}
+		{68476127-816C-41AD-A07F-633AD553FAC9} = {FF1D026A-5C92-45C4-9089-DA3B223E91A9}
 	EndGlobalSection
 EndGlobal
