@@ -31,9 +31,9 @@ public sealed class SubConfigBuilder : SubConfig
     public void OnError<TListener>() where TListener : class, ISubErrorListener =>
         services.AddSingleton<ISubErrorListener, TListener>();
 
-    public void Configure(SubConfig config) => CopyPropertiesTo(this, config);
+    public void Configure(SubConfig config) => CopyProperties(this, config);
 
-    static void CopyPropertiesTo<TSource, TDest>(TSource source, TDest dest) where TDest : new()
+    static void CopyProperties<TSource, TDest>(TSource source, TDest dest) where TDest : new()
     {
         var sourceProps = typeof(TSource).GetProperties().Where(x => x.CanRead).ToArray();
         var destProps = typeof(TDest).GetProperties().Where(x => x.CanWrite);
@@ -43,11 +43,15 @@ public sealed class SubConfigBuilder : SubConfig
             var prop = sourceProps
                 .SingleOrDefault(p =>
                     p.Name == destProp.Name && destProp.PropertyType == p.PropertyType);
-            if (prop is not null &&
-                prop.GetValue(source, null) is { } newValue &&
-                prop.GetValue(defaultDest, null) is { } defaultValue &&
-                !newValue.Equals(defaultValue))
-                destProp.SetValue(dest, prop.GetValue(source, null), null);
+
+            if (prop is null)
+                continue;
+
+            var newValue = prop.GetValue(source, null);
+            var defaultValue = prop.GetValue(defaultDest, null);
+
+            if (newValue?.Equals(defaultValue) == false)
+                destProp.SetValue(dest, newValue, null);
         }
     }
 }

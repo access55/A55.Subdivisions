@@ -74,8 +74,9 @@ public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBui
 
     public TopicConfigurationBuilder<TMessage> WithConsumer(Delegate handler)
     {
-        services.TryAddScoped(sp => new ConsumerDelegate<TMessage>(handler, sp));
-        consumerType = typeof(ConsumerDelegate<TMessage>);
+        DelegateConsumer<TMessage>.ValidateParams(handler);
+        services.TryAddScoped(sp => new DelegateConsumer<TMessage>(handler, sp));
+        consumerType = typeof(DelegateConsumer<TMessage>);
         return this;
     }
 

@@ -24,4 +24,6 @@ app.MapGet("/publish/{name}", async (
     await publisher.Publish(message);
 });
 
+app.MapGet("/", () => "Hello Publisher!");
+
 app.Run();

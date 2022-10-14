@@ -3,7 +3,9 @@ using A55.Subdivisions.Aws.Tests.TestUtils.Fixtures;
 using A55.Subdivisions.Hosting;
 using A55.Subdivisions.Hosting.Config;
 using A55.Subdivisions.Models;
+using Amazon.Runtime;
 using AutoBogus;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -29,6 +31,51 @@ public class SubConfigBuilderTests : BaseTest
 
         A.CallTo(() => client.Publish("test-topic", message, default))
             .MustHaveHappened();
+    }
+
+    [Test]
+    public void ShouldMapDelegateConsumers()
+    {
+        var services = new ServiceCollection();
+
+        var polling = faker.Date.Timespan();
+        var concurrency = faker.Random.Int(1);
+
+        services.AddSubdivisions(sub =>
+        {
+            sub.MapTopic<TestMessage>("test_topic")
+                .WithConsumer((TestMessage message) => { })
+                .Configure(polling, concurrency);
+        });
+
+        var sp = services.BuildServiceProvider();
+        var describers = sp.GetService<IEnumerable<IConsumerDescriber>>();
+        describers.Should().BeEquivalentTo(new[]
+        {
+            new ConsumerDescriber("test_topic", typeof(DelegateConsumer<TestMessage>), typeof(TestMessage),
+                new ConsumerConfig {MaxConcurrency = concurrency, PollingInterval = polling})
+        });
+    }
+
+    [Test]
+    public void ShouldThrowMapDelegateConsumersWithoutMessageParam()
+    {
+        var services = new ServiceCollection();
+
+        var polling = faker.Date.Timespan();
+        var concurrency = faker.Random.Int(1);
+
+        var action = () =>
+            services.AddSubdivisions(sub =>
+            {
+                sub.MapTopic<TestMessage>("test_topic")
+                    .WithConsumer(() => { })
+                    .Configure(polling, concurrency);
+            });
+
+        action.Should()
+            .Throw<SubdivisionsException>()
+            .WithMessage("No parameter of type*");
     }
 
     [Test]
@@ -86,5 +133,42 @@ public class SubConfigBuilderTests : BaseTest
         var sp = services.BuildServiceProvider();
         var config = sp.GetRequiredService<IOptions<SubConfig>>().Value;
         config.Should().BeEquivalentTo(fakeConfig);
+    }
+
+    [Test]
+    public void ShouldConfigureLocalStack()
+    {
+        var services = new ServiceCollection();
+
+        services.AddSubdivisions(sub =>
+        {
+            sub.MapTopic<TestMessage>("test_topic");
+            sub.Localstack = true;
+        });
+
+        var sp = services.BuildServiceProvider();
+        var credentials = sp.GetService<AWSCredentials>();
+        credentials.Should().BeOfType<AnonymousAWSCredentials>();
+
+        var config = sp.GetRequiredService<IOptions<SubConfig>>().Value;
+        config.ServiceUrl.Should().Be("http://localhost:4566");
+    }
+
+    [Test]
+    public void ShouldConfigureLocalStackWhenConfiguration()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string> {["Subdivisions:Localstack"] = "true"})
+            .Build();
+        var services = new ServiceCollection()
+            .AddSingleton<IConfiguration>(_ => configuration!)
+            .AddSubdivisions();
+
+        var sp = services.BuildServiceProvider();
+        var credentials = sp.GetService<AWSCredentials>();
+        credentials.Should().BeOfType<AnonymousAWSCredentials>();
+
+        var config = sp.GetRequiredService<IOptions<SubConfig>>().Value;
+        config.ServiceUrl.Should().Be("http://localhost:4566");
     }
 }

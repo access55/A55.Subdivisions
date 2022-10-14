@@ -21,17 +21,22 @@ public static class ServicesExtensions
     {
         services
             .AddSingleton<IConfigureOptions<SubConfig>, ConfigureSubConfigOptions>()
-            .PostConfigure<SubConfig>(c => config?.Invoke(c));
+            .PostConfigure<SubConfig>(c =>
+            {
+                config?.Invoke(c);
+                if (c.Localstack && c.ServiceUrl is null)
+                    c.ServiceUrl = "http://localhost:4566";
+            });
 
         services
             .AddSingleton(sp =>
             {
                 if (credentials is not null)
                     return credentials;
-                var config = sp.GetRequiredService<IOptions<SubConfig>>();
-                if (config.Value.Localstack)
-                    return new AnonymousAWSCredentials();
-                return FallbackCredentialsFactory.GetCredentials();
+                var c = sp.GetRequiredService<IOptions<SubConfig>>();
+                return c.Value.Localstack
+                    ? new AnonymousAWSCredentials()
+                    : FallbackCredentialsFactory.GetCredentials();
             });
 
         services

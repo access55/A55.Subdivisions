@@ -49,9 +49,6 @@ public class ConfigureSubConfigOptions : IConfigureOptions<SubConfig>
     public void Configure(SubConfig options)
     {
         configuration?.GetSection(ConfigSection).Bind(options);
-        if (options.Localstack && options.ServiceUrl is null)
-            options.ServiceUrl = "http://localhost:4566";
-
         if (hostEnvironment is not null && options.FallbackSource is null)
             options.SetFallbackSource(hostEnvironment.ApplicationName);
     }
