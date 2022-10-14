@@ -78,6 +78,7 @@ class BuildProject : NukeBuild
             .SetName("sub-localstack")
             .SetImage("localstack/localstack:1.1.0")
             .SetPublish("4566:4566")
+            .EnableInteractive()
             .EnableRm()));
 
     Target Lint => _ => _
