@@ -10,4 +10,9 @@
       <ProjectReference Include="..\Subdivisions.Aws\Subdivisions.Aws.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="FluentAssertions" Version="6.7.0" />
+      <PackageReference Include="FluentAssertions.Json" Version="6.1.0" />
+    </ItemGroup>
+
 </Project>

@@ -1,3 +1,5 @@
+using System.Text.Json.Nodes;
+
 namespace Subdivisions.Testing.Tests;
 
 public class MyMessage1
@@ -5,7 +7,7 @@ public class MyMessage1
     public Guid Id { get; set; }
     public string Foo { get; set; } = "";
 
-    public string ToJson() => $@"{{""id"":""{Id}"",""foo"":""{Foo}""}}";
+    public string ToJson() =>$@"{{""id"":""{Id}"",""foo"":""{Foo}""}}";
 }
 
 public record MyMessage2
