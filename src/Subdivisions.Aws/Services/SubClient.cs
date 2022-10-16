@@ -5,33 +5,31 @@ using Subdivisions.Models;
 
 namespace Subdivisions.Services;
 
-sealed class AwsSubClient : ISubdivisionsClient
+class AwsSubClient : ISubdivisionsClient
 {
-    readonly ISubClock clock;
     readonly IOptions<SubConfig> config;
-    readonly AwsEvents events;
     readonly ILogger<AwsSubClient> logger;
-    readonly AwsSqs queue;
     readonly ISubResourceManager resources;
     readonly ISubMessageSerializer serializer;
+
+    readonly IProduceDriver producer;
+    readonly IConsumeDriver consume;
 
     public AwsSubClient(
         ILogger<AwsSubClient> logger,
         IOptions<SubConfig> config,
-        ISubClock clock,
         ISubMessageSerializer serializer,
         ISubResourceManager resources,
-        AwsEvents events,
-        AwsSqs queue
+        IProduceDriver producer,
+        IConsumeDriver consume
     )
     {
         this.logger = logger;
         this.config = config;
-        this.clock = clock;
         this.serializer = serializer;
         this.resources = resources;
-        this.events = events;
-        this.queue = queue;
+        this.producer = producer;
+        this.consume = consume;
     }
 
     public ValueTask<IReadOnlyCollection<IMessage>> Receive(string topic, CancellationToken ctx = default) =>
@@ -47,7 +45,7 @@ sealed class AwsSubClient : ISubdivisionsClient
     public Task<IReadOnlyCollection<IMessage>> DeadLetters(string queueName, CancellationToken ctx = default)
     {
         var topic = CreateTopicName(queueName);
-        return queue.ReceiveDeadLetters(topic.FullQueueName, ctx);
+        return consume.ReceiveDeadLetters(topic.FullQueueName, ctx);
     }
 
     public async Task<IReadOnlyCollection<IMessage<T>>> DeadLetters<T>(
@@ -72,7 +70,7 @@ sealed class AwsSubClient : ISubdivisionsClient
     TopicName CreateTopicName(string name) => new(name, config.Value);
 
     internal async ValueTask<IReadOnlyCollection<IMessage>> Receive(TopicName topic, CancellationToken ctx) =>
-        await queue.ReceiveMessages(topic.FullQueueName, ctx);
+        await consume.ReceiveMessages(topic.FullQueueName, ctx);
 
     internal async Task<PublishResult> Publish(TopicName topic, string message, CancellationToken ctx)
     {
@@ -81,14 +79,8 @@ sealed class AwsSubClient : ISubdivisionsClient
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(topic);
 
-        var messageId = Guid.NewGuid();
-        AwsSqs.MessageEnvelope messagePayload = new(
-            topic.Topic, clock.Now(), message,
-            messageId);
+        var publishResult = await producer.Produce(topic.Topic, message, ctx);
 
-        var payload = serializer.Serialize(messagePayload);
-        var publishResult = await events.PushEvent(topic, payload, ctx);
-
-        return new(publishResult, messageId);
+        return publishResult;
     }
 }

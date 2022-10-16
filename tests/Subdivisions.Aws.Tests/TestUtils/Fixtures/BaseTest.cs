@@ -13,6 +13,7 @@ public class BaseTest
     [OneTimeSetUp]
     public void SetUpOneTimeBase()
     {
+        Randomizer.Seed = new Random(42);
         AutoFaker.Configure(builder => builder
             .WithRecursiveDepth(1)
             .WithRepeatCount(1));

@@ -80,12 +80,12 @@ public class AwsEventsTests : LocalstackFixture
         var rule = new EventRuleBuilder(config);
         var topicName = rule.Topic;
         await ev.PutRuleAsync(rule.CreateRule());
-        var topic = await sns.CreateTopicAsync(new CreateTopicRequest { Name = topicName.FullTopicName });
+        var topic = await sns.CreateTopicAsync(new CreateTopicRequest {Name = topicName.FullTopicName});
 
         var aws = GetService<AwsEvents>();
         await aws.PutTarget(topicName, new SnsArn(topic.TopicArn), default);
 
-        var target = await ev.ListTargetsByRuleAsync(new ListTargetsByRuleRequest { Rule = topicName.FullTopicName });
+        var target = await ev.ListTargetsByRuleAsync(new ListTargetsByRuleRequest {Rule = topicName.FullTopicName});
 
         target.Targets.Single().Arn.Should().Be(topic.TopicArn);
     }
@@ -95,22 +95,25 @@ public class AwsEventsTests : LocalstackFixture
     {
         var sut = GetService<AwsEvents>();
         var topic = faker.TopicName(config);
-        var message = JsonSerializer.Serialize(new { @event = topic.Topic, Loren = faker.Lorem.Paragraph() });
+        var message = JsonSerializer.Serialize(new {Loren = faker.Lorem.Paragraph()});
         var queue = await SetupQueueRule(topic);
 
-        var result = await sut.PushEvent(topic, message, default);
-        result.Should().BeTrue();
+        var result = await sut.Produce(topic.Topic, message, default);
+        result.IsSuccess.Should().BeTrue();
 
-        var messages = await GetService<IAmazonSQS>().ReceiveMessageAsync(queue);
-        messages.Messages.Single().Body.AsJToken().Should().BeEquivalentTo(message.AsJToken());
+        var response = await GetService<IAmazonSQS>().ReceiveMessageAsync(queue);
+        var messageFromQueue = response.Messages.Single().Body.AsJToken();
+
+        messageFromQueue.Value<string>("payload")!.AsJToken()
+            .Should().ContainSubtree(message.AsJToken());
     }
 
     async Task<string> SetupQueueRule(TopicName topic)
     {
         var sqs = GetService<IAmazonSQS>();
         var ev = GetService<IAmazonEventBridge>();
-        var createQueue = await sqs.CreateQueueAsync(new CreateQueueRequest { QueueName = topic.FullQueueName });
-        var queue = await sqs.GetQueueAttributesAsync(createQueue.QueueUrl, new() { QueueAttributeName.QueueArn });
+        var createQueue = await sqs.CreateQueueAsync(new CreateQueueRequest {QueueName = topic.FullQueueName});
+        var queue = await sqs.GetQueueAttributesAsync(createQueue.QueueUrl, new() {QueueAttributeName.QueueArn});
 
         await ev.PutRuleAsync(new PutRuleRequest
         {
@@ -123,7 +126,7 @@ public class AwsEventsTests : LocalstackFixture
         await ev.PutTargetsAsync(new PutTargetsRequest
         {
             Rule = topic.FullTopicName,
-            Targets = new() { new() { Id = topic.FullTopicName, Arn = queue.QueueARN, InputPath = "$.detail" } }
+            Targets = new() {new() {Id = topic.FullTopicName, Arn = queue.QueueARN, InputPath = "$.detail"}}
         });
 
         return createQueue.QueueUrl;

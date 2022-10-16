@@ -11,11 +11,17 @@ namespace Subdivisions.Clients;
 
 readonly record struct QueueInfo(Uri Url, SqsArn Arn);
 
-sealed class AwsSqs
+interface IConsumeDriver
+{
+    Task<IReadOnlyCollection<IMessage>> ReceiveMessages(string queue, CancellationToken ctx);
+    Task<IReadOnlyCollection<IMessage>> ReceiveDeadLetters(string queue, CancellationToken ctx);
+}
+
+sealed class AwsSqs : IConsumeDriver
 {
     const string DeadLetterPrefix = "dead_letter_";
 
-    public static readonly string IAM = JsonSerializer.Serialize(new
+    public static readonly string Iam = JsonSerializer.Serialize(new
     {
         Id = "SQSEventsPolicy",
         Version = "2012-10-17",
@@ -55,7 +61,7 @@ sealed class AwsSqs
 
     public async Task<QueueInfo> GetQueueAttributes(string queueUrl, CancellationToken ctx)
     {
-        var response = await sqs.GetQueueAttributesAsync(queueUrl, new List<string> { QueueAttributeName.QueueArn }, ctx);
+        var response = await sqs.GetQueueAttributesAsync(queueUrl, new List<string> {QueueAttributeName.QueueArn}, ctx);
         logger.LogDebug("Queue Attributes Response is: {Response}", JsonSerializer.Serialize(response.Attributes));
 
         return new(new(queueUrl), new(response.QueueARN));
@@ -66,7 +72,7 @@ sealed class AwsSqs
     {
         var queue = $"{(deadLetter ? "dead_letter_" : string.Empty)}{queueName}";
         var responseQueues =
-            await sqs.ListQueuesAsync(new ListQueuesRequest { QueueNamePrefix = queue, MaxResults = 1000 }, ctx);
+            await sqs.ListQueuesAsync(new ListQueuesRequest {QueueNamePrefix = queue, MaxResults = 1000}, ctx);
 
         var url = responseQueues.QueueUrls.Find(name => name.Contains(queue));
         if (url is null) return null;
@@ -87,8 +93,7 @@ sealed class AwsSqs
 
         var deadLetterPolicy = new
         {
-            deadLetterTargetArn = deadLetter.Arn.Value,
-            maxReceiveCount = config.RetriesBeforeDeadLetter.ToString()
+            deadLetterTargetArn = deadLetter.Arn.Value, maxReceiveCount = config.RetriesBeforeDeadLetter.ToString()
         };
 
         var q = await sqs.CreateQueueAsync(
@@ -98,7 +103,7 @@ sealed class AwsSqs
                 Attributes = new()
                 {
                     [QueueAttributeName.RedrivePolicy] = JsonSerializer.Serialize(deadLetterPolicy),
-                    [QueueAttributeName.Policy] = IAM,
+                    [QueueAttributeName.Policy] = Iam,
                     [QueueAttributeName.KmsMasterKeyId] = keyId.Value,
                     [QueueAttributeName.VisibilityTimeout] = config.MessageTimeoutInSeconds.ToString(),
                     [QueueAttributeName.DelaySeconds] = config.MessageDelayInSeconds.ToString(),
@@ -115,7 +120,7 @@ sealed class AwsSqs
             new CreateQueueRequest
             {
                 QueueName = $"{DeadLetterPrefix}{queueName}",
-                Attributes = new() { ["Policy"] = IAM, ["KmsMasterKeyId"] = keyId }
+                Attributes = new() {["Policy"] = Iam, ["KmsMasterKeyId"] = keyId}
             }, ctx);
         return await GetQueueAttributes(q.QueueUrl, ctx);
     }
@@ -133,7 +138,7 @@ sealed class AwsSqs
                 QueueUrl = queueInfo.Url.ToString(),
                 MaxNumberOfMessages = config.QueueMaxReceiveCount,
                 WaitTimeSeconds = config.LongPollingWaitInSeconds,
-                AttributeNames = new() { MessageSystemAttributeName.ApproximateReceiveCount }
+                AttributeNames = new() {MessageSystemAttributeName.ApproximateReceiveCount}
             }, ctx);
 
         if (readMessagesRequest?.Messages is not { } messages)
@@ -150,7 +155,7 @@ sealed class AwsSqs
                 Task DeleteMessage()
                 {
                     return sqs.DeleteMessageAsync(
-                        new() { QueueUrl = queueInfo.Url.ToString(), ReceiptHandle = sqsMessage.ReceiptHandle },
+                        new() {QueueUrl = queueInfo.Url.ToString(), ReceiptHandle = sqsMessage.ReceiptHandle},
                         CancellationToken.None);
                 }
 
@@ -182,15 +187,12 @@ sealed class AwsSqs
                     ReleaseMessage,
                     receivedCount - 1);
             })
-            .Cast<IMessage<string>>()
+            .Cast<IMessage>()
             .ToArray();
     }
 
-    public Task<IReadOnlyCollection<IMessage<string>>> ReceiveDeadLetters(string queue, CancellationToken ctx) =>
+    public Task<IReadOnlyCollection<IMessage>> ReceiveDeadLetters(string queue, CancellationToken ctx) =>
         ReceiveMessages($"{DeadLetterPrefix}{queue}", ctx);
-
-    internal record MessageEnvelope(string Event, DateTime DateTime, string Payload, Guid? MessageId = null,
-        Guid? CorrelationId = null);
 
     class SqsEnvelope
     {

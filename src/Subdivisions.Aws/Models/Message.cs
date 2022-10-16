@@ -46,3 +46,6 @@ readonly struct Message<TBody> : IMessage<TBody> where TBody : notnull
     public IMessage<TMap> Map<TMap>(Func<TBody, TMap> selector) where TMap : notnull =>
         new Message<TMap>(MessageId, selector(Body), Datetime, Delete, Release, RetryNumber);
 }
+
+record MessageEnvelope(string Event, DateTime DateTime, string Payload, Guid? MessageId = null,
+    Guid? CorrelationId = null);

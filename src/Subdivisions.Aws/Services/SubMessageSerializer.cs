@@ -1,5 +1,8 @@
 using System.Runtime.Serialization;
+using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Unicode;
 using Subdivisions.Extensions;
 
 namespace Subdivisions.Services;
@@ -19,7 +22,10 @@ class SnakeCaseNamingPolicy : JsonNamingPolicy
 
 public class SubJsonSerializer : ISubMessageSerializer
 {
-    static readonly JsonSerializerOptions jsonOptions = new() { PropertyNamingPolicy = SnakeCaseNamingPolicy.Instance };
+    static readonly JsonSerializerOptions jsonOptions = new()
+    {
+        PropertyNamingPolicy = SnakeCaseNamingPolicy.Instance,
+    };
 
     public string Serialize<TValue>(TValue something) =>
         JsonSerializer.Serialize(something, jsonOptions);
