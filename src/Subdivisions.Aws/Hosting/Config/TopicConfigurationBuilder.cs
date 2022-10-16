@@ -25,7 +25,7 @@ public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBui
     {
         this.services = services;
         this.topicName = topicName;
-        services.AddSingleton<IProducer<TMessage>>(sp =>
+        services.TryAddSingleton<IProducer<TMessage>>(sp =>
             new TypedProducer<TMessage>(topicName, sp.GetRequiredService<IProducerClient>()));
     }
 
