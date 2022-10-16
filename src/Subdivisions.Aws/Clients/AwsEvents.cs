@@ -37,7 +37,7 @@ sealed class AwsEvents : IProduceDriver
 
     public async Task<bool> RuleExists(TopicName topicName, CancellationToken ctx)
     {
-        var rules = await eventBridge.ListRulesAsync(new() {Limit = 100, NamePrefix = topicName.FullTopicName}, ctx);
+        var rules = await eventBridge.ListRulesAsync(new() { Limit = 100, NamePrefix = topicName.FullTopicName }, ctx);
 
         return rules is not null &&
                rules.Rules.Any(r => r.Name.Trim() == topicName.FullTopicName && r.State == RuleState.ENABLED);
@@ -83,7 +83,7 @@ sealed class AwsEvents : IProduceDriver
 
         PutEventsRequest request = new()
         {
-            Entries = new() {new() {DetailType = topic, Source = config.Source, Detail = payload}}
+            Entries = new() { new() { DetailType = topic, Source = config.Source, Detail = payload } }
         };
         var response = await eventBridge.PutEventsAsync(request, ctx);
 

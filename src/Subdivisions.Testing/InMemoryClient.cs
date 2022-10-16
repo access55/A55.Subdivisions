@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using Subdivisions.Clients;
 using Subdivisions.Hosting;
 using Subdivisions.Hosting.Job;
@@ -7,15 +7,18 @@ using Subdivisions.Services;
 
 namespace Subdivisions.Testing;
 
-public interface IFakeBroker
+public interface IFakeReadonlyBroker
+{
+    public IReadOnlyDictionary<string, string[]> ProducedMessages();
+    public string[] ProducedOn(string topic);
+}
+
+public interface IFakeBroker : IFakeReadonlyBroker
 {
     Task<Guid> Publish(string topic, string message);
     void Reset();
 
-    string[] ProducedOn(string topic);
     T[] ProducedOn<T>(string topic) where T : notnull;
-
-    IReadOnlyDictionary<string, string[]> ProducedMessages();
 
     Task<IReadOnlyDictionary<string, string[]>> Delta(Func<Task> action);
     Task<string[]> Delta(string topic, Func<Task> action);
@@ -52,7 +55,7 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
     public async Task<PublishResult> Produce(string topic, string message, CancellationToken ctx)
     {
         var id = Guid.NewGuid();
-        var payload = new LocalMessage<string>(message) {MessageId = id, Datetime = subClock.Now(), RetryNumber = 0};
+        var payload = new LocalMessage<string>(message) { MessageId = id, Datetime = subClock.Now(), RetryNumber = 0 };
 
         if (!produced.ContainsKey(topic))
             produced.Add(topic, new());
@@ -134,5 +137,5 @@ class LocalMessage<T> : IMessage<T> where T : notnull
     public Task Release(TimeSpan delay) => Task.CompletedTask;
 
     public IMessage<TMap> Map<TMap>(Func<T, TMap> selector) where TMap : notnull =>
-        new LocalMessage<TMap>(selector(Body)) {MessageId = MessageId, Datetime = Datetime, RetryNumber = RetryNumber};
+        new LocalMessage<TMap>(selector(Body)) { MessageId = MessageId, Datetime = Datetime, RetryNumber = RetryNumber };
 }

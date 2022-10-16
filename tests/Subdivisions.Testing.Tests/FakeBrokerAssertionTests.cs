@@ -1,4 +1,4 @@
-﻿using AutoBogus;
+using AutoBogus;
 using Bogus;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,7 +23,7 @@ public class FakeBrokerAssertionsTests
                 sub.MapTopic<MyMessage2>("my_recur_topic")
                     .WithConsumer(async (MyMessage2 message, IProducer<MyMessage1> producer) =>
                     {
-                        var message2 = new MyMessage1 {Id = message.Id, Foo = message.Bar,};
+                        var message2 = new MyMessage1 { Id = message.Id, Foo = message.Bar, };
                         await producer.Publish(message2);
                     });
             })
@@ -60,7 +60,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage1>();
         await publisher.Publish(message);
 
-        broker.Should().HaveJsonMessage("my_topic", message.ToJson());
+        broker.Should().ContainMessage("my_topic", message.ToJson());
     }
 
     [Test]
@@ -71,7 +71,59 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage1>();
         await publisher.Publish(message);
 
-        broker.Should().HaveMessage("my_topic", new {id = message.Id, foo = message.Foo});
+        broker.Should().ContainMessage("my_topic", new { id = message.Id, foo = message.Foo });
+    }
+
+    [Test]
+    public async Task ShouldCheckForNotProducedMessageBody()
+    {
+        var publisher = provider.GetRequiredService<IProducer<MyMessage1>>();
+
+        var message = AutoFaker.Generate<MyMessage1>();
+        await publisher.Publish(message);
+
+        var action = () => broker.Should().NotContainMessage("my_topic", message.ToJson());
+        action.Should().Throw<AssertionException>();
+
+        var message2 = AutoFaker.Generate<MyMessage1>();
+        broker.Should().NotContainMessage("my_topic", message2.ToJson());
+    }
+
+    [Test]
+    public async Task ShouldCheckForNotSerializedProducedMessage()
+    {
+        var publisher = provider.GetRequiredService<IProducer<MyMessage1>>();
+
+        var message = AutoFaker.Generate<MyMessage1>();
+        await publisher.Publish(message);
+
+        var action = () => broker.Should().NotContainMessage("my_topic", new { id = message.Id, foo = message.Foo });
+        action.Should().Throw<AssertionException>();
+
+        var message2 = AutoFaker.Generate<MyMessage1>();
+        broker.Should().NotContainMessage("my_topic", new { id = message2.Id, foo = message2.Foo });
+    }
+
+    [Test]
+    public async Task ShouldCheckForPartialMessage()
+    {
+        var publisher = provider.GetRequiredService<IProducer<MyMessage1>>();
+
+        var message = AutoFaker.Generate<MyMessage1>();
+        await publisher.Publish(message);
+
+        broker.Should().ContainsEquivalentMessage("my_topic", new { id = message.Id });
+    }
+
+    [Test]
+    public async Task ShouldCheckForPartialJsonMessage()
+    {
+        var publisher = provider.GetRequiredService<IProducer<MyMessage1>>();
+
+        var message = AutoFaker.Generate<MyMessage1>();
+        await publisher.Publish(message);
+
+        broker.Should().ContainsEquivalentMessage("my_topic", $@"{{""id"":""{message.Id}""}}");
     }
 
     [Test]
@@ -82,11 +134,9 @@ public class FakeBrokerAssertionsTests
         var publisher = provider.GetRequiredService<IProducer<MyMessage1>>();
         await publisher.Publish(message1);
 
-        var action = () => broker.Should().HaveMessage("my_topic", message2.ToJson());
+        var action = () => broker.Should().ContainMessage("my_topic", message2.ToJson());
 
-        action.Should().Throw<AssertionException>()
-            .WithMessage(
-                $@"Expected ""my_topic"" to contain ""{message2.ToJson()}"", but found ""{message1.ToJson()}""");
+        action.Should().Throw<AssertionException>();
     }
 
     [Test]
@@ -97,11 +147,8 @@ public class FakeBrokerAssertionsTests
         var publisher = provider.GetRequiredService<IProducer<MyMessage1>>();
         await publisher.Publish(message1);
 
-        var action = () => broker.Should().HaveMessage("my_topic", message2);
-
-        action.Should().Throw<AssertionException>()
-            .WithMessage(
-                $@"Expected ""my_topic"" to contain ""{message2.ToJson()}"", but found ""{message1.ToJson()}""");
+        var action = () => broker.Should().ContainMessage("my_topic", message2);
+        action.Should().Throw<AssertionException>();
     }
 
     [Test]
@@ -112,11 +159,9 @@ public class FakeBrokerAssertionsTests
         var publisher = provider.GetRequiredService<IProducer<MyMessage1>>();
         await publisher.Publish(message1);
 
-        var action = () => broker.Should().HaveMessage("my_topic", new {id = message2.Id, foo = message2.Foo});
+        var action = () => broker.Should().ContainMessage("my_topic", new { id = message2.Id, foo = message2.Foo });
 
-        action.Should().Throw<AssertionException>()
-            .WithMessage(
-                $@"Expected ""my_topic"" to contain ""{message2.ToJson()}"", but found ""{message1.ToJson()}""");
+        action.Should().Throw<AssertionException>();
     }
 
     [Test]
@@ -127,11 +172,60 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        broker.Should().HaveMessages(new()
+        broker.Should().JsonMessagesBe(new()
         {
-            ["my_recur_topic"] = new[] {message.ToJson()},
-            ["my_topic"] = new[] {new MyMessage1 {Foo = message.Bar, Id = message.Id}.ToJson()}
+            ["my_recur_topic"] = new[] { message.ToJson() },
+            ["my_topic"] = new[] { new MyMessage1 { Foo = message.Bar, Id = message.Id }.ToJson() }
         });
+    }
+
+    [Test]
+    public async Task ShouldCheckForNotProducedMessages()
+    {
+        var publisher = provider.GetRequiredService<IProducer<MyMessage2>>();
+
+        var message = AutoFaker.Generate<MyMessage2>();
+        await publisher.Publish(message);
+
+        var action = () => broker.Should().NotJsonMessagesBe(new()
+        {
+            ["my_recur_topic"] = new[] { message.ToJson() },
+            ["my_topic"] = new[] { new MyMessage1 { Foo = message.Bar, Id = message.Id }.ToJson() }
+        });
+
+        action.Should().Throw<AssertionException>();
+    }
+
+    [Test]
+    public async Task ShouldCheckForEquivalentProducedMessages()
+    {
+        var publisher = provider.GetRequiredService<IProducer<MyMessage2>>();
+
+        var message = AutoFaker.Generate<MyMessage2>();
+        await publisher.Publish(message);
+
+        broker.Should().MessagesBe(new()
+        {
+            ["my_recur_topic"] = new[] { new { id = message.Id, bar = message.Bar } },
+            ["my_topic"] = new[] { new { id = message.Id, foo = message.Bar } }
+        });
+    }
+
+    [Test]
+    public async Task ShouldCheckForEquivalentNotProducedMessages()
+    {
+        var publisher = provider.GetRequiredService<IProducer<MyMessage2>>();
+
+        var message = AutoFaker.Generate<MyMessage2>();
+        await publisher.Publish(message);
+
+        var action = () => broker.Should().NotMessagesBe(new()
+        {
+            ["my_recur_topic"] = new[] { new { id = message.Id, bar = message.Bar } },
+            ["my_topic"] = new[] { new { id = message.Id, foo = message.Bar } }
+        });
+
+        action.Should().Throw<AssertionException>();
     }
 
     [Test]
@@ -142,11 +236,97 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        broker.Should().HaveMessages(new()
+        broker.Should().MessagesBe(new
         {
-            ["my_recur_topic"] = new[] {new {id = message.Id, bar = message.Bar}},
-            ["my_topic"] = new[] {new {id = message.Id, foo = message.Bar}}
+            my_recur_topic = new[] { new { id = message.Id, bar = message.Bar } },
+            my_topic = new[] { new { id = message.Id, foo = message.Bar } }
         });
+    }
+
+    [Test]
+    public async Task ShouldCheckForObjectNotProducedMessages()
+    {
+        var publisher = provider.GetRequiredService<IProducer<MyMessage2>>();
+
+        var message = AutoFaker.Generate<MyMessage2>();
+        await publisher.Publish(message);
+
+        var action = () => broker.Should().NotMessagesBe(new
+        {
+            my_recur_topic = new[] { new { id = message.Id, bar = message.Bar } },
+            my_topic = new[] { new { id = message.Id, foo = message.Bar } }
+        });
+
+        action.Should().Throw<AssertionException>();
+
+        broker.Should().NotMessagesBe(new { my_topic = new[] { new { id = Guid.NewGuid(), foo = "message" } } });
+    }
+
+    [Test]
+    public async Task ShouldCheckForPartialObjectProducedMessages()
+    {
+        var publisher = provider.GetRequiredService<IProducer<MyMessage2>>();
+
+        var message = AutoFaker.Generate<MyMessage2>();
+        await publisher.Publish(message);
+
+        broker.Should().BeMessagesEquivalent(new
+        {
+            my_recur_topic = new[] { new { id = message.Id } },
+            my_topic = new[] { new { foo = message.Bar } }
+        });
+    }
+
+    [Test]
+    public async Task ShouldCheckForPartialJsonMessages()
+    {
+        var publisher = provider.GetRequiredService<IProducer<MyMessage2>>();
+
+        var message = AutoFaker.Generate<MyMessage2>();
+        await publisher.Publish(message);
+
+        broker.Should().BeMessagesJsonEqual(new() { ["my_recur_topic"] = new[] { $@"{{""id"":""{message.Id}""}}" } });
+    }
+
+    [Test]
+    public async Task ShouldCheckForPartialObjectMessage()
+    {
+        var publisher = provider.GetRequiredService<IProducer<MyMessage2>>();
+
+        var message = AutoFaker.Generate<MyMessage2>();
+        await publisher.Publish(message);
+
+        broker.Should().BeMessagesEquivalent(new() { ["my_recur_topic"] = new[] { new { id = message.Id } } });
+    }
+
+    [Test]
+    public async Task ShouldCheckWhenDeltaProducedMessages()
+    {
+        var publisher = provider.GetRequiredService<IProducer<MyMessage1>>();
+
+        var message1 = AutoFaker.Generate<MyMessage1>();
+        await publisher.Publish(message1);
+        var message2 = AutoFaker.Generate<MyMessage1>();
+
+        await broker
+            .Should()
+            .When(() => publisher.Publish(message2))
+            .ContainMessage("my_topic", new { id = message2.Id, foo = message2.Foo });
+    }
+
+    [Test]
+    public async Task ShouldCheckWhenDeltaProducedMessage()
+    {
+        var publisher = provider.GetRequiredService<IProducer<MyMessage1>>();
+
+        var message1 = AutoFaker.Generate<MyMessage1>();
+        await publisher.Publish(message1);
+        var message2 = AutoFaker.Generate<MyMessage1>();
+
+        await broker
+            .Should()
+            .When(() => publisher.Publish(message2))
+            .MessagesBe(new { my_topic = new[] { new { id = message2.Id, foo = message2.Foo } } });
     }
 
     [OneTimeSetUp]

@@ -1,4 +1,4 @@
-﻿using AutoBogus;
+using AutoBogus;
 using Bogus;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,7 +23,7 @@ public class FakeBrokerTests
                 sub.MapTopic<MyMessage2>("my_recur_topic")
                     .WithConsumer(async (MyMessage2 message, IProducer<MyMessage1> producer) =>
                     {
-                        var message2 = new MyMessage1 {Id = message.Id, Foo = message.Bar,};
+                        var message2 = new MyMessage1 { Id = message.Id, Foo = message.Bar, };
                         await producer.Publish(message2);
                     });
             })
@@ -43,7 +43,7 @@ public class FakeBrokerTests
 
         var produced = broker.ProducedOn<MyMessage1>("my_topic");
 
-        produced.Should().BeEquivalentTo(new[] {message});
+        produced.Should().BeEquivalentTo(new[] { message });
     }
 
     [Test]
@@ -85,7 +85,7 @@ public class FakeBrokerTests
 
         var produced = await broker.Delta<MyMessage1>("my_topic", () => publisher.Publish(message2));
 
-        produced.Should().BeEquivalentTo(new[] {message2});
+        produced.Should().BeEquivalentTo(new[] { message2 });
     }
 
     [Test]
@@ -114,8 +114,8 @@ public class FakeBrokerTests
 
         produced.Should().BeEquivalentTo(new Dictionary<string, string[]>
         {
-            ["my_recur_topic"] = new[] {message.ToJson()},
-            ["my_topic"] = new[] {new MyMessage1 {Id = message.Id, Foo = message.Bar}.ToJson()}
+            ["my_recur_topic"] = new[] { message.ToJson() },
+            ["my_topic"] = new[] { new MyMessage1 { Id = message.Id, Foo = message.Bar }.ToJson() }
         });
     }
 
@@ -133,8 +133,8 @@ public class FakeBrokerTests
 
         produced.Should().BeEquivalentTo(new Dictionary<string, string[]>
         {
-            ["my_recur_topic"] = new[] {message.ToJson()},
-            ["my_topic"] = new[] {new MyMessage1 {Id = message.Id, Foo = message.Bar}.ToJson()}
+            ["my_recur_topic"] = new[] { message.ToJson() },
+            ["my_topic"] = new[] { new MyMessage1 { Id = message.Id, Foo = message.Bar }.ToJson() }
         });
     }
 
@@ -148,8 +148,8 @@ public class FakeBrokerTests
         var produced = broker.ProducedMessages();
         produced.Should().BeEquivalentTo(new Dictionary<string, string[]>
         {
-            ["my_recur_topic"] = new[] {message.ToJson()},
-            ["my_topic"] = new[] {new MyMessage1 {Id = message.Id, Foo = message.Bar}.ToJson()}
+            ["my_recur_topic"] = new[] { message.ToJson() },
+            ["my_topic"] = new[] { new MyMessage1 { Id = message.Id, Foo = message.Bar }.ToJson() }
         });
 
         broker.Reset();
@@ -165,8 +165,8 @@ public class FakeBrokerTests
         var produced = broker.ProducedMessages();
         produced.Should().BeEquivalentTo(new Dictionary<string, string[]>
         {
-            ["my_recur_topic"] = new[] {message.ToJson()},
-            ["my_topic"] = new[] {new MyMessage1 {Id = message.Id, Foo = message.Bar}.ToJson()}
+            ["my_recur_topic"] = new[] { message.ToJson() },
+            ["my_topic"] = new[] { new MyMessage1 { Id = message.Id, Foo = message.Bar }.ToJson() }
         });
     }
 
