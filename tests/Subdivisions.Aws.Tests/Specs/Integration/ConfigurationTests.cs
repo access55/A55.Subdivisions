@@ -25,6 +25,18 @@ public class ConfigurationHostTests : ServicesFixture
         var subConfig = GetService<IOptions<SubConfig>>().Value;
         subConfig.FallbackSource.Should().Be(appName);
     }
+
+    [Test]
+    public void ShouldFallbackRegionToEnvironmentVariable()
+    {
+        var region = faker.Address.State();
+        Environment.SetEnvironmentVariable("SUBDIVISIONS_AWS_REGION", region, EnvironmentVariableTarget.Process);
+        var subConfig = GetService<IOptions<SubConfig>>().Value;
+        subConfig.Region.Should().Be(region);
+    }
+
+    [TearDown]
+    public void TearDown() => Environment.SetEnvironmentVariable("SUBDIVISIONS_AWS_REGION", null, EnvironmentVariableTarget.Process);
 }
 
 public class ConfigurationTests : ServicesFixture

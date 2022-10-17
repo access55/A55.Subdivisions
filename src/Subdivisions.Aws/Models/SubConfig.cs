@@ -50,6 +50,9 @@ public class ConfigureSubConfigOptions : IConfigureOptions<SubConfig>
         configuration?.GetSection(ConfigSection).Bind(options);
         if (hostEnvironment is not null && options.FallbackSource is null)
             options.SetFallbackSource(hostEnvironment.ApplicationName);
+
+        if (Environment.GetEnvironmentVariable("SUBDIVISIONS_AWS_REGION") is {Length: > 0} region)
+            options.Region = region;
     }
 }
 

@@ -21,8 +21,14 @@ public class SubAwsCredentialsConfigOptions : IConfigureOptions<SubAwsCredential
     public void Configure(SubAwsCredentialsConfig options)
     {
         configuration?.Bind(options);
-        options.SubdivisionsAwsAccessKey ??= Environment.GetEnvironmentVariable("SUBDIVISIONS_AWS_ACCESS_KEY_ID");
-        options.SubdivisionsAwsSecretKey ??=
-            Environment.GetEnvironmentVariable("SUBDIVISIONS_AWS_SECRET_ACCESS_KEY");
+
+        var envAccessKey = Environment.GetEnvironmentVariable("SUBDIVISIONS_AWS_ACCESS_KEY_ID");
+        var envSecretKey = Environment.GetEnvironmentVariable("SUBDIVISIONS_AWS_SECRET_ACCESS_KEY");
+
+        if (envAccessKey is not null or "" && envSecretKey is not null or "")
+        {
+            options.SubdivisionsAwsAccessKey = envAccessKey;
+            options.SubdivisionsAwsSecretKey = envSecretKey;
+        }
     }
 }
