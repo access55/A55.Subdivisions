@@ -1,17 +1,42 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\Subdivisions.Aws\Subdivisions.Aws.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Subdivisions.Aws\Subdivisions.Aws.csproj"/>
+  </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="FluentAssertions.Json" Version="6.1.0" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions.Json" Version="6.1.0"/>
+
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+
+  </ItemGroup>
+
+
+  <PropertyGroup>
+    <PackageIcon>icon.png</PackageIcon>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <DebugType>embedded</DebugType>
+    <DocumentationFile>bin\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
+    <Authors>access55</Authors>
+    <Description>Testing tools and helpers for Subdivisions</Description>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>test,sns, sqs, pubsub, consumer, producer, eventbridge, subdivisions</PackageTags>
+    <Company>A55</Company>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <PackageProjectUrl>https://github.com/access55/A55.Subdivisions</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/access55/A55.Subdivisions</RepositoryUrl>
+  </PropertyGroup>
 
 </Project>
