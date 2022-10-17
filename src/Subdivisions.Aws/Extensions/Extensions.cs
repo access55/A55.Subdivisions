@@ -35,7 +35,8 @@ static class Extensions
 
         if (sp.GetService<IOptions<SubAwsCredentialsConfig>>() is
             {
-                Value: { SubdivisionsAwsAccessKey: var awsAccessKey, SubdivisionsAwsSecretKey: var awsSecretKey }
+                Value.SubdivisionsAwsAccessKey: { } awsAccessKey,
+                Value.SubdivisionsAwsSecretKey: { } awsSecretKey
             })
             return new BasicAWSCredentials(awsAccessKey, awsSecretKey);
 

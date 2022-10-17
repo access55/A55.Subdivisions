@@ -9,7 +9,7 @@ namespace Subdivisions.Models;
 public class SubTopicNameConfig
 {
     public string Suffix { get; set; } = "";
-    public string Prefix { get; set; } = "";
+    public string Prefix { get; set; } = "a55";
     public string? Source { get; set; }
     internal string? FallbackSource { get; private set; }
     public void SetFallbackSource(string fallback) => FallbackSource = fallback;

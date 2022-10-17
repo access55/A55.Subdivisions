@@ -92,3 +92,34 @@ public class SubAwsCredentialsConfigEnvironmentTests : ServicesFixture
             });
     }
 }
+
+public class SubAwsCredentialsConfigIgnoreTests : ServicesFixture
+{
+    protected override void ConfigureServices(IServiceCollection services)
+    {
+        var configuration = new ConfigurationBuilder()
+            .Build();
+
+        services
+            .AddSingleton<IConfiguration>(_ => configuration!)
+            .AddSubdivisionsServices();
+    }
+
+    [Test]
+    public void ShouldUseIConfigurationFromContainer()
+    {
+        var subConfig = GetService<IOptions<SubAwsCredentialsConfig>>().Value;
+        subConfig.Should().BeEquivalentTo(new SubAwsCredentialsConfig
+        {
+            SubdivisionsAwsAccessKey = null,
+            SubdivisionsAwsSecretKey = null,
+        });
+    }
+
+    [Test]
+    public void ShouldReturnBasicCredentials()
+    {
+        var cred = GetService<SubAwsCredentialWrapper>().Credentials;
+        cred.Should().NotBeOfType<BasicAWSCredentials>();
+    }
+}
