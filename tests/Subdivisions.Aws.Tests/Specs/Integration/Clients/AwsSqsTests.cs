@@ -99,8 +99,9 @@ public class AwsSqsTests : LocalstackFixture
                     QueueAttributeName.DelaySeconds
                 });
 
+        const int secondsPerDay = 86_400;
         attr.VisibilityTimeout.Should().Be(config.MessageTimeoutInSeconds);
-        attr.MessageRetentionPeriod.Should().Be(config.MessageRetantionInDays);
+        attr.MessageRetentionPeriod.Should().Be(config.MessageRetentionInDays * secondsPerDay);
         attr.DelaySeconds.Should().Be(config.MessageDelayInSeconds);
     }
 

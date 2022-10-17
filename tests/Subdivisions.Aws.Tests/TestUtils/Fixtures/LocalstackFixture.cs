@@ -36,11 +36,12 @@ public class LocalstackFixture : ServicesFixture
         c.Source = faker.Person.LastName.OnlyLetterOrDigit().ToPascalCase();
 
         c.QueueMaxReceiveCount = 10;
-        c.MessageRetantionInDays = 0;
-        c.MessageDelayInSeconds = 0;
-        c.LongPollingWaitInSeconds = 0;
+        c.MessageRetentionInDays = 1;
         c.MessageTimeoutInSeconds = 10000;
         c.RetriesBeforeDeadLetter = 2;
+
+        c.MessageDelayInSeconds = 0;
+        c.LongPollingWaitInSeconds = 0;
     }
 
     [SetUp]

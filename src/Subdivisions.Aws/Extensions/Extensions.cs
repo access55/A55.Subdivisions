@@ -22,6 +22,26 @@ static class Extensions
                         : x.ToString()))
             .ToLowerInvariant();
 
+    public static Amazon.RegionEndpoint RegionEndpoint(this SubConfig config) =>
+        Amazon.RegionEndpoint.GetBySystemName(config.Region);
+
+    public static AWSCredentials ResolveAwsCredential(this IServiceProvider sp, AWSCredentials? credentials)
+    {
+        if (credentials is not null)
+            return credentials;
+
+        if (sp.GetService<IOptions<SubConfig>>() is { Value.Localstack: true })
+            return new AnonymousAWSCredentials();
+
+        if (sp.GetService<IOptions<SubAwsCredentialsConfig>>() is
+            {
+                Value: { SubdivisionsAwsAccessKey: var awsAccessKey, SubdivisionsAwsSecretKey: var awsSecretKey }
+            })
+            return new BasicAWSCredentials(awsAccessKey, awsSecretKey);
+
+        return FallbackCredentialsFactory.GetCredentials();
+    }
+
     public static IServiceCollection AddAwsConfig<TConfig>(this IServiceCollection services)
         where TConfig : ClientConfig, new() =>
         services.AddTransient(sp =>
@@ -31,11 +51,11 @@ static class Extensions
             if (!string.IsNullOrWhiteSpace(subSettings.ServiceUrl))
                 config.ServiceURL = subSettings.ServiceUrl;
             else
-                config.RegionEndpoint = subSettings.Endpoint;
+                config.RegionEndpoint = subSettings.RegionEndpoint();
 
             return config;
         });
 
     public static AWSCredentials GetAwsCredentials(this IServiceProvider provider) =>
-        provider.GetRequiredService<AWSCredentials>();
+        provider.GetRequiredService<SubAwsCredentialWrapper>().Credentials;
 }

@@ -1,4 +1,5 @@
 using Amazon;
+using Amazon.Runtime;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -19,7 +20,7 @@ public class SubConfig : SubTopicNameConfig
     public int QueueMaxReceiveCount { get; set; } = 5;
     public int RetriesBeforeDeadLetter { get; set; } = 3;
     public string PubKey { get; set; } = "alias/PubSubKey";
-    public int MessageRetantionInDays { get; set; } = 7;
+    public int MessageRetentionInDays { get; set; } = 7;
     public int MessageTimeoutInSeconds { get; set; } = 30;
     public int MessageDelayInSeconds { get; set; }
     public double PollingIntervalInSeconds { get; set; } = 5;
@@ -28,8 +29,6 @@ public class SubConfig : SubTopicNameConfig
     public bool AutoCreateNewTopic { get; set; } = true;
     public string Region { get; set; } = "sa-east-1";
     public int LongPollingWaitInSeconds { get; set; }
-
-    internal RegionEndpoint Endpoint => RegionEndpoint.GetBySystemName(Region);
 }
 
 public class ConfigureSubConfigOptions : IConfigureOptions<SubConfig>
@@ -53,3 +52,5 @@ public class ConfigureSubConfigOptions : IConfigureOptions<SubConfig>
             options.SetFallbackSource(hostEnvironment.ApplicationName);
     }
 }
+
+sealed record SubAwsCredentialWrapper(AWSCredentials Credentials);

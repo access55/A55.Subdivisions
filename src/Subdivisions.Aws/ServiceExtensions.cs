@@ -20,6 +20,7 @@ public static class ServicesExtensions
         AWSCredentials? credentials = null)
     {
         services
+            .AddSingleton<IConfigureOptions<SubAwsCredentialsConfig>, SubAwsCredentialsConfigOptions>()
             .AddSingleton<IConfigureOptions<SubConfig>, ConfigureSubConfigOptions>()
             .PostConfigure<SubConfig>(c =>
             {
@@ -29,15 +30,7 @@ public static class ServicesExtensions
             });
 
         services
-            .AddSingleton(sp =>
-            {
-                if (credentials is not null)
-                    return credentials;
-                var c = sp.GetRequiredService<IOptions<SubConfig>>();
-                return c.Value.Localstack
-                    ? new AnonymousAWSCredentials()
-                    : FallbackCredentialsFactory.GetCredentials();
-            });
+            .AddSingleton<SubAwsCredentialWrapper>(sp => new(sp.ResolveAwsCredential(credentials)));
 
         services
             .AddAwsConfig<AmazonSQSConfig>()

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Subdivisions.Clients;
+using Subdivisions.Extensions;
 using Subdivisions.Models;
 
 namespace Subdivisions.Services;
@@ -42,7 +43,7 @@ class AwsResourceManager : ISubResourceManager
     {
         TopicName topicName = new(topic, config);
         logger.LogDebug("Setting queue '{Queue}' up: Region={Region}", topicName.FullQueueName,
-            config.Endpoint.SystemName);
+            config.RegionEndpoint().SystemName);
 
         if (await sqs.QueueExists(topicName.FullQueueName, ctx))
             return;
@@ -59,7 +60,7 @@ class AwsResourceManager : ISubResourceManager
             return;
 
         logger.LogDebug("Setting topic '{Topic}' up: Region={Region}", topicName.Topic,
-            config.Endpoint.SystemName);
+            config.RegionEndpoint().SystemName);
 
         if (!config.AutoCreateNewTopic)
             throw new InvalidOperationException(

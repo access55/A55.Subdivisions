@@ -119,7 +119,7 @@ public class SubConfigBuilderTests : BaseTest
             sub.QueueMaxReceiveCount = fakeConfig.QueueMaxReceiveCount;
             sub.RetriesBeforeDeadLetter = fakeConfig.RetriesBeforeDeadLetter;
             sub.PubKey = fakeConfig.PubKey;
-            sub.MessageRetantionInDays = fakeConfig.MessageRetantionInDays;
+            sub.MessageRetentionInDays = fakeConfig.MessageRetentionInDays;
             sub.MessageTimeoutInSeconds = fakeConfig.MessageTimeoutInSeconds;
             sub.MessageDelayInSeconds = fakeConfig.MessageDelayInSeconds;
             sub.PollingIntervalInSeconds = fakeConfig.PollingIntervalInSeconds;
@@ -147,8 +147,8 @@ public class SubConfigBuilderTests : BaseTest
         });
 
         var sp = services.BuildServiceProvider();
-        var credentials = sp.GetService<AWSCredentials>();
-        credentials.Should().BeOfType<AnonymousAWSCredentials>();
+        var credentials = sp.GetService<SubAwsCredentialWrapper>();
+        credentials!.Credentials.Should().BeOfType<AnonymousAWSCredentials>();
 
         var config = sp.GetRequiredService<IOptions<SubConfig>>().Value;
         config.ServiceUrl.Should().Be("http://localhost:4566");
@@ -165,7 +165,7 @@ public class SubConfigBuilderTests : BaseTest
             .AddSubdivisions();
 
         var sp = services.BuildServiceProvider();
-        var credentials = sp.GetService<AWSCredentials>();
+        var credentials = sp.GetRequiredService<SubAwsCredentialWrapper>().Credentials;
         credentials.Should().BeOfType<AnonymousAWSCredentials>();
 
         var config = sp.GetRequiredService<IOptions<SubConfig>>().Value;

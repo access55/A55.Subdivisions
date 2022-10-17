@@ -97,20 +97,21 @@ sealed class AwsSqs : IConsumeDriver
             maxReceiveCount = config.RetriesBeforeDeadLetter.ToString()
         };
 
-        var q = await sqs.CreateQueueAsync(
-            new CreateQueueRequest
+        var createQueueRequest = new CreateQueueRequest
+        {
+            QueueName = queueName,
+            Attributes = new()
             {
-                QueueName = queueName,
-                Attributes = new()
-                {
-                    [QueueAttributeName.RedrivePolicy] = JsonSerializer.Serialize(deadLetterPolicy),
-                    [QueueAttributeName.Policy] = Iam,
-                    [QueueAttributeName.KmsMasterKeyId] = keyId.Value,
-                    [QueueAttributeName.VisibilityTimeout] = config.MessageTimeoutInSeconds.ToString(),
-                    [QueueAttributeName.DelaySeconds] = config.MessageDelayInSeconds.ToString(),
-                    [QueueAttributeName.MessageRetentionPeriod] = config.MessageRetantionInDays.ToString()
-                }
-            }, ctx);
+                [QueueAttributeName.RedrivePolicy] = JsonSerializer.Serialize(deadLetterPolicy),
+                [QueueAttributeName.Policy] = Iam,
+                [QueueAttributeName.KmsMasterKeyId] = keyId.Value,
+                [QueueAttributeName.VisibilityTimeout] = config.MessageTimeoutInSeconds.ToString(),
+                [QueueAttributeName.DelaySeconds] = config.MessageDelayInSeconds.ToString(),
+                [QueueAttributeName.MessageRetentionPeriod] =
+                    $"{(int)TimeSpan.FromDays(config.MessageRetentionInDays).TotalSeconds}"
+            }
+        };
+        var q = await sqs.CreateQueueAsync(createQueueRequest, ctx);
 
         return await GetQueueAttributes(q.QueueUrl, ctx);
     }
