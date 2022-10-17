@@ -7,6 +7,10 @@ builder.Services.AddSubdivisions(sub =>
 {
     sub.MapTopic<MyMessage>("my_topic")
          .WithConsumer<MyConsumer>();
+
+    sub.MapTopic<MyMessage>("my_topic")
+         .WithConsumer((MyMessage2 message, ILogger<Program> logger) =>
+            logger.LogInformation("Received: {Message}", message.ToString()));
 });
 
 var app = builder.Build();

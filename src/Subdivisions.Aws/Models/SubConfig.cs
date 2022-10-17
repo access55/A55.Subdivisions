@@ -1,4 +1,3 @@
-using Amazon;
 using Amazon.Runtime;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -6,10 +5,22 @@ using Microsoft.Extensions.Options;
 
 namespace Subdivisions.Models;
 
+/// <summary>
+///
+/// </summary>
 public class SubTopicNameConfig
 {
+    /// <summary>
+    ///
+    /// </summary>
     public string Suffix { get; set; } = "";
+    /// <summary>
+    ///
+    /// </summary>
     public string Prefix { get; set; } = "a55";
+    /// <summary>
+    ///
+    /// </summary>
     public string Source { get; set; } = "";
 }
 

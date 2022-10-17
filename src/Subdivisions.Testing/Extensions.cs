@@ -8,7 +8,7 @@ namespace Subdivisions.Testing;
 
 public static class Extensions
 {
-    public static IServiceCollection MockSubdivision(this IServiceCollection services) =>
+    public static IServiceCollection MockSubdivisions(this IServiceCollection services) =>
         services
             .RemoveAll<IConsumeDriver>()
             .RemoveAll<IProduceDriver>()

@@ -27,7 +27,7 @@ public class FakeBrokerTests
                         await producer.Publish(message2);
                     });
             })
-            .MockSubdivision()
+            .MockSubdivisions()
             .BuildServiceProvider();
 
         broker = provider.GetRequiredService<IFakeBroker>();

@@ -10,6 +10,12 @@ public record MyMessage
     public int Age { get; set; }
 }
 
+public record MyMessage2
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = "";
+}
+
 public class MyConsumer : IConsumer<MyMessage>
 {
     readonly ILogger<MyConsumer> logger;
