@@ -5,7 +5,7 @@ namespace Subdivisions.Aws.Tests.Specs.Unit;
 public class TopicIdTests
 {
     public static readonly SubTopicNameConfig EmptyConfig =
-        new() { Prefix = string.Empty, Suffix = string.Empty, Source = "source" };
+        new() {Prefix = string.Empty, Suffix = string.Empty, Source = "source"};
 
     [TestCase("0name")]
     [TestCase("name@bad")]
@@ -46,7 +46,7 @@ public class TopicIdTests
         const string sufix = "TheSufix";
         const string name = "NameToNormalize";
         const string expected = "ThePrefixNameToNormalizeTheSufix";
-        var topic = new TopicId(name, new SubTopicNameConfig { Prefix = prefix, Suffix = sufix, Source = "source" });
+        var topic = new TopicId(name, new SubTopicNameConfig {Prefix = prefix, Suffix = sufix, Source = "source"});
 
         topic.TopicName.Should().Be(expected);
     }
@@ -60,7 +60,7 @@ public class TopicIdTests
         const string name = "NameToNormalize";
         const string expected = "the_prefix_the_source_name_to_normalize_the_suffix";
 
-        var topic = new TopicId(name, new SubTopicNameConfig { Prefix = prefix, Suffix = suffix, Source = source });
+        var topic = new TopicId(name, new SubTopicNameConfig {Prefix = prefix, Suffix = suffix, Source = source});
 
         topic.QueueName.Should().Be(expected);
     }
@@ -73,23 +73,8 @@ public class TopicIdTests
         const string source = "TheSource";
         const string name = "NameToNormalize";
 
-        var topic = new TopicId(name, new SubTopicNameConfig { Prefix = "", Suffix = suffix, Source = source });
+        var topic = new TopicId(name, new SubTopicNameConfig {Prefix = "", Suffix = suffix, Source = source});
 
         topic.QueueName.Should().NotStartWith("_").And.NotEndWith("_");
-    }
-
-    [Test]
-    public void ShouldInferSourceNameByAssembly()
-    {
-        const string prefix = "ThePrefix";
-        const string suffix = "TheSuffix";
-        const string sourceFallBack = "TheFallback";
-        const string name = "NameToNormalize";
-        const string expected = "the_prefix_the_fallback_name_to_normalize_the_suffix";
-        var config = new SubTopicNameConfig { Prefix = prefix, Suffix = suffix, Source = null };
-        config.SetFallbackSource(sourceFallBack);
-        var topic = new TopicId(name, config);
-
-        topic.QueueName.Should().Be(expected);
     }
 }

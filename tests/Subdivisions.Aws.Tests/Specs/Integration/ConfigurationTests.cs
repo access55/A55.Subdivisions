@@ -12,6 +12,8 @@ public class ConfigurationHostTests : ServicesFixture
 {
     readonly string appName = Guid.NewGuid().ToString("N");
 
+    protected override void ConfigureSubdivisions(SubConfig c) { }
+
     protected override void ConfigureServices(IServiceCollection services)
     {
         var env = A.Fake<IHostEnvironment>();
@@ -20,10 +22,10 @@ public class ConfigurationHostTests : ServicesFixture
     }
 
     [Test]
-    public void ShouldUseHostEnvironmentApplicationNameAsSourceFallback()
+    public void ShouldInferSourceNameByAssembly()
     {
         var subConfig = GetService<IOptions<SubConfig>>().Value;
-        subConfig.FallbackSource.Should().Be(appName);
+        subConfig.Source.Should().Be(appName);
     }
 
     [Test]
@@ -36,7 +38,8 @@ public class ConfigurationHostTests : ServicesFixture
     }
 
     [TearDown]
-    public void TearDown() => Environment.SetEnvironmentVariable("SUBDIVISIONS_AWS_REGION", null, EnvironmentVariableTarget.Process);
+    public void TearDown() =>
+        Environment.SetEnvironmentVariable("SUBDIVISIONS_AWS_REGION", null, EnvironmentVariableTarget.Process);
 }
 
 public class ConfigurationTests : ServicesFixture
@@ -59,6 +62,8 @@ public class ConfigurationTests : ServicesFixture
             .Build();
         services.AddSingleton<IConfiguration>(_ => configuration!);
     }
+
+    protected override void ConfigureSubdivisions(SubConfig c) { }
 
     [Test]
     public void ShouldUseIConfigurationFromContainer()

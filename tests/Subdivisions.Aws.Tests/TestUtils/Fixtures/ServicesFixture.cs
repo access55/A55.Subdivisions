@@ -39,6 +39,7 @@ public class ServicesFixture
 
     protected virtual void ConfigureSubdivisions(SubConfig c)
     {
+        c.Source = "test";
     }
 
     protected virtual void ConfigureServices(IServiceCollection services)

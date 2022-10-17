@@ -9,6 +9,7 @@ public class SubdivisionsTests
     {
         var client = Subdivisions.CreateClient(c =>
         {
+            c.Source = "app";
         }, new AnonymousAWSCredentials());
 
         client.Should().NotBeNull();
@@ -19,6 +20,7 @@ public class SubdivisionsTests
     {
         var client = Subdivisions.CreateConsumer(c =>
         {
+            c.Source = "app";
         }, new AnonymousAWSCredentials());
 
         client.Should().NotBeNull();
@@ -29,6 +31,7 @@ public class SubdivisionsTests
     {
         var client = Subdivisions.CreateProducer(c =>
         {
+            c.Source = "app";
         }, new AnonymousAWSCredentials());
 
         client.Should().NotBeNull();

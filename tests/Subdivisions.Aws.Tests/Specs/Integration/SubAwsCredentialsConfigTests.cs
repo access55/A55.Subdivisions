@@ -24,7 +24,7 @@ public class SubAwsCredentialsConfigConfigurationTests : ServicesFixture
 
         services
             .AddSingleton<IConfiguration>(_ => configuration!)
-            .AddSubdivisionsServices();
+            .AddSubdivisionsServices(c => c.Source = "app");
     }
 
     [Test]

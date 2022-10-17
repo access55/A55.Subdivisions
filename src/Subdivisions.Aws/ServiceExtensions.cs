@@ -27,6 +27,9 @@ public static class ServicesExtensions
                 config?.Invoke(c);
                 if (c.Localstack && c.ServiceUrl is null)
                     c.ServiceUrl = "http://localhost:4566";
+
+                if (string.IsNullOrWhiteSpace(c.Source))
+                    throw new InvalidOperationException("Unable to infer the source name");
             });
 
         services

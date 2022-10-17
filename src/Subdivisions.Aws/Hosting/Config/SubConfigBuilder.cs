@@ -50,7 +50,7 @@ public sealed class SubConfigBuilder : SubConfig
             var newValue = prop.GetValue(source, null);
             var defaultValue = prop.GetValue(defaultDest, null);
 
-            if (newValue?.Equals(defaultValue) == false)
+            if (newValue?.Equals(defaultValue) == false && newValue?.Equals(string.Empty) == false)
                 destProp.SetValue(dest, newValue, null);
         }
     }

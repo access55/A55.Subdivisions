@@ -43,6 +43,7 @@ public class SubConfigBuilderTests : BaseTest
 
         services.AddSubdivisions(sub =>
         {
+            sub.Source = "source";
             sub.MapTopic<TestMessage>("test_topic")
                 .WithConsumer((TestMessage message) => { })
                 .Configure(polling, concurrency);
@@ -88,6 +89,7 @@ public class SubConfigBuilderTests : BaseTest
 
         services.AddSubdivisions(sub =>
         {
+            sub.Source = "source";
             sub.MapTopic<TestMessage>("test_topic")
                 .WithConsumer<TestConsumer>()
                 .Configure(polling, concurrency);
@@ -143,6 +145,7 @@ public class SubConfigBuilderTests : BaseTest
         services.AddSubdivisions(sub =>
         {
             sub.MapTopic<TestMessage>("test_topic");
+            sub.Source = "app";
             sub.Localstack = true;
         });
 
@@ -158,7 +161,10 @@ public class SubConfigBuilderTests : BaseTest
     public void ShouldConfigureLocalStackWhenConfiguration()
     {
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string> { ["Subdivisions:Localstack"] = "true" })
+            .AddInMemoryCollection(new Dictionary<string, string>
+            {
+                ["Subdivisions:Localstack"] = "true", ["Subdivisions:Source"] = "app"
+            })
             .Build();
         var services = new ServiceCollection()
             .AddSingleton<IConfiguration>(_ => configuration!)

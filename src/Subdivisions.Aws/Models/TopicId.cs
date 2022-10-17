@@ -16,8 +16,7 @@ class TopicId
         TopicName =
             $"{Prefix.ToPascalCase()}{Event.ToPascalCase()}{Suffix.ToPascalCase()}";
 
-        Source = (config.Source ?? config.FallbackSource)?.ToSnakeCase() ??
-                 throw new InvalidOperationException("Unable to infer the source name");
+        Source = config.Source.ToSnakeCase();
         QueueName =
             $"{Prefix}_{Source}_{Event}_{Suffix}".TrimUnderscores();
     }

@@ -10,9 +10,7 @@ public class SubTopicNameConfig
 {
     public string Suffix { get; set; } = "";
     public string Prefix { get; set; } = "a55";
-    public string? Source { get; set; }
-    internal string? FallbackSource { get; private set; }
-    public void SetFallbackSource(string fallback) => FallbackSource = fallback;
+    public string Source { get; set; } = "";
 }
 
 public class SubConfig : SubTopicNameConfig
@@ -48,10 +46,10 @@ public class ConfigureSubConfigOptions : IConfigureOptions<SubConfig>
     public void Configure(SubConfig options)
     {
         configuration?.GetSection(ConfigSection).Bind(options);
-        if (hostEnvironment is not null && options.FallbackSource is null)
-            options.SetFallbackSource(hostEnvironment.ApplicationName);
+        if (hostEnvironment is not null && string.IsNullOrWhiteSpace(options.Source))
+            options.Source = hostEnvironment.ApplicationName;
 
-        if (Environment.GetEnvironmentVariable("SUBDIVISIONS_AWS_REGION") is { Length: > 0 } region)
+        if (Environment.GetEnvironmentVariable("SUBDIVISIONS_AWS_REGION") is {Length: > 0} region)
             options.Region = region;
     }
 }
