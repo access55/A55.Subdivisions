@@ -2,7 +2,7 @@ using Subdivisions.Models;
 
 namespace Subdivisions.Aws.Tests.Specs.Unit;
 
-public class TopicNameTests
+public class TopicIdTests
 {
     public static readonly SubTopicNameConfig EmptyConfig =
         new() { Prefix = string.Empty, Suffix = string.Empty, Source = "source" };
@@ -16,7 +16,7 @@ public class TopicNameTests
     [TestCase("abcde")]
     public void ShouldThrowIfBadName(string badName)
     {
-        var action = () => new TopicName(badName, EmptyConfig);
+        var action = () => new TopicId(badName, EmptyConfig);
         action.Should().Throw<ArgumentException>();
     }
 
@@ -25,7 +25,7 @@ public class TopicNameTests
     [TestCase("abc123")]
     public void ShouldNotThrowIfGoodName(string goodName)
     {
-        var action = () => new TopicName(goodName, EmptyConfig);
+        var action = () => new TopicId(goodName, EmptyConfig);
         action.Should().NotThrow();
     }
 
@@ -34,9 +34,9 @@ public class TopicNameTests
     {
         const string name = "NameToNormalize";
         const string expected = "name_to_normalize";
-        var topic = new TopicName(name, EmptyConfig);
+        var topic = new TopicId(name, EmptyConfig);
 
-        topic.Topic.Should().Be(expected);
+        topic.Event.Should().Be(expected);
     }
 
     [Test]
@@ -46,9 +46,9 @@ public class TopicNameTests
         const string sufix = "TheSufix";
         const string name = "NameToNormalize";
         const string expected = "ThePrefixNameToNormalizeTheSufix";
-        var topic = new TopicName(name, new SubTopicNameConfig { Prefix = prefix, Suffix = sufix, Source = "source" });
+        var topic = new TopicId(name, new SubTopicNameConfig { Prefix = prefix, Suffix = sufix, Source = "source" });
 
-        topic.FullTopicName.Should().Be(expected);
+        topic.TopicName.Should().Be(expected);
     }
 
     [Test]
@@ -60,9 +60,9 @@ public class TopicNameTests
         const string name = "NameToNormalize";
         const string expected = "the_prefix_the_source_name_to_normalize_the_suffix";
 
-        var topic = new TopicName(name, new SubTopicNameConfig { Prefix = prefix, Suffix = suffix, Source = source });
+        var topic = new TopicId(name, new SubTopicNameConfig { Prefix = prefix, Suffix = suffix, Source = source });
 
-        topic.FullQueueName.Should().Be(expected);
+        topic.QueueName.Should().Be(expected);
     }
 
     [TestCase("ThePrefix", "")]
@@ -73,9 +73,9 @@ public class TopicNameTests
         const string source = "TheSource";
         const string name = "NameToNormalize";
 
-        var topic = new TopicName(name, new SubTopicNameConfig { Prefix = "", Suffix = suffix, Source = source });
+        var topic = new TopicId(name, new SubTopicNameConfig { Prefix = "", Suffix = suffix, Source = source });
 
-        topic.FullQueueName.Should().NotStartWith("_").And.NotEndWith("_");
+        topic.QueueName.Should().NotStartWith("_").And.NotEndWith("_");
     }
 
     [Test]
@@ -88,8 +88,8 @@ public class TopicNameTests
         const string expected = "the_prefix_the_fallback_name_to_normalize_the_suffix";
         var config = new SubTopicNameConfig { Prefix = prefix, Suffix = suffix, Source = null };
         config.SetFallbackSource(sourceFallBack);
-        var topic = new TopicName(name, config);
+        var topic = new TopicId(name, config);
 
-        topic.FullQueueName.Should().Be(expected);
+        topic.QueueName.Should().Be(expected);
     }
 }

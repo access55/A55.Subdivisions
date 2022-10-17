@@ -24,7 +24,7 @@ public class SubClientTests : SubClientFixture
     [Test]
     public async Task ShouldSendAndReceiveMessagesOnClassPublicApi()
     {
-        var stringTopicName = Topic.Topic;
+        var stringTopicName = Topic.Event;
 
         var message = faker.Lorem.Lines();
 
@@ -41,7 +41,7 @@ public class SubClientTests : SubClientFixture
     {
         var message = TestMessage.New();
 
-        var stringTopicName = Topic.Topic;
+        var stringTopicName = Topic.Event;
 
         var client = GetService<ISubdivisionsClient>();
         await client.Publish(stringTopicName, message);
@@ -63,7 +63,7 @@ public class SubClientTests : SubClientFixture
 
         var published = await producer.Publish(TopicName, message);
 
-        await WaitFor(() => sqs.HasMessagesOn(Topic.FullQueueName));
+        await WaitFor(() => sqs.HasMessagesOn(Topic.QueueName));
 
         var messages1 = await consumer1.Receive<TestMessage>(TopicName);
         var messages2 = await consumer2.Receive<TestMessage>(TopicName);
@@ -81,7 +81,7 @@ public class SubClientTests : SubClientFixture
         var strongMessage = TestMessage.New();
         var message = strongMessage.ToSnakeCaseJson();
 
-        var stringTopicName = Topic.Topic;
+        var stringTopicName = Topic.Event;
 
         var client = GetService<ISubdivisionsClient>();
         await client.Publish(stringTopicName, message);
@@ -96,7 +96,7 @@ public class SubClientTests : SubClientFixture
     {
         var message = TestMessage.New();
         var jsonMessage = message.ToSnakeCaseJson().AsJToken();
-        var stringTopicName = Topic.Topic;
+        var stringTopicName = Topic.Event;
 
         var client = GetService<ISubdivisionsClient>();
         await client.Publish(stringTopicName, message);

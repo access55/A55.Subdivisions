@@ -34,7 +34,7 @@ public static class FakerExtensions
     public static string TopicNameString(this Faker faker) =>
         $"{faker.Person.FirstName}_{faker.Random.Guid():N}".ToLowerInvariant();
 
-    internal static TopicName TopicName(this Faker faker, SubConfig config) =>
+    internal static TopicId TopicName(this Faker faker, SubConfig config) =>
         new(faker.TopicNameString(), config);
 
     public static IEnumerable<int> Range(this Faker faker, int min, int max) =>

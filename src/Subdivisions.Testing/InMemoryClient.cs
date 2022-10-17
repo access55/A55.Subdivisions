@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Microsoft.Extensions.Options;
 using Subdivisions.Clients;
 using Subdivisions.Hosting;
 using Subdivisions.Hosting.Job;
@@ -31,6 +32,7 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
 
     readonly IConsumerFactory consumerFactory;
     readonly ISubMessageSerializer serializer;
+    readonly SubConfig config;
     readonly ISubClock subClock;
 
     readonly Dictionary<string, List<IMessage<string>>> produced = new();
@@ -40,35 +42,39 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
         IConsumerFactory consumerFactory,
         ISubMessageSerializer serializer,
         IEnumerable<IConsumerDescriber> describers,
+        IOptions<SubConfig> config,
         ISubClock subClock)
     {
         this.consumerFactory = consumerFactory;
         this.serializer = serializer;
+        this.config = config.Value;
         this.subClock = subClock;
 
         this.consumers = describers.ToImmutableDictionary(
             x => x.TopicName, x => x);
     }
 
-    public async Task<Guid> Publish(string topic, string message) => (await Produce(topic, message, default)).MessageId;
+    public async Task<Guid> Publish(string topic, string message) =>
+        (await Produce(new TopicId(topic, config), message, default)).MessageId;
 
-    public async Task<PublishResult> Produce(string topic, string message, CancellationToken ctx)
+    public async Task<PublishResult> Produce(TopicId topic, string message, CancellationToken ctx)
     {
+        var topicName = topic.Event;
         var id = Guid.NewGuid();
         var payload = new LocalMessage<string>(message) { MessageId = id, Datetime = subClock.Now(), RetryNumber = 0 };
 
-        if (!produced.ContainsKey(topic))
-            produced.Add(topic, new());
-        produced[topic].Add(payload);
+        if (!produced.ContainsKey(topicName))
+            produced.Add(topicName, new());
+        produced[topicName].Add(payload);
 
         if (deltaMessages is not null)
         {
-            if (!deltaMessages.ContainsKey(topic))
-                deltaMessages.Add(topic, new());
-            deltaMessages[topic].Add(payload);
+            if (!deltaMessages.ContainsKey(topicName))
+                deltaMessages.Add(topicName, new());
+            deltaMessages[topicName].Add(payload);
         }
 
-        if (consumers.TryGetValue(topic, out var describer))
+        if (consumers.TryGetValue(topicName, out var describer))
             await consumerFactory.ConsumeScoped(describer, payload, ctx);
 
         return new PublishResult(true, id);
@@ -111,10 +117,10 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
     public async Task<T[]> Delta<T>(string topic, Func<Task> action) where T : notnull =>
         Deserialize<T>(await Delta(topic, action));
 
-    public Task<IReadOnlyCollection<IMessage<string>>> ReceiveMessages(string queue, CancellationToken ctx) =>
+    public Task<IReadOnlyCollection<IMessage<string>>> ReceiveMessages(TopicId topic, CancellationToken ctx) =>
         Task.FromResult<IReadOnlyCollection<IMessage<string>>>(Array.Empty<IMessage<string>>());
 
-    public Task<IReadOnlyCollection<IMessage<string>>> ReceiveDeadLetters(string queue, CancellationToken ctx) =>
+    public Task<IReadOnlyCollection<IMessage<string>>> ReceiveDeadLetters(TopicId topic, CancellationToken ctx) =>
         Task.FromResult<IReadOnlyCollection<IMessage<string>>>(Array.Empty<IMessage<string>>());
 
     public Task Start(IReadOnlyCollection<IConsumerDescriber> describers, CancellationToken stoppingToken) =>

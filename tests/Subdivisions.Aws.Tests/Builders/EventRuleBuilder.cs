@@ -24,7 +24,7 @@ public class EventRuleBuilder
         Topic = new(EventName, config);
     }
 
-    internal TopicName Topic { get; }
+    internal TopicId Topic { get; }
     public string TopicName { get; }
     public string EventName { get; }
 
@@ -44,7 +44,7 @@ public class EventRuleBuilder
 
     public PutRuleRequest CreateRule() => new()
     {
-        Name = Topic.FullTopicName,
+        Name = Topic.TopicName,
         Description = faker.Lorem.Paragraph(),
         State = state,
         EventBusName = "default",

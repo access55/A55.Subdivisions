@@ -26,7 +26,7 @@ public class SubClientMessageActionTests : SubClientFixture
 
         await messages.Single().Delete();
 
-        (await sqs.GetMessageStats(Topic.FullQueueName))
+        (await sqs.GetMessageStats(Topic.QueueName))
             .Should().BeEquivalentTo((Processing: 0, Total: 0));
     }
 
@@ -41,7 +41,7 @@ public class SubClientMessageActionTests : SubClientFixture
         var messages = await client.Receive(Topic, default);
         await messages.Single().Release(TimeSpan.Zero);
 
-        (await sqs.HasMessagesOn(Topic.FullQueueName)).Should().BeTrue();
+        (await sqs.HasMessagesOn(Topic.QueueName)).Should().BeTrue();
     }
 
     [Test]

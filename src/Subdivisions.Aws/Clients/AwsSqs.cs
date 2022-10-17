@@ -13,8 +13,8 @@ readonly record struct QueueInfo(Uri Url, SqsArn Arn);
 
 interface IConsumeDriver
 {
-    Task<IReadOnlyCollection<IMessage>> ReceiveMessages(string queue, CancellationToken ctx);
-    Task<IReadOnlyCollection<IMessage>> ReceiveDeadLetters(string queue, CancellationToken ctx);
+    Task<IReadOnlyCollection<IMessage>> ReceiveMessages(TopicId topic, CancellationToken ctx);
+    Task<IReadOnlyCollection<IMessage>> ReceiveDeadLetters(TopicId topic, CancellationToken ctx);
 }
 
 sealed class AwsSqs : IConsumeDriver
@@ -193,8 +193,11 @@ sealed class AwsSqs : IConsumeDriver
             .ToArray();
     }
 
-    public Task<IReadOnlyCollection<IMessage>> ReceiveDeadLetters(string queue, CancellationToken ctx) =>
-        ReceiveMessages($"{DeadLetterPrefix}{queue}", ctx);
+    public Task<IReadOnlyCollection<IMessage>> ReceiveDeadLetters(TopicId topic, CancellationToken ctx) =>
+        ReceiveMessages($"{DeadLetterPrefix}{topic.QueueName}", ctx);
+
+    public Task<IReadOnlyCollection<IMessage>> ReceiveMessages(TopicId topic, CancellationToken ctx) =>
+        ReceiveMessages(topic.QueueName, ctx);
 
     class SqsEnvelope
     {

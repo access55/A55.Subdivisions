@@ -6,7 +6,7 @@ using Subdivisions.Models;
 
 namespace Subdivisions.Services;
 
-public interface ISubResourceManager
+interface ISubResourceManager
 {
     ValueTask EnsureQueueExists(string topic, CancellationToken ctx);
     ValueTask EnsureTopicExists(string topic, CancellationToken ctx);
@@ -41,34 +41,34 @@ class AwsResourceManager : ISubResourceManager
 
     public async ValueTask EnsureQueueExists(string topic, CancellationToken ctx)
     {
-        TopicName topicName = new(topic, config);
-        logger.LogDebug("Setting queue '{Queue}' up: Region={Region}", topicName.FullQueueName,
+        TopicId topicId = new(topic, config);
+        logger.LogDebug("Setting queue '{Queue}' up: Region={Region}", topicId.QueueName,
             config.RegionEndpoint().SystemName);
 
-        if (await sqs.QueueExists(topicName.FullQueueName, ctx))
+        if (await sqs.QueueExists(topicId.QueueName, ctx))
             return;
 
-        var topicArn = await sns.EnsureTopic(topicName, ctx);
-        var queueInfo = await sqs.CreateQueue(topicName.FullQueueName, ctx);
+        var topicArn = await sns.EnsureTopic(topicId, ctx);
+        var queueInfo = await sqs.CreateQueue(topicId.QueueName, ctx);
         await sns.Subscribe(topicArn, queueInfo.Arn, ctx);
     }
 
     public async ValueTask EnsureTopicExists(string topic, CancellationToken ctx)
     {
-        TopicName topicName = new(topic, config);
-        if (await events.RuleExists(topicName, ctx))
+        TopicId topicId = new(topic, config);
+        if (await events.RuleExists(topicId, ctx))
             return;
 
-        logger.LogDebug("Setting topic '{Topic}' up: Region={Region}", topicName.Topic,
+        logger.LogDebug("Setting topic '{Topic}' up: Region={Region}", topicId.Event,
             config.RegionEndpoint().SystemName);
 
         if (!config.AutoCreateNewTopic)
             throw new InvalidOperationException(
-                $"Topic '{topicName.FullTopicName}' for '{topicName.Topic}' does not exists");
+                $"Topic '{topicId.TopicName}' for '{topicId.Event}' does not exists");
 
-        await events.CreateRule(topicName, ctx);
-        var topicArn = await sns.EnsureTopic(topicName, ctx);
-        await events.PutTarget(topicName, topicArn, ctx);
+        await events.CreateRule(topicId, ctx);
+        var topicArn = await sns.EnsureTopic(topicId, ctx);
+        await events.PutTarget(topicId, topicArn, ctx);
     }
 
     public async Task SetupLocalstack(CancellationToken ctx)

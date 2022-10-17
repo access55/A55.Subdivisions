@@ -33,7 +33,7 @@ sealed class ConsumerDescriber : IConsumerDescriber
         ArgumentNullException.ThrowIfNull(messageType);
         config ??= new ConsumerConfig();
 
-        if (!Models.TopicName.IsValidTopicName(topicName))
+        if (!Models.TopicId.IsValidTopicName(topicName))
             throw new SubdivisionsException($"Invalid topic names: {topicName}");
 
         if (!consumerType.IsAssignableTo(typeof(IWeakConsumer)))

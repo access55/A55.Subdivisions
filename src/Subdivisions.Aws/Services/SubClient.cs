@@ -45,7 +45,7 @@ class AwsSubClient : ISubdivisionsClient
     public Task<IReadOnlyCollection<IMessage>> DeadLetters(string queueName, CancellationToken ctx = default)
     {
         var topic = CreateTopicName(queueName);
-        return consume.ReceiveDeadLetters(topic.FullQueueName, ctx);
+        return consume.ReceiveDeadLetters(topic, ctx);
     }
 
     public async Task<IReadOnlyCollection<IMessage<T>>> DeadLetters<T>(
@@ -67,19 +67,19 @@ class AwsSubClient : ISubdivisionsClient
     public Task<PublishResult> Publish(string topicName, string message, CancellationToken ctx = default) =>
         Publish(CreateTopicName(topicName), message, ctx);
 
-    TopicName CreateTopicName(string name) => new(name, config.Value);
+    TopicId CreateTopicName(string name) => new(name, config.Value);
 
-    internal async ValueTask<IReadOnlyCollection<IMessage>> Receive(TopicName topic, CancellationToken ctx) =>
-        await consume.ReceiveMessages(topic.FullQueueName, ctx);
+    internal async ValueTask<IReadOnlyCollection<IMessage>> Receive(TopicId topic, CancellationToken ctx) =>
+        await consume.ReceiveMessages(topic, ctx);
 
-    internal async Task<PublishResult> Publish(TopicName topic, string message, CancellationToken ctx)
+    internal async Task<PublishResult> Publish(TopicId topic, string message, CancellationToken ctx)
     {
-        logger.LogDebug("Publishing message on {Topic}", topic.FullTopicName);
-        await resources.EnsureTopicExists(topic.Topic, ctx);
+        logger.LogDebug("Publishing message on {Topic}", topic.TopicName);
+        await resources.EnsureTopicExists(topic.Event, ctx);
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(topic);
 
-        var publishResult = await producer.Produce(topic.Topic, message, ctx);
+        var publishResult = await producer.Produce(topic, message, ctx);
 
         return publishResult;
     }

@@ -9,10 +9,10 @@ public class SubClientFixture : LocalstackFixture
 {
     protected DateTime fakedDate;
     protected IAmazonSQS sqs = null!;
-    private protected TopicName Topic = null!;
+    private protected TopicId Topic = null!;
 
-    protected string TopicName => Topic.Topic;
-    protected string QueueName => Topic.FullQueueName;
+    protected string TopicName => Topic.Event;
+    protected string QueueName => Topic.QueueName;
 
     [SetUp]
     public async Task Setup()

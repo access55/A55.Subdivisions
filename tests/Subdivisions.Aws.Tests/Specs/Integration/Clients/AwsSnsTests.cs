@@ -62,8 +62,8 @@ public class AwsSnsTests : LocalstackFixture
 
         var sns = GetService<IAmazonSimpleNotificationService>();
         var sqs = GetService<IAmazonSQS>();
-        var topic = await sns.CreateTopicAsync(new CreateTopicRequest { Name = topicName.FullTopicName });
-        var queueResponse = await sqs.CreateQueueAsync(new CreateQueueRequest { QueueName = topicName.FullQueueName });
+        var topic = await sns.CreateTopicAsync(new CreateTopicRequest { Name = topicName.TopicName });
+        var queueResponse = await sqs.CreateQueueAsync(new CreateQueueRequest { QueueName = topicName.QueueName });
         var queue = await sqs.GetQueueAttributesAsync(queueResponse.QueueUrl,
             new List<string> { QueueAttributeName.QueueArn });
 

@@ -10,7 +10,7 @@ namespace Subdivisions.Clients;
 
 interface IProduceDriver
 {
-    Task<PublishResult> Produce(string topic, string message, CancellationToken ctx);
+    Task<PublishResult> Produce(TopicId topic, string message, CancellationToken ctx);
 }
 
 sealed class AwsEvents : IProduceDriver
@@ -35,35 +35,35 @@ sealed class AwsEvents : IProduceDriver
         this.config = config.Value;
     }
 
-    public async Task<bool> RuleExists(TopicName topicName, CancellationToken ctx)
+    public async Task<bool> RuleExists(TopicId topicId, CancellationToken ctx)
     {
-        var rules = await eventBridge.ListRulesAsync(new() { Limit = 100, NamePrefix = topicName.FullTopicName }, ctx);
+        var rules = await eventBridge.ListRulesAsync(new() { Limit = 100, NamePrefix = topicId.TopicName }, ctx);
 
         return rules is not null &&
-               rules.Rules.Any(r => r.Name.Trim() == topicName.FullTopicName && r.State == RuleState.ENABLED);
+               rules.Rules.Any(r => r.Name.Trim() == topicId.TopicName && r.State == RuleState.ENABLED);
     }
 
-    public Task PutTarget(TopicName topic, SnsArn snsArn, CancellationToken ctx) => eventBridge
+    public Task PutTarget(TopicId topic, SnsArn snsArn, CancellationToken ctx) => eventBridge
         .PutTargetsAsync(
             new()
             {
-                Rule = topic.FullTopicName,
+                Rule = topic.TopicName,
                 Targets = new List<Target>
                 {
-                    new() {Id = topic.FullTopicName, Arn = snsArn.Value, InputPath = "$.detail"}
+                    new() {Id = topic.TopicName, Arn = snsArn.Value, InputPath = "$.detail"}
                 }
             }, ctx);
 
-    public async Task<RuleArn> CreateRule(TopicName topicName, CancellationToken ctx)
+    public async Task<RuleArn> CreateRule(TopicId topicId, CancellationToken ctx)
     {
         var eventPattern =
-            $@"{{ ""detail-type"": [""{topicName.Topic}""], ""detail"": {{ ""event"": [""{topicName.Topic}""] }} }}";
+            $@"{{ ""detail-type"": [""{topicId.Event}""], ""detail"": {{ ""event"": [""{topicId.Event}""] }} }}";
 
         PutRuleRequest request = new()
         {
-            Name = topicName.FullTopicName,
+            Name = topicId.TopicName,
             Description =
-                $"Created in {Assembly.GetExecutingAssembly().GetName().Name} for {topicName.FullTopicName} events",
+                $"Created in {Assembly.GetExecutingAssembly().GetName().Name} for {topicId.TopicName} events",
             State = RuleState.ENABLED,
             EventBusName = "default",
             EventPattern = eventPattern
@@ -75,15 +75,15 @@ sealed class AwsEvents : IProduceDriver
         return new(response.RuleArn);
     }
 
-    public async Task<PublishResult> Produce(string topic, string message, CancellationToken ctx)
+    public async Task<PublishResult> Produce(TopicId topic, string message, CancellationToken ctx)
     {
         var messageId = Guid.NewGuid();
-        MessageEnvelope messagePayload = new(topic, clock.Now(), message, messageId);
+        MessageEnvelope messagePayload = new(topic.Event, clock.Now(), message, messageId);
         var payload = serializer.Serialize(messagePayload);
 
         PutEventsRequest request = new()
         {
-            Entries = new() { new() { DetailType = topic, Source = config.Source, Detail = payload } }
+            Entries = new() { new() { DetailType = topic.Event, Source = config.Source, Detail = payload } }
         };
         var response = await eventBridge.PutEventsAsync(request, ctx);
 
