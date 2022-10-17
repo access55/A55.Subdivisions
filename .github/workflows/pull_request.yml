@@ -1,0 +1,40 @@
+name: PR
+
+on:
+    workflow_dispatch:
+    push:
+        branches: ["master"]
+    pull_request:
+        branches: ["master"]
+        paths:
+            - "**/*.cs"
+            - "**/*.csproj"
+            - "global.json"
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        concurrency:
+            group: ${{ github.head_ref || github.ref_name }}
+            cancel-in-progress: true
+
+        steps:
+            - uses: actions/checkout@v2
+              with:
+                  fetch-depth: 0
+
+            - name: Setup .NET Core
+              uses: actions/setup-dotnet@v2
+              with:
+                  global-json-file: global.json
+
+            - name: Tool Restore
+              run: dotnet tool restore
+
+            - name: Build
+              run: dotnet nuke build
+
+            - name: Lint
+              run: dotnet nuke lint
+
+            - name: Test
+              run: dotnet nuke test

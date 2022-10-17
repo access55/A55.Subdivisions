@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <PropertyGroup>
+    <PackageId>A55.Subdivisions.Aws</PackageId>
     <PackageIcon>icon.png</PackageIcon>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -41,6 +42,9 @@
     <RepositoryUrl>https://github.com/access55/A55.Subdivisions</RepositoryUrl>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
