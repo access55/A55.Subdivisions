@@ -42,7 +42,7 @@ class AwsResourceManager : ISubResourceManager
     public async ValueTask EnsureQueueExists(string topic, CancellationToken ctx)
     {
         TopicId topicId = new(topic, config);
-        logger.LogDebug("Setting queue '{Queue}' up: Region={Region}", topicId.QueueName,
+        logger.LogInformation("Setting queue '{Queue}' up: Region={Region}", topicId.QueueName,
             config.RegionEndpoint().SystemName);
 
         if (await sqs.QueueExists(topicId.QueueName, ctx))
@@ -51,6 +51,18 @@ class AwsResourceManager : ISubResourceManager
         var topicArn = await sns.EnsureTopic(topicId, ctx);
         var queueInfo = await sqs.CreateQueue(topicId.QueueName, ctx);
         await sns.Subscribe(topicArn, queueInfo.Arn, ctx);
+
+        await WaitForQueue(topicId.QueueName, ctx).WaitAsync(TimeSpan.FromMinutes(3), ctx);
+    }
+
+    async Task WaitForQueue(string queueName, CancellationToken ctx)
+    {
+        while (await sqs.GetQueue(queueName, ctx) is null)
+        {
+            logger.LogInformation("Waiting queue be available...");
+            await Task.Delay(1000, ctx);
+            logger.LogInformation("Waiting available!");
+        }
     }
 
     public async ValueTask EnsureTopicExists(string topic, CancellationToken ctx)

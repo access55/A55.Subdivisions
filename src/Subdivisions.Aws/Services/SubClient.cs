@@ -74,7 +74,7 @@ class AwsSubClient : ISubdivisionsClient
 
     internal async Task<PublishResult> Publish(TopicId topic, string message, CancellationToken ctx)
     {
-        logger.LogDebug("Publishing message on {Topic}", topic.TopicName);
+        logger.LogInformation("Publishing message on {Topic}", topic.TopicName);
         await resources.EnsureTopicExists(topic.Event, ctx);
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(topic);

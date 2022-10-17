@@ -163,7 +163,8 @@ public class SubConfigBuilderTests : BaseTest
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string>
             {
-                ["Subdivisions:Localstack"] = "true", ["Subdivisions:Source"] = "app"
+                ["Subdivisions:Localstack"] = "true",
+                ["Subdivisions:Source"] = "app"
             })
             .Build();
         var services = new ServiceCollection()

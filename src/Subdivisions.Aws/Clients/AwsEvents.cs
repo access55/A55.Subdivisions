@@ -87,6 +87,9 @@ sealed class AwsEvents : IProduceDriver
         };
         var response = await eventBridge.PutEventsAsync(request, ctx);
 
+        if (response.FailedEntryCount > 0)
+            throw new SubdivisionsException(string.Join(",", response.Entries.Select(x => x.ErrorMessage)));
+
         return new(response.FailedEntryCount is 0, messageId);
     }
 }
