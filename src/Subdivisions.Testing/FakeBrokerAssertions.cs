@@ -126,9 +126,9 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
 
     #endregion
 
-    #region MessagesBe
+    #region HaveMessages
 
-    AndConstraint<FakeBrokerAssertions> MessagesBeAssert(
+    AndConstraint<FakeBrokerAssertions> HaveMessagesAssert(
         object topicAndMessages, bool not,
         string because = "", params string[] becauseArgs)
     {
@@ -145,12 +145,12 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
         return new AndConstraint<FakeBrokerAssertions>(this);
     }
 
-    public AndConstraint<FakeBrokerAssertions> MessagesBe(
+    public AndConstraint<FakeBrokerAssertions> HaveMessages(
         object topicAndMessages,
         string because = "", params string[] becauseArgs) =>
-        MessagesBeAssert(topicAndMessages, not: false, because, becauseArgs);
+        HaveMessagesAssert(topicAndMessages, not: false, because, becauseArgs);
 
-    public AndConstraint<FakeBrokerAssertions> MessagesBe(
+    public AndConstraint<FakeBrokerAssertions> HaveMessages(
         Dictionary<string, object[]> messages,
         string because = "", params string[] becauseArgs)
     {
@@ -158,10 +158,10 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
             x => x.Key,
             x => x.Value.Select(v => JsonSerializer.Serialize(v)).ToArray());
 
-        return JsonMessagesBe(strMessages, because, becauseArgs);
+        return HaveJsonMessages(strMessages, because, becauseArgs);
     }
 
-    public AndConstraint<FakeBrokerAssertions> NotMessagesBe(
+    public AndConstraint<FakeBrokerAssertions> NotHaveMessages(
         Dictionary<string, object[]> messages,
         string because = "", params string[] becauseArgs)
     {
@@ -169,13 +169,13 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
             x => x.Key,
             x => x.Value.Select(v => JsonSerializer.Serialize(v)).ToArray());
 
-        return NotJsonMessagesBe(strMessages, because, becauseArgs);
+        return NotHaveJsonMessages(strMessages, because, becauseArgs);
     }
 
-    public AndConstraint<FakeBrokerAssertions> NotMessagesBe(
+    public AndConstraint<FakeBrokerAssertions> NotHaveMessages(
         object topicAndMessages,
         string because = "", params string[] becauseArgs) =>
-        MessagesBeAssert(topicAndMessages, not: true, because, becauseArgs);
+        HaveMessagesAssert(topicAndMessages, not: true, because, becauseArgs);
 
     AndConstraint<FakeBrokerAssertions> JsonMessagesBeAssertion(
         Dictionary<string, string[]> messages, bool not,
@@ -194,13 +194,13 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
         return new AndConstraint<FakeBrokerAssertions>(this);
     }
 
-    public AndConstraint<FakeBrokerAssertions> JsonMessagesBe(
+    public AndConstraint<FakeBrokerAssertions> HaveJsonMessages(
         Dictionary<string, string[]> messages,
         string because = "",
         params string[] becauseArgs) =>
         JsonMessagesBeAssertion(messages, not: false, because, becauseArgs);
 
-    public AndConstraint<FakeBrokerAssertions> NotJsonMessagesBe(
+    public AndConstraint<FakeBrokerAssertions> NotHaveJsonMessages(
         Dictionary<string, string[]> messages,
         string because = "",
         params string[] becauseArgs) =>
@@ -208,9 +208,9 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
 
     #endregion
 
-    #region BeMessagesEquivalent
+    #region ContainMessagesEquivalentTo
 
-    public AndConstraint<FakeBrokerAssertions> BeMessagesEquivalent(
+    public AndConstraint<FakeBrokerAssertions> ContainMessagesEquivalentTo(
         object topicAndMessages,
         string because = "", params string[] becauseArgs)
     {
@@ -223,7 +223,7 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
         return new AndConstraint<FakeBrokerAssertions>(this);
     }
 
-    public AndConstraint<FakeBrokerAssertions> BeMessagesEquivalent(
+    public AndConstraint<FakeBrokerAssertions> ContainMessagesEquivalentTo(
         Dictionary<string, object[]> messages,
         string because = "", params string[] becauseArgs)
     {
@@ -231,10 +231,10 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
             x => x.Key,
             x => x.Value.Select(v => JsonSerializer.Serialize(v)).ToArray());
 
-        return BeMessagesJsonEqual(strMessages, because, becauseArgs);
+        return ContainJsonMessageSubtree(strMessages, because, becauseArgs);
     }
 
-    public AndConstraint<FakeBrokerAssertions> BeMessagesJsonEqual(
+    public AndConstraint<FakeBrokerAssertions> ContainJsonMessageSubtree(
         Dictionary<string, string[]> messages,
         string because = "",
         params string[] becauseArgs)

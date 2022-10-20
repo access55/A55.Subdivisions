@@ -72,56 +72,56 @@ public static class AsyncExtensions
         this Task<FakeBrokerAssertions> @this,
         object topicAndMessages,
         string because = "", params string[] becauseArgs)
-        => (await @this).MessagesBe(topicAndMessages, because, becauseArgs);
+        => (await @this).HaveMessages(topicAndMessages, because, becauseArgs);
 
     public static async Task MessagesBe(
         this Task<FakeBrokerAssertions> @this,
         Dictionary<string, object[]> messages,
         string because = "", params string[] becauseArgs)
-        => (await @this).MessagesBe(messages, because, becauseArgs);
+        => (await @this).HaveMessages(messages, because, becauseArgs);
 
     public static async Task NotMessagesBe(
         this Task<FakeBrokerAssertions> @this,
         Dictionary<string, object[]> messages,
         string because = "", params string[] becauseArgs)
-        => (await @this).NotMessagesBe(messages, because, becauseArgs);
+        => (await @this).NotHaveMessages(messages, because, becauseArgs);
 
     public static async Task NotMessagesBe(
         this Task<FakeBrokerAssertions> @this,
         object topicAndMessages,
         string because = "", params string[] becauseArgs)
-        => (await @this).NotMessagesBe(topicAndMessages, because, becauseArgs);
+        => (await @this).NotHaveMessages(topicAndMessages, because, becauseArgs);
 
     public static async Task JsonMessagesBe(
         this Task<FakeBrokerAssertions> @this,
         Dictionary<string, string[]> messages,
         string because = "",
         params string[] becauseArgs)
-        => (await @this).JsonMessagesBe(messages, because, becauseArgs);
+        => (await @this).HaveJsonMessages(messages, because, becauseArgs);
 
     public static async Task NotJsonMessagesBe(
         this Task<FakeBrokerAssertions> @this,
         Dictionary<string, string[]> messages,
         string because = "",
         params string[] becauseArgs)
-        => (await @this).NotJsonMessagesBe(messages, because, becauseArgs);
+        => (await @this).NotHaveJsonMessages(messages, because, becauseArgs);
 
     public static async Task BeMessagesEquivalent(
         this Task<FakeBrokerAssertions> @this,
         object topicAndMessages,
         string because = "", params string[] becauseArgs)
-        => (await @this).BeMessagesEquivalent(topicAndMessages, because, becauseArgs);
+        => (await @this).ContainMessagesEquivalentTo(topicAndMessages, because, becauseArgs);
 
     public static async Task BeMessagesEquivalent(
         this Task<FakeBrokerAssertions> @this,
         Dictionary<string, object[]> messages,
         string because = "", params string[] becauseArgs)
-        => (await @this).BeMessagesEquivalent(messages, because, becauseArgs);
+        => (await @this).ContainMessagesEquivalentTo(messages, because, becauseArgs);
 
     public static async Task BeMessagesJsonEqual(
         this Task<FakeBrokerAssertions> @this,
         Dictionary<string, string[]> messages,
         string because = "",
         params string[] becauseArgs)
-        => (await @this).BeMessagesJsonEqual(messages, because, becauseArgs);
+        => (await @this).ContainJsonMessageSubtree(messages, because, becauseArgs);
 }

@@ -172,7 +172,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        broker.Should().JsonMessagesBe(new()
+        broker.Should().HaveJsonMessages(new()
         {
             ["my_recur_topic"] = new[] { message.ToJson() },
             ["my_topic"] = new[] { new MyMessage1 { Foo = message.Bar, Id = message.Id }.ToJson() }
@@ -187,7 +187,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        var action = () => broker.Should().NotJsonMessagesBe(new()
+        var action = () => broker.Should().NotHaveJsonMessages(new()
         {
             ["my_recur_topic"] = new[] { message.ToJson() },
             ["my_topic"] = new[] { new MyMessage1 { Foo = message.Bar, Id = message.Id }.ToJson() }
@@ -204,7 +204,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        broker.Should().MessagesBe(new()
+        broker.Should().HaveMessages(new()
         {
             ["my_recur_topic"] = new[] { new { id = message.Id, bar = message.Bar } },
             ["my_topic"] = new[] { new { id = message.Id, foo = message.Bar } }
@@ -219,7 +219,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        var action = () => broker.Should().NotMessagesBe(new()
+        var action = () => broker.Should().NotHaveMessages(new()
         {
             ["my_recur_topic"] = new[] { new { id = message.Id, bar = message.Bar } },
             ["my_topic"] = new[] { new { id = message.Id, foo = message.Bar } }
@@ -236,7 +236,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        broker.Should().MessagesBe(new
+        broker.Should().HaveMessages(new
         {
             my_recur_topic = new[] { new { id = message.Id, bar = message.Bar } },
             my_topic = new[] { new { id = message.Id, foo = message.Bar } }
@@ -251,7 +251,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        var action = () => broker.Should().NotMessagesBe(new
+        var action = () => broker.Should().NotHaveMessages(new
         {
             my_recur_topic = new[] { new { id = message.Id, bar = message.Bar } },
             my_topic = new[] { new { id = message.Id, foo = message.Bar } }
@@ -259,7 +259,7 @@ public class FakeBrokerAssertionsTests
 
         action.Should().Throw<AssertionException>();
 
-        broker.Should().NotMessagesBe(new { my_topic = new[] { new { id = Guid.NewGuid(), foo = "message" } } });
+        broker.Should().NotHaveMessages(new { my_topic = new[] { new { id = Guid.NewGuid(), foo = "message" } } });
     }
 
     [Test]
@@ -270,7 +270,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        broker.Should().BeMessagesEquivalent(new
+        broker.Should().ContainMessagesEquivalentTo(new
         {
             my_recur_topic = new[] { new { id = message.Id } },
             my_topic = new[] { new { foo = message.Bar } }
@@ -285,7 +285,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        broker.Should().BeMessagesJsonEqual(new() { ["my_recur_topic"] = new[] { $@"{{""id"":""{message.Id}""}}" } });
+        broker.Should().ContainJsonMessageSubtree(new() { ["my_recur_topic"] = new[] { $@"{{""id"":""{message.Id}""}}" } });
     }
 
     [Test]
@@ -296,7 +296,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        broker.Should().BeMessagesEquivalent(new() { ["my_recur_topic"] = new[] { new { id = message.Id } } });
+        broker.Should().ContainMessagesEquivalentTo(new() { ["my_recur_topic"] = new[] { new { id = message.Id } } });
     }
 
     [Test]
