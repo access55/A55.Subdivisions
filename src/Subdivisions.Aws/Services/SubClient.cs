@@ -22,8 +22,8 @@ class AwsSubClient : ISubdivisionsClient
         IOptions<SubConfig> config,
         ISubMessageSerializer serializer,
         ISubResourceManager resources,
-        ICorrelationResolver correlationResolver,
         IProduceDriver producer,
+        ICorrelationResolver correlationResolver,
         IConsumeDriver consume
     )
     {
@@ -84,11 +84,12 @@ class AwsSubClient : ISubdivisionsClient
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(topic);
 
-        logger.LogInformation("Publishing message on {Topic}", topic.TopicName);
+        logger.LogDebug("Start send message on {Topic}", topic.TopicName);
         await resources.EnsureTopicExists(topic.Event, ctx);
-        correlationId ??= correlationResolver.GetId();
-        var publishResult = await producer.Produce(topic, message, correlationId, ctx);
-
+        var validCorrelationId = correlationId ?? correlationResolver.GetId();
+        var publishResult = await producer.Produce(topic, message, validCorrelationId, ctx);
+        logger.LogInformation($"<- {topic.TopicName}[{publishResult.CorrelationId}.{publishResult.MessageId}]");
+        logger.LogDebug("End send message on {Topic}", topic.TopicName);
         return publishResult;
     }
 }

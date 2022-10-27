@@ -87,7 +87,7 @@ class BuildProject : NukeBuild
         .Description("Stops the localstack container in docker")
         .AssuredAfterFailure()
         .Executes(() => DockerStop(s => s.SetContainers(localstackContainerName)));
-    
+
     Target Lint => _ => _
         .Description("Check for codebase formatting and analysers")
         .DependsOn(Build)

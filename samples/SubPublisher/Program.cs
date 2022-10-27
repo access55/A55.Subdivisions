@@ -1,3 +1,4 @@
+using CorrelationId;
 using Subdivisions;
 using SubPublisher;
 
@@ -9,6 +10,7 @@ builder.Services.AddSubdivisions(sub =>
 });
 
 var app = builder.Build();
+app.UseCorrelationId();
 
 app.MapGet("/publish/{name}", async (
     IProducer<MyMessage> publisher,

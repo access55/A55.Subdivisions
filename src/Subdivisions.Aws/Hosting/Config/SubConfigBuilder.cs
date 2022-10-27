@@ -8,7 +8,7 @@ namespace Subdivisions.Hosting.Config;
 public sealed class SubConfigBuilder : SubConfig
 {
     readonly IServiceCollection services;
-    bool customCorrelationId;
+    internal bool CustomCorrelationId { get; private set; }
 
     public SubConfigBuilder(IServiceCollection services)
     {
@@ -30,7 +30,7 @@ public sealed class SubConfigBuilder : SubConfig
 
     public ICorrelationIdBuilder WithCorrelationId(Action<CorrelationIdOptions> config)
     {
-        customCorrelationId = true;
+        CustomCorrelationId = true;
         return AddSubdivisionsCorrelationId(config);
     }
 
@@ -40,13 +40,7 @@ public sealed class SubConfigBuilder : SubConfig
     public void OnError<TListener>() where TListener : class, ISubErrorListener =>
         services.AddSingleton<ISubErrorListener, TListener>();
 
-    internal void Configure(SubConfig config)
-    {
-        if (!customCorrelationId)
-            AddSubdivisionsCorrelationId();
-
-        CopyProperties(this, config);
-    }
+    internal void ConfigureOptions(SubConfig config) => CopyProperties(this, config);
 
     ICorrelationIdBuilder AddSubdivisionsCorrelationId(Action<CorrelationIdOptions>? configure = null)
     {
@@ -55,6 +49,12 @@ public sealed class SubConfigBuilder : SubConfig
             : services.AddCorrelationId(configure);
         builder.WithCustomProvider<NewIdCorrelationIdProvider>();
         return builder;
+    }
+
+    internal void ConfigureServices()
+    {
+        if (!CustomCorrelationId)
+            AddSubdivisionsCorrelationId();
     }
 
     static void CopyProperties<TSource, TDest>(TSource source, TDest dest) where TDest : new()

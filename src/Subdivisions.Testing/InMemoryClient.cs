@@ -66,7 +66,7 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
     {
         var topicName = topic.Event;
         var id = NewId.NextGuid();
-        var payload = new LocalMessage<string>(message) {MessageId = id, Datetime = subClock.Now(), RetryNumber = 0};
+        var payload = new LocalMessage<string>(message) { MessageId = id, Datetime = subClock.Now(), RetryNumber = 0 };
 
         if (!produced.ContainsKey(topicName))
             produced.Add(topicName, new());
@@ -151,6 +151,9 @@ class LocalMessage<T> : IMessage<T> where T : notnull
     public IMessage<TMap> Map<TMap>(Func<T, TMap> selector) where TMap : notnull =>
         new LocalMessage<TMap>(selector(Body))
         {
-            MessageId = MessageId, Datetime = Datetime, CorrelationId = CorrelationId, RetryNumber = RetryNumber
+            MessageId = MessageId,
+            Datetime = Datetime,
+            CorrelationId = CorrelationId,
+            RetryNumber = RetryNumber
         };
 }

@@ -16,6 +16,8 @@ public static class Subdivisions
             .AddSubdivisionsServices(config, credentials)
             .AddLogging(logConfig ?? delegate { })
             .BuildServiceProvider()
+            .CreateScope()
+            .ServiceProvider
             .GetRequiredService<ISubdivisionsClient>();
 
     public static IProducerClient CreateProducer(

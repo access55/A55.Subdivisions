@@ -17,8 +17,9 @@ public static class HostingExtensions
     {
         var builder = new SubConfigBuilder(services);
         config?.Invoke(builder);
+        builder.ConfigureServices();
         return services
-            .AddSubdivisionsServices(builder.Configure, credentials)
+            .AddSubdivisionsServices(builder.ConfigureOptions, credentials)
             .AddScoped<ISubCorrelationIdContext, SubCorrelationIdContext>()
             .AddSingleton<IConsumerFactory, ConsumerFactory>()
             .AddSingleton<IConsumerJob, ConcurrentConsumerJob>()

@@ -53,7 +53,7 @@ public class SubClientMessageActionTests : SubClientFixture
         var delay = TimeSpan.FromSeconds(8);
         var client = (AwsSubClient)GetService<ISubdivisionsClient>();
 
-        await client.Publish(Topic, message,null, default);
+        await client.Publish(Topic, message, null, default);
         var messages = await client.Receive(Topic, default);
         await messages.Single().Release(delay);
 

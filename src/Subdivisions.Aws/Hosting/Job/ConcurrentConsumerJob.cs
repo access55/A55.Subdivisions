@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Subdivisions.Models;
@@ -10,18 +11,18 @@ sealed class ConcurrentConsumerJob : IConsumerJob
     readonly IOptionsMonitor<SubConfig> config;
     readonly IConsumerFactory consumerFactory;
     readonly ILogger<ConcurrentConsumerJob> logger;
-    readonly ISubdivisionsClient sub;
+    readonly IServiceProvider provider;
 
     public ConcurrentConsumerJob(
         ILogger<ConcurrentConsumerJob> logger,
         IOptionsMonitor<SubConfig> config,
-        ISubdivisionsClient sub,
+        IServiceProvider provider,
         IConsumerFactory consumerFactory
     )
     {
         this.logger = logger;
         this.config = config;
-        this.sub = sub;
+        this.provider = provider;
         this.consumerFactory = consumerFactory;
     }
 
@@ -46,6 +47,8 @@ sealed class ConcurrentConsumerJob : IConsumerJob
         CancellationToken ctx)
     {
         using PeriodicTimer timer = new(describer.PollingInterval);
+        await using var scope = provider.CreateAsyncScope();
+        var sub = scope.ServiceProvider.GetRequiredService<IConsumerClient>();
 
         while (await timer.WaitForNextTickAsync(ctx))
             try

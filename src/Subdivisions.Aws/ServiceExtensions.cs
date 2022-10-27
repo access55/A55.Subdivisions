@@ -62,15 +62,15 @@ public static class ServicesExtensions
 
         services
             .AddSingleton<ISubClock, UtcClock>()
-            .AddScoped<ICorrelationResolver, CorrelationResolver>()
             .AddSingleton<IConsumeDriver, AwsSqs>()
             .AddSingleton<IProduceDriver, AwsEvents>()
             .AddSingleton<IRetryStrategy, Power2RetryStrategy>()
             .AddSingleton<ISubMessageSerializer, SubJsonSerializer>()
             .AddTransient<ISubResourceManager, AwsResourceManager>()
-            .AddTransient<ISubdivisionsClient, AwsSubClient>()
-            .AddTransient<IProducerClient>(sp => sp.GetRequiredService<ISubdivisionsClient>())
-            .AddTransient<IConsumerClient>(sp => sp.GetRequiredService<ISubdivisionsClient>());
+            .AddScoped<ICorrelationResolver, CorrelationResolver>()
+            .AddScoped<ISubdivisionsClient, AwsSubClient>()
+            .AddScoped<IProducerClient>(sp => sp.GetRequiredService<ISubdivisionsClient>())
+            .AddScoped<IConsumerClient>(sp => sp.GetRequiredService<ISubdivisionsClient>());
 
         return services;
     }

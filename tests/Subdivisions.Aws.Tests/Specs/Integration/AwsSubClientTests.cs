@@ -13,7 +13,7 @@ public class SubClientTests : SubClientFixture
         var message = faker.Lorem.Lines();
 
         var client = (AwsSubClient)GetService<ISubdivisionsClient>();
-        var published = await client.Publish(Topic, message,null, default);
+        var published = await client.Publish(Topic, message, null, default);
 
         var messages = await client.Receive(Topic, default);
 

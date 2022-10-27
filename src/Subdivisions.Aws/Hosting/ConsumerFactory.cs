@@ -35,7 +35,7 @@ class ConsumerFactory : IConsumerFactory
         where TMessage : IMessage<string>
     {
         var header =
-            $"-> {describer.TopicName}[{message.CorrelationId}.{message.MessageId}]";
+            $"-> {describer.TopicName}[{message.CorrelationId?.ToString() ?? "EMPTY-CORRELATION-ID"}.{message.MessageId}]";
 
         logger.LogInformation("{Header} Consuming [published at {MessageDate}]", header, message.Datetime);
         await using var scope = provider.CreateAsyncScope();

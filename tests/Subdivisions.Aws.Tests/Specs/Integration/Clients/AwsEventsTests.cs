@@ -98,7 +98,7 @@ public class AwsEventsTests : LocalstackFixture
         var message = JsonSerializer.Serialize(new { Loren = faker.Lorem.Paragraph() });
         var queue = await SetupQueueRule(topic);
 
-        var result = await sut.Produce(topic, message, null,default);
+        var result = await sut.Produce(topic, message, null, default);
         result.IsSuccess.Should().BeTrue();
 
         var response = await GetService<IAmazonSQS>().ReceiveMessageAsync(queue);

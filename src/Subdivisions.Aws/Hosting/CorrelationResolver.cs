@@ -1,4 +1,4 @@
-﻿using CorrelationId;
+using CorrelationId;
 using CorrelationId.Abstractions;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
@@ -22,7 +22,8 @@ class CorrelationResolver : ICorrelationResolver
 
     public CorrelationResolver(ICorrelationContextAccessor? contextAccessor = null) =>
         correlationId =
-            Guid.TryParse(contextAccessor?.CorrelationContext.CorrelationId, out var parsedId)
+            contextAccessor is { CorrelationContext.CorrelationId: { } strId } &&
+            Guid.TryParse(strId, out var parsedId)
                 ? parsedId
                 : null;
 
