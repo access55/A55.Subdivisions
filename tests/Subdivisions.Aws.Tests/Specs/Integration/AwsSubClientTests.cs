@@ -18,7 +18,7 @@ public class SubClientTests : SubClientFixture
         var messages = await client.Receive(Topic, default);
 
         messages.Should()
-            .BeEquivalentTo(new[] { new { Body = message, Datetime = fakedDate, published.MessageId } });
+            .BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate, published.MessageId}});
     }
 
     [Test]
@@ -33,7 +33,7 @@ public class SubClientTests : SubClientFixture
 
         var messages = await client.Receive(stringTopicName);
 
-        messages.Should().BeEquivalentTo(new[] { new { Body = message, Datetime = fakedDate, published.MessageId } });
+        messages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate, published.MessageId}});
     }
 
     [Test]
@@ -48,7 +48,7 @@ public class SubClientTests : SubClientFixture
 
         var messages = await client.Receive<TestMessage>(stringTopicName);
 
-        messages.Should().BeEquivalentTo(new[] { new { Body = message, Datetime = fakedDate } });
+        messages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
     }
 
     [Test]
@@ -64,12 +64,12 @@ public class SubClientTests : SubClientFixture
         var published = await producer.Publish(TopicName, message);
 
         await WaitFor(() => sqs.HasMessagesOn(Topic.QueueName));
-
         var messages1 = await consumer1.Receive<TestMessage>(TopicName);
+        await Task.Delay(1000);
         var messages2 = await consumer2.Receive<TestMessage>(TopicName);
         var messages3 = await consumer3.Receive<TestMessage>(TopicName);
 
-        var expected = new[] { new { Body = message, Datetime = fakedDate, published.MessageId } };
+        var expected = new[] {new {Body = message, Datetime = fakedDate, published.MessageId}};
         messages1.Should().BeEquivalentTo(expected);
         messages2.Should().BeEquivalentTo(expected);
         messages3.Should().BeEquivalentTo(expected);
@@ -88,7 +88,7 @@ public class SubClientTests : SubClientFixture
 
         var messages = await client.Receive<TestMessage>(stringTopicName);
 
-        messages.Should().BeEquivalentTo(new[] { new { Body = strongMessage, Datetime = fakedDate } });
+        messages.Should().BeEquivalentTo(new[] {new {Body = strongMessage, Datetime = fakedDate}});
     }
 
     [Test]
