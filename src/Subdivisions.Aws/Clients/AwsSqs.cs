@@ -187,6 +187,7 @@ sealed class AwsSqs : IConsumeDriver
                     message.DateTime,
                     DeleteMessage,
                     ReleaseMessage,
+                    message.CorrelationId,
                     receivedCount - 1);
             })
             .Cast<IMessage>()

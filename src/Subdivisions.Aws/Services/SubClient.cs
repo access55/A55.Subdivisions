@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Subdivisions.Clients;
+using Subdivisions.Hosting;
 using Subdivisions.Models;
 
 namespace Subdivisions.Services;
@@ -10,6 +11,7 @@ class AwsSubClient : ISubdivisionsClient
     readonly IOptions<SubConfig> config;
     readonly ILogger<AwsSubClient> logger;
     readonly ISubResourceManager resources;
+    readonly ICorrelationResolver correlationResolver;
     readonly ISubMessageSerializer serializer;
 
     readonly IProduceDriver producer;
@@ -20,6 +22,7 @@ class AwsSubClient : ISubdivisionsClient
         IOptions<SubConfig> config,
         ISubMessageSerializer serializer,
         ISubResourceManager resources,
+        ICorrelationResolver correlationResolver,
         IProduceDriver producer,
         IConsumeDriver consume
     )
@@ -28,6 +31,7 @@ class AwsSubClient : ISubdivisionsClient
         this.config = config;
         this.serializer = serializer;
         this.resources = resources;
+        this.correlationResolver = correlationResolver;
         this.producer = producer;
         this.consume = consume;
     }
@@ -57,29 +61,33 @@ class AwsSubClient : ISubdivisionsClient
         return message.Select(m => m.Map(s => serializer.Deserialize<T>(s))).ToArray();
     }
 
-    public Task<PublishResult> Publish<T>(string topicName, T message, CancellationToken ctx = default)
+    public Task<PublishResult> Publish<T>(string topicName, T message, Guid? correlationId = null,
+        CancellationToken ctx = default)
         where T : notnull
     {
         var rawMessage = serializer.Serialize(message);
-        return Publish(topicName, rawMessage, ctx);
+        return Publish(topicName, rawMessage, correlationId, ctx);
     }
 
-    public Task<PublishResult> Publish(string topicName, string message, CancellationToken ctx = default) =>
-        Publish(CreateTopicName(topicName), message, ctx);
+    public Task<PublishResult> Publish(string topicName, string message, Guid? correlationId = null,
+        CancellationToken ctx = default) =>
+        Publish(CreateTopicName(topicName), message, correlationId, ctx);
 
     TopicId CreateTopicName(string name) => new(name, config.Value);
 
     internal async ValueTask<IReadOnlyCollection<IMessage>> Receive(TopicId topic, CancellationToken ctx) =>
         await consume.ReceiveMessages(topic, ctx);
 
-    internal async Task<PublishResult> Publish(TopicId topic, string message, CancellationToken ctx)
+    internal async Task<PublishResult> Publish(TopicId topic, string message, Guid? correlationId,
+        CancellationToken ctx)
     {
-        logger.LogInformation("Publishing message on {Topic}", topic.TopicName);
-        await resources.EnsureTopicExists(topic.Event, ctx);
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(topic);
 
-        var publishResult = await producer.Produce(topic, message, ctx);
+        logger.LogInformation("Publishing message on {Topic}", topic.TopicName);
+        await resources.EnsureTopicExists(topic.Event, ctx);
+        correlationId ??= correlationResolver.GetId();
+        var publishResult = await producer.Produce(topic, message, correlationId, ctx);
 
         return publishResult;
     }

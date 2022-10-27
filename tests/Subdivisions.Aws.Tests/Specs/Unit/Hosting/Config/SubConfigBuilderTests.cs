@@ -29,7 +29,7 @@ public class SubConfigBuilderTests : BaseTest
         var message = TestMessage.New();
         await producer.Publish(message);
 
-        A.CallTo(() => client.Publish("test-topic", message, default))
+        A.CallTo(() => client.Publish("test-topic", message, null, default))
             .MustHaveHappened();
     }
 

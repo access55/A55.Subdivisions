@@ -35,12 +35,15 @@ class ConsumerFactory : IConsumerFactory
         where TMessage : IMessage<string>
     {
         var header =
-            $"-> {describer.TopicName}[{message.MessageId}]";
+            $"-> {describer.TopicName}[{message.CorrelationId}.{message.MessageId}]";
 
         logger.LogInformation("{Header} Consuming [published at {MessageDate}]", header, message.Datetime);
         await using var scope = provider.CreateAsyncScope();
-        var instance = scope.ServiceProvider.GetRequiredService(describer.ConsumerType);
 
+        using var correlationResolver = scope.ServiceProvider.GetRequiredService<ISubCorrelationIdContext>();
+        correlationResolver.Create(message.CorrelationId);
+
+        var instance = scope.ServiceProvider.GetRequiredService(describer.ConsumerType);
         if (instance is not IWeakConsumer consumer)
             throw new InvalidOperationException($"Invalid consumer type: {describer.ConsumerType} in {header}");
 

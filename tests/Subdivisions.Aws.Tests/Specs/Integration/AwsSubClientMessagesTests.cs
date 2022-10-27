@@ -20,7 +20,7 @@ public class SubClientMessageActionTests : SubClientFixture
         var message = faker.Lorem.Lines();
 
         var client = (AwsSubClient)GetService<ISubdivisionsClient>();
-        await client.Publish(Topic, message, default);
+        await client.Publish(Topic, message, null, default);
 
         var messages = await client.Receive(Topic, default);
 
@@ -36,7 +36,7 @@ public class SubClientMessageActionTests : SubClientFixture
         var message = faker.Lorem.Lines();
 
         var client = (AwsSubClient)GetService<ISubdivisionsClient>();
-        await client.Publish(Topic, message, default);
+        await client.Publish(Topic, message, null, default);
 
         var messages = await client.Receive(Topic, default);
         await messages.Single().Release(TimeSpan.Zero);
@@ -53,7 +53,7 @@ public class SubClientMessageActionTests : SubClientFixture
         var delay = TimeSpan.FromSeconds(8);
         var client = (AwsSubClient)GetService<ISubdivisionsClient>();
 
-        await client.Publish(Topic, message, default);
+        await client.Publish(Topic, message,null, default);
         var messages = await client.Receive(Topic, default);
         await messages.Single().Release(delay);
 

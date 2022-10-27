@@ -17,5 +17,5 @@ public interface IConsumer : IConsumer<string>
 
 public interface IProducer<TMessage> where TMessage : notnull
 {
-    public Task<PublishResult> Publish(TMessage message, CancellationToken ctx = default);
+    public Task<PublishResult> Publish(TMessage message, Guid? correlationId = null, CancellationToken ctx = default);
 }

@@ -11,6 +11,6 @@ class TypedProducer<TMessage> : IProducer<TMessage> where TMessage : notnull
         this.producer = producer;
     }
 
-    public Task<PublishResult> Publish(TMessage message, CancellationToken ctx = default) =>
-        producer.Publish(topicName, message, ctx);
+    public Task<PublishResult> Publish(TMessage message, Guid? correlationId = null, CancellationToken ctx = default) =>
+        producer.Publish(topicName, message, correlationId, ctx);
 }

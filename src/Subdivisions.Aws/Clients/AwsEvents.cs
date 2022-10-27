@@ -1,6 +1,7 @@
 using System.Reflection;
 using Amazon.EventBridge;
 using Amazon.EventBridge.Model;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Subdivisions.Models;
@@ -10,7 +11,7 @@ namespace Subdivisions.Clients;
 
 interface IProduceDriver
 {
-    Task<PublishResult> Produce(TopicId topic, string message, CancellationToken ctx);
+    Task<PublishResult> Produce(TopicId topic, string message, Guid? correlationId, CancellationToken ctx);
 }
 
 sealed class AwsEvents : IProduceDriver
@@ -37,7 +38,7 @@ sealed class AwsEvents : IProduceDriver
 
     public async Task<bool> RuleExists(TopicId topicId, CancellationToken ctx)
     {
-        var rules = await eventBridge.ListRulesAsync(new() { Limit = 100, NamePrefix = topicId.TopicName }, ctx);
+        var rules = await eventBridge.ListRulesAsync(new() {Limit = 100, NamePrefix = topicId.TopicName}, ctx);
 
         return rules is not null &&
                rules.Rules.Any(r => r.Name.Trim() == topicId.TopicName && r.State == RuleState.ENABLED);
@@ -75,21 +76,26 @@ sealed class AwsEvents : IProduceDriver
         return new(response.RuleArn);
     }
 
-    public async Task<PublishResult> Produce(TopicId topic, string message, CancellationToken ctx)
+    public async Task<PublishResult> Produce(TopicId topic, string message, Guid? correlationId, CancellationToken ctx)
     {
-        var messageId = Guid.NewGuid();
-        MessageEnvelope messagePayload = new(topic.Event, clock.Now(), message, messageId);
+        var messageId = NewId.NextGuid();
+        MessageEnvelope messagePayload = new(topic.Event,
+            DateTime: clock.Now(),
+            Payload: message,
+            MessageId: messageId,
+            CorrelationId: correlationId
+        );
         var payload = serializer.Serialize(messagePayload);
 
         PutEventsRequest request = new()
         {
-            Entries = new() { new() { DetailType = topic.Event, Source = config.Source, Detail = payload } }
+            Entries = new() {new() {DetailType = topic.Event, Source = config.Source, Detail = payload}}
         };
         var response = await eventBridge.PutEventsAsync(request, ctx);
 
         if (response.FailedEntryCount > 0)
             throw new SubdivisionsException(string.Join(",", response.Entries.Select(x => x.ErrorMessage)));
 
-        return new(response.FailedEntryCount is 0, messageId);
+        return new(response.FailedEntryCount is 0, messageId, correlationId);
     }
 }

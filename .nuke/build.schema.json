@@ -92,6 +92,7 @@
               "Localstack",
               "Report",
               "Restore",
+              "StopLocalstack",
               "Test",
               "TestCoverage"
             ]
@@ -117,6 +118,7 @@
               "Localstack",
               "Report",
               "Restore",
+              "StopLocalstack",
               "Test",
               "TestCoverage"
             ]

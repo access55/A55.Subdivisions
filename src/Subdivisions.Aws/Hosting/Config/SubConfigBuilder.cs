@@ -1,3 +1,5 @@
+using CorrelationId;
+using CorrelationId.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Subdivisions.Models;
 
@@ -6,6 +8,7 @@ namespace Subdivisions.Hosting.Config;
 public sealed class SubConfigBuilder : SubConfig
 {
     readonly IServiceCollection services;
+    bool customCorrelationId;
 
     public SubConfigBuilder(IServiceCollection services)
     {
@@ -25,13 +28,34 @@ public sealed class SubConfigBuilder : SubConfig
         return builder;
     }
 
+    public ICorrelationIdBuilder WithCorrelationId(Action<CorrelationIdOptions> config)
+    {
+        customCorrelationId = true;
+        return AddSubdivisionsCorrelationId(config);
+    }
+
     public void OnError(Func<Exception, Task> handler) =>
         services.AddSingleton<ISubErrorListener>(new ErrorListener(handler));
 
     public void OnError<TListener>() where TListener : class, ISubErrorListener =>
         services.AddSingleton<ISubErrorListener, TListener>();
 
-    public void Configure(SubConfig config) => CopyProperties(this, config);
+    internal void Configure(SubConfig config)
+    {
+        if (!customCorrelationId)
+            AddSubdivisionsCorrelationId();
+
+        CopyProperties(this, config);
+    }
+
+    ICorrelationIdBuilder AddSubdivisionsCorrelationId(Action<CorrelationIdOptions>? configure = null)
+    {
+        var builder = configure is null
+            ? services.AddCorrelationId()
+            : services.AddCorrelationId(configure);
+        builder.WithCustomProvider<NewIdCorrelationIdProvider>();
+        return builder;
+    }
 
     static void CopyProperties<TSource, TDest>(TSource source, TDest dest) where TDest : new()
     {

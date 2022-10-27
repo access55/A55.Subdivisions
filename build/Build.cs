@@ -71,15 +71,23 @@ class BuildProject : NukeBuild
             ReadAllLines(TestReportDirectory / "Summary.txt").ForEach(l => Console.WriteLine(l));
         });
 
+    const string localstackContainerName = "sub-localstack";
     Target Localstack => _ => _
-        .Description("Configure or start the localstack container in docker")
+        .Description("Starts the localstack container in docker")
         .OnlyWhenStatic(() => !DotnetRunningInContainer)
+        .ProceedAfterFailure()
         .Executes(() => DockerRun(c => c
-            .SetName("sub-localstack")
+            .SetName(localstackContainerName)
             .SetImage("localstack/localstack:1.1.0")
             .SetPublish("4566:4566")
-            .EnableRm()));
+            .EnableRm()))
+        .Triggers(StopLocalstack);
 
+    Target StopLocalstack => _ => _
+        .Description("Stops the localstack container in docker")
+        .AssuredAfterFailure()
+        .Executes(() => DockerStop(s => s.SetContainers(localstackContainerName)));
+    
     Target Lint => _ => _
         .Description("Check for codebase formatting and analysers")
         .DependsOn(Build)
@@ -147,6 +155,9 @@ class BuildProject : NukeBuild
 
     public static int Main() => Execute<BuildProject>();
 
-    protected override void OnBuildInitialized() =>
+    protected override void OnBuildInitialized()
+    {
+        DockerLogger = (_, msg) => Log.Information(msg);
         DotNetToolRestore(c => c.DisableProcessLogOutput());
+    }
 }

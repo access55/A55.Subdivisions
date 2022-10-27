@@ -2,13 +2,13 @@ using Subdivisions.Models;
 
 namespace Subdivisions;
 
-public record PublishResult(bool IsSuccess, Guid MessageId);
+public record PublishResult(bool IsSuccess, Guid MessageId, Guid? correlationId);
 
 public interface IProducerClient
 {
-    Task<PublishResult> Publish(string topicName, string message, CancellationToken ctx = default);
+    Task<PublishResult> Publish(string topicName, string message, Guid? correlationId = null, CancellationToken ctx = default);
 
-    Task<PublishResult> Publish<T>(string topicName, T message, CancellationToken ctx = default)
+    Task<PublishResult> Publish<T>(string topicName, T message, Guid? correlationId = null, CancellationToken ctx = default)
         where T : notnull;
 }
 

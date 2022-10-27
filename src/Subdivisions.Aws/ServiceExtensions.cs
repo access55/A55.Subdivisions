@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Subdivisions.Clients;
 using Subdivisions.Extensions;
+using Subdivisions.Hosting;
 using Subdivisions.Models;
 using Subdivisions.Services;
 
@@ -61,6 +62,7 @@ public static class ServicesExtensions
 
         services
             .AddSingleton<ISubClock, UtcClock>()
+            .AddScoped<ICorrelationResolver, CorrelationResolver>()
             .AddSingleton<IConsumeDriver, AwsSqs>()
             .AddSingleton<IProduceDriver, AwsEvents>()
             .AddSingleton<IRetryStrategy, Power2RetryStrategy>()

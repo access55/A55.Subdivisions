@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using MassTransit;
 using Microsoft.Extensions.Options;
 using Subdivisions.Clients;
 using Subdivisions.Hosting;
@@ -32,6 +33,7 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
 
     readonly IConsumerFactory consumerFactory;
     readonly ISubMessageSerializer serializer;
+    readonly ICorrelationResolver correlationResolver;
     readonly SubConfig config;
     readonly ISubClock subClock;
 
@@ -42,11 +44,13 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
         IConsumerFactory consumerFactory,
         ISubMessageSerializer serializer,
         IEnumerable<IConsumerDescriber> describers,
+        ICorrelationResolver correlationResolver,
         IOptions<SubConfig> config,
         ISubClock subClock)
     {
         this.consumerFactory = consumerFactory;
         this.serializer = serializer;
+        this.correlationResolver = correlationResolver;
         this.config = config.Value;
         this.subClock = subClock;
 
@@ -55,13 +59,14 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
     }
 
     public async Task<Guid> Publish(string topic, string message) =>
-        (await Produce(new TopicId(topic, config), message, default)).MessageId;
+        (await Produce(new TopicId(topic, config), message, correlationResolver.GetId(), default))
+        .MessageId;
 
-    public async Task<PublishResult> Produce(TopicId topic, string message, CancellationToken ctx)
+    public async Task<PublishResult> Produce(TopicId topic, string message, Guid? correlationId, CancellationToken ctx)
     {
         var topicName = topic.Event;
-        var id = Guid.NewGuid();
-        var payload = new LocalMessage<string>(message) { MessageId = id, Datetime = subClock.Now(), RetryNumber = 0 };
+        var id = NewId.NextGuid();
+        var payload = new LocalMessage<string>(message) {MessageId = id, Datetime = subClock.Now(), RetryNumber = 0};
 
         if (!produced.ContainsKey(topicName))
             produced.Add(topicName, new());
@@ -77,7 +82,7 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
         if (consumers.TryGetValue(topicName, out var describer))
             await consumerFactory.ConsumeScoped(describer, payload, ctx);
 
-        return new PublishResult(true, id);
+        return new PublishResult(true, id, correlationId);
     }
 
     public void Reset()
@@ -136,6 +141,7 @@ class LocalMessage<T> : IMessage<T> where T : notnull
     public LocalMessage(T body) => Body = body;
 
     public Guid? MessageId { get; set; }
+    public Guid? CorrelationId { get; set; }
     public DateTime Datetime { get; set; }
     public T Body { get; set; }
     public uint RetryNumber { get; set; }
@@ -143,5 +149,8 @@ class LocalMessage<T> : IMessage<T> where T : notnull
     public Task Release(TimeSpan delay) => Task.CompletedTask;
 
     public IMessage<TMap> Map<TMap>(Func<T, TMap> selector) where TMap : notnull =>
-        new LocalMessage<TMap>(selector(Body)) { MessageId = MessageId, Datetime = Datetime, RetryNumber = RetryNumber };
+        new LocalMessage<TMap>(selector(Body))
+        {
+            MessageId = MessageId, Datetime = Datetime, CorrelationId = CorrelationId, RetryNumber = RetryNumber
+        };
 }

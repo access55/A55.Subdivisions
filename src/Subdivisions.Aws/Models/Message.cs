@@ -5,6 +5,7 @@ namespace Subdivisions.Models;
 public interface IMessage<out TBody> where TBody : notnull
 {
     Guid? MessageId { get; }
+    Guid? CorrelationId { get; }
     DateTime Datetime { get; }
     TBody Body { get; }
     uint RetryNumber { get; }
@@ -21,6 +22,7 @@ readonly struct Message<TBody> : IMessage<TBody> where TBody : notnull
 
     public DateTime Datetime { get; }
     public Guid? MessageId { get; }
+    public Guid? CorrelationId { get; }
     public TBody Body { get; }
     public uint RetryNumber { get; }
 
@@ -30,22 +32,28 @@ readonly struct Message<TBody> : IMessage<TBody> where TBody : notnull
         DateTime datetime,
         Func<Task> deleteMessage,
         Func<TimeSpan, Task> releaseMessage,
+        Guid? correlationId,
         uint retryNumber = 0)
     {
         MessageId = id;
         Body = body;
         Datetime = datetime;
+        CorrelationId = correlationId;
+        RetryNumber = retryNumber;
         this.deleteMessage = deleteMessage;
         this.releaseMessage = releaseMessage;
-        RetryNumber = retryNumber;
     }
 
     public Task Delete() => deleteMessage();
     public Task Release(TimeSpan delay) => releaseMessage(delay);
 
     public IMessage<TMap> Map<TMap>(Func<TBody, TMap> selector) where TMap : notnull =>
-        new Message<TMap>(MessageId, selector(Body), Datetime, Delete, Release, RetryNumber);
+        new Message<TMap>(MessageId, selector(Body), Datetime, Delete, Release, CorrelationId, RetryNumber);
 }
 
-record MessageEnvelope(string Event, DateTime DateTime, string Payload, Guid? MessageId = null,
+record MessageEnvelope(
+    string Event,
+    DateTime DateTime,
+    string Payload,
+    Guid? MessageId = null,
     Guid? CorrelationId = null);

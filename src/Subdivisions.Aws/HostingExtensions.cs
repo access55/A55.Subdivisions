@@ -1,4 +1,5 @@
 using Amazon.Runtime;
+using CorrelationId;
 using Microsoft.Extensions.DependencyInjection;
 using Subdivisions.Hosting;
 using Subdivisions.Hosting.Config;
@@ -11,12 +12,14 @@ public static class HostingExtensions
     public static IServiceCollection AddSubdivisions(
         this IServiceCollection services,
         Action<SubConfigBuilder>? config = null,
-        AWSCredentials? credentials = null)
+        AWSCredentials? credentials = null,
+        Action<CorrelationIdOptions>? correlationConfig = null)
     {
         var builder = new SubConfigBuilder(services);
         config?.Invoke(builder);
         return services
             .AddSubdivisionsServices(builder.Configure, credentials)
+            .AddScoped<ISubCorrelationIdContext, SubCorrelationIdContext>()
             .AddSingleton<IConsumerFactory, ConsumerFactory>()
             .AddSingleton<IConsumerJob, ConcurrentConsumerJob>()
             .AddHostedService<SubdivisionsHostedService>();
