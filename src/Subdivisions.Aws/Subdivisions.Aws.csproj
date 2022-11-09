@@ -17,15 +17,13 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+    <PackageReference Include="NewId" Version="3.0.3" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.0" />
 
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-
-    <PackageReference Include="NewId" Version="3.0.3" />
-
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.0" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -33,11 +31,10 @@
     <PackageIcon>icon.png</PackageIcon>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <DebugType>embedded</DebugType>
     <DocumentationFile>bin\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
     <Authors>access55</Authors>
     <Description>PubSub library to use in AWS using SQS,SNS and EventBridge</Description>
-    <RepositoryType>Git</RepositoryType>
+    <RepositoryType>GitHub</RepositoryType>
     <PackageTags>sns, sqs, pubsub, consumer, producer, eventbridge, subdivisions</PackageTags>
     <Company>A55</Company>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -50,6 +47,13 @@
   <ItemGroup>
     <EmbeddedResource Include="icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
+
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />

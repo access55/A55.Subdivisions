@@ -1,6 +1,8 @@
 using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
 using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Configurations;
+using DotNet.Testcontainers.Containers;
 using Microsoft.Extensions.Options;
 using Subdivisions.Extensions;
 using Subdivisions.Models;
@@ -16,7 +18,7 @@ public class LocalstackFixture : ServicesFixture
     protected string kmsTestKeyId = "";
     LocalStackTestcontainer localstack = null!;
 
-    protected string ServiceUrl => localstack.Url;
+    string ServiceUrl => localstack.ConnectionString;
 
     protected override async Task BeforeSetup()
     {
@@ -44,6 +46,9 @@ public class LocalstackFixture : ServicesFixture
         c.LongPollingWaitInSeconds = 0;
     }
 
+    [TearDown]
+    public async Task LocalstackTearDown() => await localstack.DisposeAsync();
+
     [SetUp]
     public async Task LocalstackSetup()
     {
@@ -54,11 +59,10 @@ public class LocalstackFixture : ServicesFixture
     async Task<string> CreateDefaultKmsKey()
     {
         var kms = GetService<IAmazonKeyManagementService>();
-        var key = await kms.CreateKeyAsync(new() { Description = "Test key" });
+        var key = await kms.CreateKeyAsync(new() {Description = "Test key"});
         await kms.CreateAliasAsync(new CreateAliasRequest
         {
-            AliasName = config.PubKey,
-            TargetKeyId = key.KeyMetadata.KeyId
+            AliasName = config.PubKey, TargetKeyId = key.KeyMetadata.KeyId
         });
         return key.KeyMetadata.KeyId;
     }
