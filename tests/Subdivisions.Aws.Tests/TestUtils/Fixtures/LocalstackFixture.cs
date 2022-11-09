@@ -18,7 +18,14 @@ public class LocalstackFixture : ServicesFixture
     protected string kmsTestKeyId = "";
     LocalStackTestcontainer localstack = null!;
 
-    string ServiceUrl => localstack.ConnectionString;
+    string ServiceUrl
+    {
+        get
+        {
+            var builder = new UriBuilder(localstack.ConnectionString) { Scheme = Uri.UriSchemeHttp };
+            return builder.Uri.ToString();
+        }
+    }
 
     protected override async Task BeforeSetup()
     {

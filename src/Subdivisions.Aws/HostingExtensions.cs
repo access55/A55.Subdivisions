@@ -12,8 +12,7 @@ public static class HostingExtensions
     public static IServiceCollection AddSubdivisions(
         this IServiceCollection services,
         Action<SubConfigBuilder>? config = null,
-        AWSCredentials? credentials = null,
-        Action<CorrelationIdOptions>? correlationConfig = null)
+        AWSCredentials? credentials = null)
     {
         var builder = new SubConfigBuilder(services);
         config?.Invoke(builder);
