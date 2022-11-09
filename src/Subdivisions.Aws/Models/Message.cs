@@ -55,5 +55,6 @@ record MessageEnvelope(
     string Event,
     DateTime DateTime,
     string Payload,
+    bool? Compressed,
     Guid? MessageId = null,
     Guid? CorrelationId = null);

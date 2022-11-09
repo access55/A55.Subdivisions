@@ -55,7 +55,7 @@ public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBui
         return new ConsumerDescriber(
             topicName,
             consumerType ?? throw new InvalidOperationException("Consumer type should be specified"),
-            typeof(TMessage), useCompression ?? settings.CompressMessages,
+            typeof(TMessage),
             config);
     }
 

@@ -9,7 +9,6 @@ interface IConsumerDescriber
     int MaxConcurrency { get; }
     Type MessageType { get; }
     public Type ConsumerType { get; }
-    public bool UseCompression { get; }
     Func<Exception, Task>? ErrorHandler { get; }
 }
 
@@ -26,7 +25,6 @@ sealed class ConsumerDescriber : IConsumerDescriber
         string topicName,
         Type consumerType,
         Type messageType,
-        bool useCompression = false,
         ConsumerConfig? config = null
     )
     {
@@ -41,7 +39,7 @@ sealed class ConsumerDescriber : IConsumerDescriber
         if (!consumerType.IsAssignableTo(typeof(IWeakConsumer)))
             throw new SubdivisionsException($"Invalid consumer type: {consumerType.Name}");
 
-        if (consumerType is {IsAbstract: true, IsInterface: false})
+        if (consumerType is { IsAbstract: true, IsInterface: false })
             throw new SubdivisionsException($"Consumer should not be abstract: {consumerType.Name}");
 
         var consumerDef = consumerType.GetInterfaces().SingleOrDefault(i =>
@@ -53,7 +51,6 @@ sealed class ConsumerDescriber : IConsumerDescriber
         TopicName = topicName;
         MessageType = messageType;
         ConsumerType = consumerType;
-        UseCompression = useCompression;
         ErrorHandler = config.ErrorHandler;
         PollingInterval = config.PollingInterval;
         MaxConcurrency = config.MaxConcurrency;

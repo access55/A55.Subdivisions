@@ -20,7 +20,7 @@ public class SubConfigBuilderTests : BaseTest
         var client = A.Fake<IProducerClient>();
         services
             .AddSingleton(client)
-            .AddSingleton(Options.Create(new SubConfig {CompressMessages = false}));
+            .AddSingleton(Options.Create(new SubConfig { CompressMessages = false }));
 
         var config = new SubConfigBuilder(services);
         config.MapTopic<TestMessage>("test-topic");
@@ -42,7 +42,7 @@ public class SubConfigBuilderTests : BaseTest
         var client = A.Fake<IProducerClient>();
         services
             .AddSingleton(client)
-            .AddSingleton(Options.Create(new SubConfig {CompressMessages = false}));
+            .AddSingleton(Options.Create(new SubConfig { CompressMessages = false }));
 
         var config = new SubConfigBuilder(services);
         config.MapTopic<TestMessage>("test-topic")
@@ -64,7 +64,7 @@ public class SubConfigBuilderTests : BaseTest
         var client = A.Fake<IProducerClient>();
         services
             .AddSingleton(client)
-            .AddSingleton(Options.Create(new SubConfig {CompressMessages = true}));
+            .AddSingleton(Options.Create(new SubConfig { CompressMessages = true }));
 
         var config = new SubConfigBuilder(services);
         config.MapTopic<TestMessage>("test-topic");
@@ -75,6 +75,28 @@ public class SubConfigBuilderTests : BaseTest
         var message = TestMessage.New();
         await producer.Publish(message);
         A.CallTo(() => client.Publish("test-topic", message, null, true, default))
+            .MustHaveHappened();
+    }
+
+    [Test]
+    public async Task ShouldMapProducersDisablingCompression()
+    {
+        var services = new ServiceCollection();
+        var client = A.Fake<IProducerClient>();
+        services
+            .AddSingleton(client)
+            .AddSingleton(Options.Create(new SubConfig { CompressMessages = true }));
+
+        var config = new SubConfigBuilder(services);
+        config.MapTopic<TestMessage>("test-topic")
+            .DisableCompression();
+
+        var sp = services.BuildServiceProvider();
+        var producer = sp.GetRequiredService<IProducer<TestMessage>>();
+
+        var message = TestMessage.New();
+        await producer.Publish(message);
+        A.CallTo(() => client.Publish("test-topic", message, null, false, default))
             .MustHaveHappened();
     }
 
@@ -98,7 +120,7 @@ public class SubConfigBuilderTests : BaseTest
         var describers = sp.GetService<IEnumerable<IConsumerDescriber>>();
         describers.Should().BeEquivalentTo(new[]
         {
-            new ConsumerDescriber("test_topic", typeof(DelegateConsumer<TestMessage>), typeof(TestMessage), false,
+            new ConsumerDescriber("test_topic", typeof(DelegateConsumer<TestMessage>), typeof(TestMessage),
                 new ConsumerConfig {MaxConcurrency = concurrency, PollingInterval = polling})
         });
     }
@@ -144,61 +166,9 @@ public class SubConfigBuilderTests : BaseTest
         var describers = sp.GetService<IEnumerable<IConsumerDescriber>>();
         describers.Should().BeEquivalentTo(new[]
         {
-            new ConsumerDescriber("test_topic", typeof(TestConsumer), typeof(TestMessage), false,
+            new ConsumerDescriber("test_topic", typeof(TestConsumer), typeof(TestMessage),
                 new ConsumerConfig {MaxConcurrency = concurrency, PollingInterval = polling})
         });
-    }
-
-    [Test]
-    public void ShouldEnableCompressionByConfig()
-    {
-        var services = new ServiceCollection();
-        services.AddSubdivisions(sub =>
-        {
-            sub.CompressMessages = true;
-            sub.Source = "source";
-            sub.MapTopic<TestMessage>("test_topic")
-                .WithConsumer<TestConsumer>();
-        });
-
-        var sp = services.BuildServiceProvider();
-        var describers = sp.GetRequiredService<IEnumerable<IConsumerDescriber>>();
-        describers.Should().AllSatisfy(x => x.UseCompression.Should().BeTrue());
-    }
-
-    [Test]
-    public void ShouldDisableCompression()
-    {
-        var services = new ServiceCollection();
-        services.AddSubdivisions(sub =>
-        {
-            sub.CompressMessages = true;
-            sub.Source = "source";
-            sub.MapTopic<TestMessage>("test_topic")
-                .WithConsumer<TestConsumer>()
-                .DisableCompression();
-        });
-
-        var sp = services.BuildServiceProvider();
-        var describers = sp.GetRequiredService<IEnumerable<IConsumerDescriber>>();
-        describers.Single().UseCompression.Should().BeFalse();
-    }
-
-    [Test]
-    public void ShouldEnableCompression()
-    {
-        var services = new ServiceCollection();
-        services.AddSubdivisions(sub =>
-        {
-            sub.Source = "source";
-            sub.MapTopic<TestMessage>("test_topic")
-                .WithConsumer<TestConsumer>()
-                .EnableCompression();
-        });
-
-        var sp = services.BuildServiceProvider();
-        var describers = sp.GetRequiredService<IEnumerable<IConsumerDescriber>>();
-        describers.Single().UseCompression.Should().BeTrue();
     }
 
     [Test]
@@ -260,7 +230,8 @@ public class SubConfigBuilderTests : BaseTest
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string>
             {
-                ["Subdivisions:Localstack"] = "true", ["Subdivisions:Source"] = "app"
+                ["Subdivisions:Localstack"] = "true",
+                ["Subdivisions:Source"] = "app"
             })
             .Build();
         var services = new ServiceCollection()

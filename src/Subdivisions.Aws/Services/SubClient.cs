@@ -36,36 +36,33 @@ class AwsSubClient : ISubdivisionsClient
         this.consume = consume;
     }
 
-    public ValueTask<IReadOnlyCollection<IMessage>> Receive(string topic, bool compressed = false,
-        CancellationToken ctx = default) =>
-        Receive(CreateTopicName(topic), compressed, ctx);
+    public ValueTask<IReadOnlyCollection<IMessage>> Receive(string topic, CancellationToken ctx = default) =>
+        Receive(CreateTopicName(topic), ctx);
 
-    public async ValueTask<IReadOnlyCollection<IMessage<T>>> Receive<T>(string topic, bool compressed = false,
-        CancellationToken ctx = default)
+    public async ValueTask<IReadOnlyCollection<IMessage<T>>> Receive<T>(string topic, CancellationToken ctx = default)
         where T : notnull
     {
-        var message = await Receive(topic, compressed, ctx);
+        var message = await Receive(topic, ctx);
         return message.Select(m => m.Map(s => serializer.Deserialize<T>(s))).ToArray();
     }
 
-    public Task<IReadOnlyCollection<IMessage>> DeadLetters(string queueName, bool compressed = false,
-        CancellationToken ctx = default)
+    public Task<IReadOnlyCollection<IMessage>> DeadLetters(string queueName, CancellationToken ctx = default)
     {
         var topic = CreateTopicName(queueName);
-        return consume.ReceiveDeadLetters(topic, compressed, ctx);
+        return consume.ReceiveDeadLetters(topic, ctx);
     }
 
     public async Task<IReadOnlyCollection<IMessage<T>>> DeadLetters<T>(
         string queueName,
-        bool compressed = false,
         CancellationToken ctx = default)
         where T : notnull
     {
-        var message = await DeadLetters(queueName, compressed, ctx);
+        var message = await DeadLetters(queueName, ctx);
         return message.Select(m => m.Map(s => serializer.Deserialize<T>(s))).ToArray();
     }
 
-    public Task<PublishResult> Publish<T>(string topicName, T message, Guid? correlationId = null, bool compressed = false,
+    public Task<PublishResult> Publish<T>(string topicName, T message, Guid? correlationId = null,
+        bool compressed = false,
         CancellationToken ctx = default)
         where T : notnull
     {
@@ -80,11 +77,12 @@ class AwsSubClient : ISubdivisionsClient
 
     TopicId CreateTopicName(string name) => new(name, config.Value);
 
-    internal async ValueTask<IReadOnlyCollection<IMessage>> Receive(TopicId topic, bool compressed,
-        CancellationToken ctx) =>
-        await consume.ReceiveMessages(topic, compressed, ctx);
+    internal async ValueTask<IReadOnlyCollection<IMessage>> Receive(TopicId topic, CancellationToken ctx) =>
+        await consume.ReceiveMessages(topic, ctx);
 
-    internal async Task<PublishResult> Publish(TopicId topic, string message, Guid? correlationId, bool compressed,
+    internal async Task<PublishResult> Publish(
+        TopicId topic, string message,
+        Guid? correlationId, bool compressed,
         CancellationToken ctx)
     {
         ArgumentNullException.ThrowIfNull(message);

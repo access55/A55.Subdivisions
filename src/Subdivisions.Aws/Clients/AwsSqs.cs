@@ -14,8 +14,8 @@ readonly record struct QueueInfo(Uri Url, SqsArn Arn);
 
 interface IConsumeDriver
 {
-    Task<IReadOnlyCollection<IMessage>> ReceiveMessages(TopicId topic, bool compressed, CancellationToken ctx);
-    Task<IReadOnlyCollection<IMessage>> ReceiveDeadLetters(TopicId topic, bool compressed, CancellationToken ctx);
+    Task<IReadOnlyCollection<IMessage>> ReceiveMessages(TopicId topic, CancellationToken ctx);
+    Task<IReadOnlyCollection<IMessage>> ReceiveDeadLetters(TopicId topic, CancellationToken ctx);
 }
 
 sealed class AwsSqs : IConsumeDriver
@@ -65,7 +65,7 @@ sealed class AwsSqs : IConsumeDriver
 
     public async Task<QueueInfo> GetQueueAttributes(string queueUrl, CancellationToken ctx)
     {
-        var response = await sqs.GetQueueAttributesAsync(queueUrl, new List<string> {QueueAttributeName.QueueArn}, ctx);
+        var response = await sqs.GetQueueAttributesAsync(queueUrl, new List<string> { QueueAttributeName.QueueArn }, ctx);
         logger.LogDebug("Queue Attributes Response is: {Response}", JsonSerializer.Serialize(response.Attributes));
 
         return new(new(queueUrl), new(response.QueueARN));
@@ -76,7 +76,7 @@ sealed class AwsSqs : IConsumeDriver
     {
         var queue = $"{(deadLetter ? "dead_letter_" : string.Empty)}{queueName}";
         var responseQueues =
-            await sqs.ListQueuesAsync(new ListQueuesRequest {QueueNamePrefix = queue, MaxResults = 1000}, ctx);
+            await sqs.ListQueuesAsync(new ListQueuesRequest { QueueNamePrefix = queue, MaxResults = 1000 }, ctx);
 
         var url = responseQueues.QueueUrls.Find(name => name.Contains(queue));
         if (url is null) return null;
@@ -84,8 +84,8 @@ sealed class AwsSqs : IConsumeDriver
         return await GetQueueAttributes(url, ctx);
     }
 
-    public async Task<bool> QueueExists(string queueName, CancellationToken ctx, bool deadLegger = false) =>
-        await GetQueue(queueName, ctx, deadLegger) is not null;
+    public async Task<bool> QueueExists(string queueName, CancellationToken ctx, bool deadLetter = false) =>
+        await GetQueue(queueName, ctx, deadLetter) is not null;
 
     public async Task<QueueInfo> CreateQueue(string queueName, CancellationToken ctx)
     {
@@ -97,7 +97,8 @@ sealed class AwsSqs : IConsumeDriver
 
         var deadLetterPolicy = new
         {
-            deadLetterTargetArn = deadLetter.Arn.Value, maxReceiveCount = config.RetriesBeforeDeadLetter.ToString()
+            deadLetterTargetArn = deadLetter.Arn.Value,
+            maxReceiveCount = config.RetriesBeforeDeadLetter.ToString()
         };
 
         var createQueueRequest = new CreateQueueRequest
@@ -125,14 +126,13 @@ sealed class AwsSqs : IConsumeDriver
             new CreateQueueRequest
             {
                 QueueName = $"{DeadLetterPrefix}{queueName}",
-                Attributes = new() {["Policy"] = Iam, ["KmsMasterKeyId"] = keyId}
+                Attributes = new() { ["Policy"] = Iam, ["KmsMasterKeyId"] = keyId }
             }, ctx);
         return await GetQueueAttributes(q.QueueUrl, ctx);
     }
 
     public async Task<IReadOnlyCollection<IMessage<string>>> ReceiveMessages(
         string queue,
-        bool compressed,
         CancellationToken ctx)
     {
         if (await GetQueue(queue, ctx) is not { } queueInfo)
@@ -144,7 +144,7 @@ sealed class AwsSqs : IConsumeDriver
                 QueueUrl = queueInfo.Url.ToString(),
                 MaxNumberOfMessages = config.QueueMaxReceiveCount,
                 WaitTimeSeconds = config.LongPollingWaitInSeconds,
-                AttributeNames = new() {MessageSystemAttributeName.ApproximateReceiveCount}
+                AttributeNames = new() { MessageSystemAttributeName.ApproximateReceiveCount }
             }, ctx);
 
         if (readMessagesRequest?.Messages is not { } messages)
@@ -157,12 +157,14 @@ sealed class AwsSqs : IConsumeDriver
                                throw new SerializationException("Unable to deserialize message");
 
                 var message = serializer.Deserialize<MessageEnvelope>(envelope.Message);
-                var payload = compressed ? await compressor.Decompress(message.Payload) : message.Payload;
+                var payload = message.Compressed == true
+                    ? await compressor.Decompress(message.Payload)
+                    : message.Payload;
 
                 Task DeleteMessage()
                 {
                     return sqs.DeleteMessageAsync(
-                        new() {QueueUrl = queueInfo.Url.ToString(), ReceiptHandle = sqsMessage.ReceiptHandle},
+                        new() { QueueUrl = queueInfo.Url.ToString(), ReceiptHandle = sqsMessage.ReceiptHandle },
                         CancellationToken.None);
                 }
 
@@ -203,14 +205,13 @@ sealed class AwsSqs : IConsumeDriver
 
     public Task<IReadOnlyCollection<IMessage>>
         ReceiveDeadLetters(TopicId topic,
-            bool compressed,
             CancellationToken ctx) =>
-        ReceiveMessages($"{DeadLetterPrefix}{topic.QueueName}", compressed, ctx);
+        ReceiveMessages($"{DeadLetterPrefix}{topic.QueueName}", ctx);
 
-    public Task<IReadOnlyCollection<IMessage>> ReceiveMessages(TopicId topic, bool compressed, CancellationToken ctx) =>
-        ReceiveMessages(topic.QueueName, compressed, ctx);
+    public Task<IReadOnlyCollection<IMessage>> ReceiveMessages(TopicId topic, CancellationToken ctx) =>
+        ReceiveMessages(topic.QueueName, ctx);
 
-    class SqsEnvelope
+    internal class SqsEnvelope
     {
         public SqsEnvelope(Guid messageId, string message)
         {

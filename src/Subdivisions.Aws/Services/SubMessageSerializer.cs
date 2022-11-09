@@ -1,5 +1,6 @@
 using System.Runtime.Serialization;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Subdivisions.Extensions;
 
 namespace Subdivisions.Services;
@@ -22,6 +23,7 @@ public class SubJsonSerializer : ISubMessageSerializer
     static readonly JsonSerializerOptions jsonOptions = new()
     {
         PropertyNamingPolicy = SnakeCaseNamingPolicy.Instance,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
     public string Serialize<TValue>(TValue something) =>
