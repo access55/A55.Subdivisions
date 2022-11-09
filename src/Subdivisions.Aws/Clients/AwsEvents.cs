@@ -12,7 +12,8 @@ namespace Subdivisions.Clients;
 
 interface IProduceDriver
 {
-    Task<PublishResult> Produce(TopicId topic, string message, Guid? correlationId, CancellationToken ctx);
+    Task<PublishResult> Produce(TopicId topic, string message, Guid? correlationId, bool compressed,
+        CancellationToken ctx);
 }
 
 sealed class AwsEvents : IProduceDriver
@@ -21,6 +22,7 @@ sealed class AwsEvents : IProduceDriver
     readonly IAmazonEventBridge eventBridge;
     readonly ISubMessageSerializer serializer;
     readonly ILogger<AwsEvents> logger;
+    readonly ICompressor compressor;
     readonly ISubClock clock;
 
     public AwsEvents(
@@ -28,18 +30,20 @@ sealed class AwsEvents : IProduceDriver
         ISubMessageSerializer serializer,
         ILogger<AwsEvents> logger,
         IOptions<SubConfig> config,
+        ICompressor compressor,
         ISubClock clock)
     {
         this.eventBridge = eventBridge;
         this.serializer = serializer;
         this.logger = logger;
+        this.compressor = compressor;
         this.clock = clock;
         this.config = config.Value;
     }
 
     public async Task<bool> RuleExists(TopicId topicId, CancellationToken ctx)
     {
-        var rules = await eventBridge.ListRulesAsync(new() { Limit = 100, NamePrefix = topicId.TopicName }, ctx);
+        var rules = await eventBridge.ListRulesAsync(new() {Limit = 100, NamePrefix = topicId.TopicName}, ctx);
 
         return rules is not null &&
                rules.Rules.Any(r => r.Name.Trim() == topicId.TopicName && r.State == RuleState.ENABLED);
@@ -77,20 +81,28 @@ sealed class AwsEvents : IProduceDriver
         return new(response.RuleArn);
     }
 
-    public async Task<PublishResult> Produce(TopicId topic, string message, Guid? correlationId, CancellationToken ctx)
+    public Task<PublishResult> Produce(TopicId topic, string message, Guid? correlationId,
+        CancellationToken ctx) =>
+        Produce(topic, message, correlationId, false, ctx);
+
+    public async Task<PublishResult> Produce(TopicId topic, string message, Guid? correlationId, bool compressed,
+        CancellationToken ctx)
     {
         var messageId = NewId.NextGuid();
-        MessageEnvelope messagePayload = new(topic.Event,
+        var body = compressed ? await compressor.Compress(message) : message;
+
+        MessageEnvelope envelope = new(topic.Event,
             DateTime: clock.Now(),
-            Payload: message,
+            Payload: body,
             MessageId: messageId,
             CorrelationId: correlationId
         );
-        var payload = serializer.Serialize(messagePayload).EncodeAsUTF8();
+
+        var payload = serializer.Serialize(envelope).EncodeAsUTF8();
 
         PutEventsRequest request = new()
         {
-            Entries = new() { new() { DetailType = topic.Event, Source = config.Source, Detail = payload } }
+            Entries = new() {new() {DetailType = topic.Event, Source = config.Source, Detail = payload}}
         };
         var response = await eventBridge.PutEventsAsync(request, ctx);
 

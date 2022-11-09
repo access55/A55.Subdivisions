@@ -36,49 +36,55 @@ class AwsSubClient : ISubdivisionsClient
         this.consume = consume;
     }
 
-    public ValueTask<IReadOnlyCollection<IMessage>> Receive(string topic, CancellationToken ctx = default) =>
-        Receive(CreateTopicName(topic), ctx);
+    public ValueTask<IReadOnlyCollection<IMessage>> Receive(string topic, bool compressed = false,
+        CancellationToken ctx = default) =>
+        Receive(CreateTopicName(topic), compressed, ctx);
 
-    public async ValueTask<IReadOnlyCollection<IMessage<T>>> Receive<T>(string topic, CancellationToken ctx = default)
+    public async ValueTask<IReadOnlyCollection<IMessage<T>>> Receive<T>(string topic, bool compressed = false,
+        CancellationToken ctx = default)
         where T : notnull
     {
-        var message = await Receive(topic, ctx);
+        var message = await Receive(topic, compressed, ctx);
         return message.Select(m => m.Map(s => serializer.Deserialize<T>(s))).ToArray();
     }
 
-    public Task<IReadOnlyCollection<IMessage>> DeadLetters(string queueName, CancellationToken ctx = default)
+    public Task<IReadOnlyCollection<IMessage>> DeadLetters(string queueName, bool compressed = false,
+        CancellationToken ctx = default)
     {
         var topic = CreateTopicName(queueName);
-        return consume.ReceiveDeadLetters(topic, ctx);
+        return consume.ReceiveDeadLetters(topic, compressed, ctx);
     }
 
     public async Task<IReadOnlyCollection<IMessage<T>>> DeadLetters<T>(
         string queueName,
+        bool compressed = false,
         CancellationToken ctx = default)
         where T : notnull
     {
-        var message = await DeadLetters(queueName, ctx);
+        var message = await DeadLetters(queueName, compressed, ctx);
         return message.Select(m => m.Map(s => serializer.Deserialize<T>(s))).ToArray();
     }
 
-    public Task<PublishResult> Publish<T>(string topicName, T message, Guid? correlationId = null,
+    public Task<PublishResult> Publish<T>(string topicName, T message, Guid? correlationId = null, bool compressed = false,
         CancellationToken ctx = default)
         where T : notnull
     {
         var rawMessage = serializer.Serialize(message);
-        return Publish(topicName, rawMessage, correlationId, ctx);
+        return Publish(topicName, rawMessage, correlationId, compressed, ctx);
     }
 
     public Task<PublishResult> Publish(string topicName, string message, Guid? correlationId = null,
+        bool compressed = false,
         CancellationToken ctx = default) =>
-        Publish(CreateTopicName(topicName), message, correlationId, ctx);
+        Publish(CreateTopicName(topicName), message, correlationId, compressed, ctx);
 
     TopicId CreateTopicName(string name) => new(name, config.Value);
 
-    internal async ValueTask<IReadOnlyCollection<IMessage>> Receive(TopicId topic, CancellationToken ctx) =>
-        await consume.ReceiveMessages(topic, ctx);
+    internal async ValueTask<IReadOnlyCollection<IMessage>> Receive(TopicId topic, bool compressed,
+        CancellationToken ctx) =>
+        await consume.ReceiveMessages(topic, compressed, ctx);
 
-    internal async Task<PublishResult> Publish(TopicId topic, string message, Guid? correlationId,
+    internal async Task<PublishResult> Publish(TopicId topic, string message, Guid? correlationId, bool compressed,
         CancellationToken ctx)
     {
         ArgumentNullException.ThrowIfNull(message);
@@ -87,7 +93,7 @@ class AwsSubClient : ISubdivisionsClient
         logger.LogDebug("Start send message on {Topic}", topic.TopicName);
         await resources.EnsureTopicExists(topic.Event, ctx);
         var validCorrelationId = correlationId ?? correlationResolver.GetId();
-        var publishResult = await producer.Produce(topic, message, validCorrelationId, ctx);
+        var publishResult = await producer.Produce(topic, message, validCorrelationId, compressed, ctx);
         logger.LogInformation($"<- {topic.TopicName}[{publishResult.CorrelationId}.{publishResult.MessageId}]");
         logger.LogDebug("End send message on {Topic}", topic.TopicName);
         return publishResult;

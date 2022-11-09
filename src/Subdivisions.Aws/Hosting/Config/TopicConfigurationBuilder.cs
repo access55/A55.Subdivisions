@@ -27,7 +27,11 @@ public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBui
         this.services = services;
         this.topicName = topicName;
         services.TryAddScoped<IProducer<TMessage>>(sp =>
-            new TypedProducer<TMessage>(topicName, sp.GetRequiredService<IProducerClient>()));
+        {
+            var settings = sp.GetRequiredService<IOptions<SubConfig>>().Value;
+            return new TypedProducer<TMessage>(topicName, useCompression ?? settings.CompressMessages,
+                sp.GetRequiredService<IProducerClient>());
+        });
     }
 
     public bool HasConsumer => consumerType is not null;
@@ -40,7 +44,6 @@ public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBui
             {
                 ErrorHandler = errorHandler,
                 MaxConcurrency = concurrency ?? settings.QueueMaxReceiveCount,
-                UseCompression = useCompression ?? settings.CompressMessages,
                 PollingInterval =
                     pollingTime ?? TimeSpan.FromSeconds(settings.PollingIntervalInSeconds)
             };
@@ -52,7 +55,7 @@ public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBui
         return new ConsumerDescriber(
             topicName,
             consumerType ?? throw new InvalidOperationException("Consumer type should be specified"),
-            typeof(TMessage),
+            typeof(TMessage), useCompression ?? settings.CompressMessages,
             config);
     }
 

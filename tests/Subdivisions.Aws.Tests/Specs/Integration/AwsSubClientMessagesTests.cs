@@ -20,9 +20,9 @@ public class SubClientMessageActionTests : SubClientFixture
         var message = faker.Lorem.Lines();
 
         var client = (AwsSubClient)GetService<ISubdivisionsClient>();
-        await client.Publish(Topic, message, null, default);
+        await client.Publish(Topic, message, null, false, default);
 
-        var messages = await client.Receive(Topic, default);
+        var messages = await client.Receive(Topic, false, default);
 
         await messages.Single().Delete();
 
@@ -36,9 +36,9 @@ public class SubClientMessageActionTests : SubClientFixture
         var message = faker.Lorem.Lines();
 
         var client = (AwsSubClient)GetService<ISubdivisionsClient>();
-        await client.Publish(Topic, message, null, default);
+        await client.Publish(Topic, message, null, false, default);
 
-        var messages = await client.Receive(Topic, default);
+        var messages = await client.Receive(Topic, false, default);
         await messages.Single().Release(TimeSpan.Zero);
 
         (await sqs.HasMessagesOn(Topic.QueueName)).Should().BeTrue();
@@ -53,8 +53,8 @@ public class SubClientMessageActionTests : SubClientFixture
         var delay = TimeSpan.FromSeconds(8);
         var client = (AwsSubClient)GetService<ISubdivisionsClient>();
 
-        await client.Publish(Topic, message, null, default);
-        var messages = await client.Receive(Topic, default);
+        await client.Publish(Topic, message, null, false, default);
+        var messages = await client.Receive(Topic, false, default);
         await messages.Single().Release(delay);
 
         watch.Start();
