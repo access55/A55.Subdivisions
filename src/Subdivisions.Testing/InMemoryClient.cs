@@ -67,7 +67,7 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
     {
         var topicName = topic.Event;
         var id = NewId.NextGuid();
-        var payload = new LocalMessage<string>(message) {MessageId = id, Datetime = subClock.Now(), RetryNumber = 0};
+        var payload = new LocalMessage<string>(message) { MessageId = id, Datetime = subClock.Now(), RetryNumber = 0 };
 
         if (!produced.ContainsKey(topicName))
             produced.Add(topicName, new());

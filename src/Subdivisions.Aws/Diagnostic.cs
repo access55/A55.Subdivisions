@@ -30,18 +30,18 @@ class Diagnostics : IDiagnostics
 {
     readonly SubConfig config;
 
-    const string sourceName = "A55.Subdivisions";
+    const string SourceName = "A55.Subdivisions";
 
-    static readonly ActivitySource ActivitySource =
-        new(sourceName, Assembly.GetExecutingAssembly().GetName().Version?.ToString());
+    static readonly ActivitySource activitySource =
+        new(SourceName, Assembly.GetExecutingAssembly().GetName().Version?.ToString());
 
-    static readonly Meter MeterSource =
-        new(sourceName, Assembly.GetExecutingAssembly().GetName().Version?.ToString());
+    static readonly Meter meterSource =
+        new(SourceName, Assembly.GetExecutingAssembly().GetName().Version?.ToString());
 
-    static readonly Counter<long> RetrievedMessagesCounter = MeterSource.CreateCounter<long>("RetrievedMessages");
-    static readonly Counter<long> ConsumedMessagesCounter = MeterSource.CreateCounter<long>("ConsumedMessages");
-    static readonly Counter<long> ProducedMessagesCounter = MeterSource.CreateCounter<long>("ProducedMessages");
-    static readonly Counter<long> FailedMessagesCounter = MeterSource.CreateCounter<long>("FailedMessages");
+    static readonly Counter<long> retrievedMessagesCounter = meterSource.CreateCounter<long>("RetrievedMessages");
+    static readonly Counter<long> consumedMessagesCounter = meterSource.CreateCounter<long>("ConsumedMessages");
+    static readonly Counter<long> producedMessagesCounter = meterSource.CreateCounter<long>("ProducedMessages");
+    static readonly Counter<long> failedMessagesCounter = meterSource.CreateCounter<long>("FailedMessages");
 
     public Diagnostics(IOptions<SubConfig> config) => this.config = config.Value;
 
@@ -89,7 +89,7 @@ class Diagnostics : IDiagnostics
 
     static Activity? StartActivity(string topic, ActivityKind kind, string operation)
     {
-        var activity = ActivitySource.StartActivity($"{topic} {operation}", kind);
+        var activity = activitySource.StartActivity($"{topic} {operation}", kind);
         activity?.SetTag("messaging.destination_kind", "topic");
         activity?.SetTag("messaging.system", "AmazonSQS");
         activity?.SetTag("messaging.protocol", "AMQP");
@@ -99,14 +99,14 @@ class Diagnostics : IDiagnostics
         return activity;
     }
 
-    public void AddRetrievedMessages(long quantity) => RetrievedMessagesCounter.Add(quantity);
+    public void AddRetrievedMessages(long quantity) => retrievedMessagesCounter.Add(quantity);
 
     public void AddConsumedMessagesCounter(long quantity, TimeSpan duration) =>
-        ConsumedMessagesCounter.Add(quantity,
+        consumedMessagesCounter.Add(quantity,
             new KeyValuePair<string, object?>("duration", duration.TotalMilliseconds));
 
-    public void AddProducedMessagesCounter(long quantity) => ProducedMessagesCounter.Add(quantity);
+    public void AddProducedMessagesCounter(long quantity) => producedMessagesCounter.Add(quantity);
 
-    public void AddFailedMessagesCounter(long quantity, TimeSpan duration) => FailedMessagesCounter.Add(quantity,
+    public void AddFailedMessagesCounter(long quantity, TimeSpan duration) => failedMessagesCounter.Add(quantity,
         new KeyValuePair<string, object?>("duration", duration.TotalMilliseconds));
 }
