@@ -15,6 +15,7 @@ interface IConsumerDescriber
 sealed class ConsumerConfig
 {
     public int MaxConcurrency { get; set; }
+    public bool UseCompression { get; set; }
     public TimeSpan PollingInterval { get; set; }
     public Func<Exception, Task>? ErrorHandler { get; set; }
 }

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using Amazon.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -11,6 +12,12 @@ static class Extensions
     public static string ToPascalCase(this string snakeName) =>
         string.Concat(snakeName.ToLowerInvariant().Split('_')
             .Select(CultureInfo.InvariantCulture.TextInfo.ToTitleCase));
+
+    public static string EncodeAsUTF8(this string myString)
+    {
+        var bytes = Encoding.Default.GetBytes(myString);
+        return Encoding.UTF8.GetString(bytes);
+    }
 
     public static string TrimUnderscores(this string text) => text.Trim('_');
 

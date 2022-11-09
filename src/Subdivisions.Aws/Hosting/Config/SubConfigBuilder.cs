@@ -8,7 +8,7 @@ namespace Subdivisions.Hosting.Config;
 public sealed class SubConfigBuilder : SubConfig
 {
     readonly IServiceCollection services;
-    internal bool CustomCorrelationId { get; private set; }
+    bool CustomCorrelationId { get; set; }
 
     public SubConfigBuilder(IServiceCollection services)
     {
@@ -40,7 +40,42 @@ public sealed class SubConfigBuilder : SubConfig
     public void OnError<TListener>() where TListener : class, ISubErrorListener =>
         services.AddSingleton<ISubErrorListener, TListener>();
 
-    internal void ConfigureOptions(SubConfig config) => CopyProperties(this, config);
+    internal void ConfigureOptions(SubConfig config)
+    {
+        var defaultConfig = new SubConfig();
+        if (this.Suffix != defaultConfig.Suffix)
+            config.Suffix = this.Suffix;
+        if (this.Prefix != defaultConfig.Prefix)
+            config.Prefix = this.Prefix;
+        if (this.Source != defaultConfig.Source)
+            config.Source = this.Source;
+        if (this.QueueMaxReceiveCount != defaultConfig.QueueMaxReceiveCount)
+            config.QueueMaxReceiveCount = this.QueueMaxReceiveCount;
+        if (this.RetriesBeforeDeadLetter != defaultConfig.RetriesBeforeDeadLetter)
+            config.RetriesBeforeDeadLetter = this.RetriesBeforeDeadLetter;
+        if (this.PubKey != defaultConfig.PubKey)
+            config.PubKey = this.PubKey;
+        if (this.MessageRetentionInDays != defaultConfig.MessageRetentionInDays)
+            config.MessageRetentionInDays = this.MessageRetentionInDays;
+        if (this.MessageTimeoutInSeconds != defaultConfig.MessageTimeoutInSeconds)
+            config.MessageTimeoutInSeconds = this.MessageTimeoutInSeconds;
+        if (this.MessageDelayInSeconds != defaultConfig.MessageDelayInSeconds)
+            config.MessageDelayInSeconds = this.MessageDelayInSeconds;
+        if (Math.Abs(this.PollingIntervalInSeconds - defaultConfig.PollingIntervalInSeconds) > 0)
+            config.PollingIntervalInSeconds = this.PollingIntervalInSeconds;
+        if (this.ServiceUrl != defaultConfig.ServiceUrl)
+            config.ServiceUrl = this.ServiceUrl;
+        if (this.Localstack != defaultConfig.Localstack)
+            config.Localstack = this.Localstack;
+        if (this.AutoCreateNewTopic != defaultConfig.AutoCreateNewTopic)
+            config.AutoCreateNewTopic = this.AutoCreateNewTopic;
+        if (this.CompressMessages != defaultConfig.CompressMessages)
+            config.CompressMessages = this.CompressMessages;
+        if (this.Region != defaultConfig.Region)
+            config.Region = this.Region;
+        if (this.LongPollingWaitInSeconds != defaultConfig.LongPollingWaitInSeconds)
+            config.LongPollingWaitInSeconds = this.LongPollingWaitInSeconds;
+    }
 
     ICorrelationIdBuilder AddSubdivisionsCorrelationId(Action<CorrelationIdOptions>? configure = null)
     {
@@ -55,27 +90,5 @@ public sealed class SubConfigBuilder : SubConfig
     {
         if (!CustomCorrelationId)
             AddSubdivisionsCorrelationId();
-    }
-
-    static void CopyProperties<TSource, TDest>(TSource source, TDest dest) where TDest : new()
-    {
-        var sourceProps = typeof(TSource).GetProperties().Where(x => x.CanRead).ToArray();
-        var destProps = typeof(TDest).GetProperties().Where(x => x.CanWrite);
-        var defaultDest = new TDest();
-        foreach (var destProp in destProps)
-        {
-            var prop = sourceProps
-                .SingleOrDefault(p =>
-                    p.Name == destProp.Name && destProp.PropertyType == p.PropertyType);
-
-            if (prop is null)
-                continue;
-
-            var newValue = prop.GetValue(source, null);
-            var defaultValue = prop.GetValue(defaultDest, null);
-
-            if (newValue?.Equals(defaultValue) == false && newValue?.Equals(string.Empty) == false)
-                destProp.SetValue(dest, newValue, null);
-        }
     }
 }

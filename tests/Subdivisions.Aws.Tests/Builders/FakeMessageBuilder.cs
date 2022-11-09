@@ -6,6 +6,7 @@ class FakeMessageBuilder
 {
     readonly DateTime datetime;
     readonly Guid id;
+    readonly Guid correlationId;
     string body;
     uint retryNumber;
 
@@ -14,6 +15,7 @@ class FakeMessageBuilder
         var faker = new Faker();
         datetime = faker.Date.Soon().ToUniversalTime();
         id = faker.Random.Guid();
+        correlationId = faker.Random.Guid();
         body = TestMessage.New().ToSnakeCaseJson();
     }
 
@@ -27,6 +29,7 @@ class FakeMessageBuilder
     {
         var value = A.Fake<IMessage>();
         A.CallTo(() => value.MessageId).Returns(id);
+        A.CallTo(() => value.CorrelationId).Returns(correlationId);
         A.CallTo(() => value.Datetime).Returns(datetime);
         A.CallTo(() => value.RetryNumber).Returns(retryNumber);
         A.CallTo(() => value.Body).Returns(body);

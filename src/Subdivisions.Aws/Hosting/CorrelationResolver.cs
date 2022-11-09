@@ -11,7 +11,7 @@ class NewIdCorrelationIdProvider : ICorrelationIdProvider
     public string GenerateCorrelationId(HttpContext ctx) => NewId.NextGuid().ToString();
 }
 
-interface ICorrelationResolver
+public interface ICorrelationResolver
 {
     Guid? GetId();
 }

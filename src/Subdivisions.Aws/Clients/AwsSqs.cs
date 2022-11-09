@@ -4,6 +4,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Subdivisions.Extensions;
 using Subdivisions.Models;
 using Subdivisions.Services;
 
@@ -149,7 +150,7 @@ sealed class AwsSqs : IConsumeDriver
         return messages
             .Select(sqsMessage =>
             {
-                var envelope = JsonSerializer.Deserialize<SqsEnvelope>(sqsMessage.Body) ??
+                var envelope = JsonSerializer.Deserialize<SqsEnvelope>(sqsMessage.Body.EncodeAsUTF8()) ??
                                throw new SerializationException("Unable to deserialize message");
 
                 var message = serializer.Deserialize<MessageEnvelope>(envelope.Message);

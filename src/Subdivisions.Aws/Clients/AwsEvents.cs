@@ -4,6 +4,7 @@ using Amazon.EventBridge.Model;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Subdivisions.Extensions;
 using Subdivisions.Models;
 using Subdivisions.Services;
 
@@ -85,7 +86,7 @@ sealed class AwsEvents : IProduceDriver
             MessageId: messageId,
             CorrelationId: correlationId
         );
-        var payload = serializer.Serialize(messagePayload);
+        var payload = serializer.Serialize(messagePayload).EncodeAsUTF8();
 
         PutEventsRequest request = new()
         {

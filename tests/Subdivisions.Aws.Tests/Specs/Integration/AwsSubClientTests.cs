@@ -11,14 +11,15 @@ public class SubClientTests : SubClientFixture
     public async Task ShouldSendAndReceiveMessages()
     {
         var message = faker.Lorem.Lines();
+        var correlationId = Guid.NewGuid();
 
         var client = (AwsSubClient)GetService<ISubdivisionsClient>();
-        var published = await client.Publish(Topic, message, null, default);
+        var published = await client.Publish(Topic, message, correlationId, default);
 
         var messages = await client.Receive(Topic, default);
 
         messages.Should()
-            .BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate, published.MessageId}});
+            .BeEquivalentTo(new[] { new { Body = message, Datetime = fakedDate, published.MessageId } });
     }
 
     [Test]
@@ -26,29 +27,35 @@ public class SubClientTests : SubClientFixture
     {
         var stringTopicName = Topic.Event;
 
+        var correlationId = Guid.NewGuid();
         var message = faker.Lorem.Lines();
 
         var client = GetService<ISubdivisionsClient>();
-        var published = await client.Publish(stringTopicName, message);
+        var published = await client.Publish(stringTopicName, message, correlationId);
 
         var messages = await client.Receive(stringTopicName);
 
-        messages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate, published.MessageId}});
+        messages.Should().BeEquivalentTo(new[]
+        {
+            new {Body = message, Datetime = fakedDate, published.MessageId, CorrelationId = correlationId}
+        });
     }
 
     [Test]
     public async Task ShouldSendAndReceiveSerializedMessages()
     {
         var message = TestMessage.New();
+        var correlationId = Guid.NewGuid();
 
         var stringTopicName = Topic.Event;
 
         var client = GetService<ISubdivisionsClient>();
-        await client.Publish(stringTopicName, message);
+        await client.Publish(stringTopicName, message, correlationId);
 
         var messages = await client.Receive<TestMessage>(stringTopicName);
 
-        messages.Should().BeEquivalentTo(new[] {new {Body = message, Datetime = fakedDate}});
+        messages.Should()
+            .BeEquivalentTo(new[] { new { Body = message, Datetime = fakedDate, CorrelationId = correlationId } });
     }
 
     [Test]
@@ -69,7 +76,7 @@ public class SubClientTests : SubClientFixture
         var messages2 = await consumer2.Receive<TestMessage>(TopicName);
         var messages3 = await consumer3.Receive<TestMessage>(TopicName);
 
-        var expected = new[] {new {Body = message, Datetime = fakedDate, published.MessageId}};
+        var expected = new[] { new { Body = message, Datetime = fakedDate, published.MessageId } };
         messages1.Should().BeEquivalentTo(expected);
         messages2.Should().BeEquivalentTo(expected);
         messages3.Should().BeEquivalentTo(expected);
@@ -88,7 +95,7 @@ public class SubClientTests : SubClientFixture
 
         var messages = await client.Receive<TestMessage>(stringTopicName);
 
-        messages.Should().BeEquivalentTo(new[] {new {Body = strongMessage, Datetime = fakedDate}});
+        messages.Should().BeEquivalentTo(new[] { new { Body = strongMessage, Datetime = fakedDate } });
     }
 
     [Test]

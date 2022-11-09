@@ -17,6 +17,7 @@ public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBui
     readonly string topicName;
     int? concurrency;
     Type? consumerType;
+    bool? useCompression;
     Func<Exception, Task>? errorHandler;
 
     TimeSpan? pollingTime;
@@ -39,6 +40,7 @@ public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBui
             {
                 ErrorHandler = errorHandler,
                 MaxConcurrency = concurrency ?? settings.QueueMaxReceiveCount,
+                UseCompression = useCompression ?? settings.CompressMessages,
                 PollingInterval =
                     pollingTime ?? TimeSpan.FromSeconds(settings.PollingIntervalInSeconds)
             };
@@ -76,6 +78,18 @@ public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBui
         DelegateConsumer<TMessage>.ValidateParams(handler);
         services.TryAddScoped(sp => new DelegateConsumer<TMessage>(handler, sp));
         consumerType = typeof(DelegateConsumer<TMessage>);
+        return this;
+    }
+
+    public TopicConfigurationBuilder<TMessage> DisableCompression()
+    {
+        useCompression = false;
+        return this;
+    }
+
+    public TopicConfigurationBuilder<TMessage> EnableCompression()
+    {
+        useCompression = true;
         return this;
     }
 

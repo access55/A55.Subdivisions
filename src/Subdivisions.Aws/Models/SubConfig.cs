@@ -14,10 +14,12 @@ public class SubTopicNameConfig
     ///
     /// </summary>
     public string Suffix { get; set; } = "";
+
     /// <summary>
     ///
     /// </summary>
     public string Prefix { get; set; } = "a55";
+
     /// <summary>
     ///
     /// </summary>
@@ -36,6 +38,8 @@ public class SubConfig : SubTopicNameConfig
     public string? ServiceUrl { get; set; }
     public bool Localstack { get; set; }
     public bool AutoCreateNewTopic { get; set; } = true;
+
+    public bool CompressMessages { get; set; }
     public string Region { get; set; } = "sa-east-1";
     public int LongPollingWaitInSeconds { get; set; }
 }

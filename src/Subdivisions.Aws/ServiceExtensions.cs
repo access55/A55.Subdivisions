@@ -62,6 +62,8 @@ public static class ServicesExtensions
 
         services
             .AddSingleton<ISubClock, UtcClock>()
+            .AddSingleton<ICompressor, GzipCompressor>()
+            .AddSingleton<IDiagnostics, Diagnostics>()
             .AddSingleton<IConsumeDriver, AwsSqs>()
             .AddSingleton<IProduceDriver, AwsEvents>()
             .AddSingleton<IRetryStrategy, Power2RetryStrategy>()

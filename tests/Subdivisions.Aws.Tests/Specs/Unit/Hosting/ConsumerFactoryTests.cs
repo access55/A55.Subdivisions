@@ -24,7 +24,7 @@ public class ConsumerFactoryTests : BaseTest
     }
 
     [Test]
-    public async Task ShouldThrowWhenSerilizeNull()
+    public async Task ShouldThrowWhenSerializeNull()
     {
         var describer = new ConsumerDescriberBuilder().Generate();
 
