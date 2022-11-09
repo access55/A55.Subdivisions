@@ -59,10 +59,11 @@ public class LocalstackFixture : ServicesFixture
     async Task<string> CreateDefaultKmsKey()
     {
         var kms = GetService<IAmazonKeyManagementService>();
-        var key = await kms.CreateKeyAsync(new() {Description = "Test key"});
+        var key = await kms.CreateKeyAsync(new() { Description = "Test key" });
         await kms.CreateAliasAsync(new CreateAliasRequest
         {
-            AliasName = config.PubKey, TargetKeyId = key.KeyMetadata.KeyId
+            AliasName = config.PubKey,
+            TargetKeyId = key.KeyMetadata.KeyId
         });
         return key.KeyMetadata.KeyId;
     }

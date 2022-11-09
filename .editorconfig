@@ -166,3 +166,8 @@ dotnet_diagnostic.NUnit1027.severity = suggestion # parameter error nunit
 
 dotnet_diagnostic.S1210.severity = suggestion
 dotnet_diagnostic.AsyncFixer01.severity = suggestion # The method dont needs async
+
+# TODO: remove this and document the lib
+dotnet_diagnostic.CS1591.severity = suggestion
+dotnet_diagnostic.RCS1138.severity = suggestion
+dotnet_diagnostic.S927.severity = suggestion
