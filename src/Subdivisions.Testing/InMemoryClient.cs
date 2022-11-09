@@ -67,7 +67,7 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
     {
         var topicName = topic.Event;
         var id = NewId.NextGuid();
-        var payload = new LocalMessage<string>(message) { MessageId = id, Datetime = subClock.Now(), RetryNumber = 0 };
+        var payload = new LocalMessage<string>(message) {MessageId = id, Datetime = subClock.Now(), RetryNumber = 0};
 
         if (!produced.ContainsKey(topicName))
             produced.Add(topicName, new());
@@ -148,6 +148,7 @@ class LocalMessage<T> : IMessage<T> where T : notnull
     public DateTime Datetime { get; set; }
     public T Body { get; set; }
     public uint RetryNumber { get; set; }
+    public string QueueUrl { get; set; } = "";
     public Task Delete() => Task.CompletedTask;
     public Task Release(TimeSpan delay) => Task.CompletedTask;
 
@@ -157,6 +158,7 @@ class LocalMessage<T> : IMessage<T> where T : notnull
             MessageId = MessageId,
             Datetime = Datetime,
             CorrelationId = CorrelationId,
-            RetryNumber = RetryNumber
+            RetryNumber = RetryNumber,
+            QueueUrl = QueueUrl
         };
 }

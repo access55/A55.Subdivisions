@@ -9,6 +9,7 @@ public interface IMessage<out TBody> where TBody : notnull
     DateTime Datetime { get; }
     TBody Body { get; }
     uint RetryNumber { get; }
+    string QueueUrl { get; }
     Task Delete();
     Task Release(TimeSpan delay);
 
@@ -26,6 +27,8 @@ readonly struct Message<TBody> : IMessage<TBody> where TBody : notnull
     public TBody Body { get; }
     public uint RetryNumber { get; }
 
+    public string QueueUrl { get; }
+
     internal Message(
         Guid? id,
         in TBody body,
@@ -33,13 +36,16 @@ readonly struct Message<TBody> : IMessage<TBody> where TBody : notnull
         Func<Task> deleteMessage,
         Func<TimeSpan, Task> releaseMessage,
         Guid? correlationId,
-        uint retryNumber = 0)
+        string queueUrl,
+        uint retryNumber = 0
+    )
     {
         MessageId = id;
         Body = body;
         Datetime = datetime;
         CorrelationId = correlationId;
         RetryNumber = retryNumber;
+        QueueUrl = queueUrl;
         this.deleteMessage = deleteMessage;
         this.releaseMessage = releaseMessage;
     }
@@ -48,13 +54,13 @@ readonly struct Message<TBody> : IMessage<TBody> where TBody : notnull
     public Task Release(TimeSpan delay) => releaseMessage(delay);
 
     public IMessage<TMap> Map<TMap>(Func<TBody, TMap> selector) where TMap : notnull =>
-        new Message<TMap>(MessageId, selector(Body), Datetime, Delete, Release, CorrelationId, RetryNumber);
+        new Message<TMap>(MessageId, selector(Body), Datetime, Delete, Release, CorrelationId, QueueUrl, RetryNumber);
 }
 
 record MessageEnvelope(
     string Event,
     DateTime DateTime,
     string Payload,
-    bool? Compressed,
+    bool? Compressed = null,
     Guid? MessageId = null,
     Guid? CorrelationId = null);

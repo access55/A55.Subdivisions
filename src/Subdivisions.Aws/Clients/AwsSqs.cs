@@ -44,6 +44,7 @@ sealed class AwsSqs : IConsumeDriver
     readonly ILogger<AwsSqs> logger;
     readonly ISubMessageSerializer serializer;
     readonly ICompressor compressor;
+    readonly IDiagnostics diagnostics;
     readonly IAmazonSQS sqs;
 
     public AwsSqs(
@@ -51,6 +52,7 @@ sealed class AwsSqs : IConsumeDriver
         IOptions<SubConfig> config,
         ISubMessageSerializer serializer,
         ICompressor compressor,
+        IDiagnostics diagnostics,
         IAmazonSQS sqs,
         AwsKms kms
     )
@@ -60,12 +62,13 @@ sealed class AwsSqs : IConsumeDriver
         this.logger = logger;
         this.serializer = serializer;
         this.compressor = compressor;
+        this.diagnostics = diagnostics;
         this.config = config.Value;
     }
 
     public async Task<QueueInfo> GetQueueAttributes(string queueUrl, CancellationToken ctx)
     {
-        var response = await sqs.GetQueueAttributesAsync(queueUrl, new List<string> { QueueAttributeName.QueueArn }, ctx);
+        var response = await sqs.GetQueueAttributesAsync(queueUrl, new List<string> {QueueAttributeName.QueueArn}, ctx);
         logger.LogDebug("Queue Attributes Response is: {Response}", JsonSerializer.Serialize(response.Attributes));
 
         return new(new(queueUrl), new(response.QueueARN));
@@ -76,7 +79,7 @@ sealed class AwsSqs : IConsumeDriver
     {
         var queue = $"{(deadLetter ? "dead_letter_" : string.Empty)}{queueName}";
         var responseQueues =
-            await sqs.ListQueuesAsync(new ListQueuesRequest { QueueNamePrefix = queue, MaxResults = 1000 }, ctx);
+            await sqs.ListQueuesAsync(new ListQueuesRequest {QueueNamePrefix = queue, MaxResults = 1000}, ctx);
 
         var url = responseQueues.QueueUrls.Find(name => name.Contains(queue));
         if (url is null) return null;
@@ -97,8 +100,7 @@ sealed class AwsSqs : IConsumeDriver
 
         var deadLetterPolicy = new
         {
-            deadLetterTargetArn = deadLetter.Arn.Value,
-            maxReceiveCount = config.RetriesBeforeDeadLetter.ToString()
+            deadLetterTargetArn = deadLetter.Arn.Value, maxReceiveCount = config.RetriesBeforeDeadLetter.ToString()
         };
 
         var createQueueRequest = new CreateQueueRequest
@@ -126,25 +128,29 @@ sealed class AwsSqs : IConsumeDriver
             new CreateQueueRequest
             {
                 QueueName = $"{DeadLetterPrefix}{queueName}",
-                Attributes = new() { ["Policy"] = Iam, ["KmsMasterKeyId"] = keyId }
+                Attributes = new() {["Policy"] = Iam, ["KmsMasterKeyId"] = keyId}
             }, ctx);
         return await GetQueueAttributes(q.QueueUrl, ctx);
     }
 
-    public async Task<IReadOnlyCollection<IMessage<string>>> ReceiveMessages(
-        string queue,
+    async Task<IReadOnlyCollection<IMessage<string>>> ReceiveMessages(
+        TopicId topic,
+        bool deadletter,
         CancellationToken ctx)
     {
+        var queue = deadletter ? $"{DeadLetterPrefix}{topic.QueueName}" : topic.QueueName;
+
         if (await GetQueue(queue, ctx) is not { } queueInfo)
             throw new InvalidOperationException($"Unable to get '{queue}' data");
 
+        var queueUrl = queueInfo.Url.ToString();
         var readMessagesRequest = await sqs.ReceiveMessageAsync(
             new ReceiveMessageRequest
             {
-                QueueUrl = queueInfo.Url.ToString(),
+                QueueUrl = queueUrl,
                 MaxNumberOfMessages = config.QueueMaxReceiveCount,
                 WaitTimeSeconds = config.LongPollingWaitInSeconds,
-                AttributeNames = new() { MessageSystemAttributeName.ApproximateReceiveCount }
+                AttributeNames = new() {MessageSystemAttributeName.ApproximateReceiveCount}
             }, ctx);
 
         if (readMessagesRequest?.Messages is not { } messages)
@@ -153,24 +159,28 @@ sealed class AwsSqs : IConsumeDriver
         var parsedMessages = messages
             .Select(async sqsMessage =>
             {
-                var envelope = JsonSerializer.Deserialize<SqsEnvelope>(sqsMessage.Body.EncodeAsUTF8()) ??
-                               throw new SerializationException("Unable to deserialize message");
+                using var activity = diagnostics.StartConsumerActivity(topic.TopicName);
 
-                var message = serializer.Deserialize<MessageEnvelope>(envelope.Message);
-                var payload = message.Compressed == true
-                    ? await compressor.Decompress(message.Payload)
-                    : message.Payload;
+                var payload = JsonSerializer.Deserialize<SqsEnvelope>(sqsMessage.Body.EncodeAsUTF8()) ??
+                              throw new SerializationException("Unable to deserialize message");
 
-                Task DeleteMessage()
-                {
-                    return sqs.DeleteMessageAsync(
-                        new() { QueueUrl = queueInfo.Url.ToString(), ReceiptHandle = sqsMessage.ReceiptHandle },
+                var envelope = serializer.Deserialize<MessageEnvelope>(payload.Message);
+                var rawMessage = envelope.Payload;
+
+                var messageContent = envelope.Compressed == true
+                    ? await compressor.Decompress(rawMessage)
+                    : rawMessage;
+
+                diagnostics.SetActivityMessageAttributes(
+                    activity, queueUrl, envelope.MessageId, envelope.CorrelationId, rawMessage, messageContent);
+
+                Task DeleteMessage() =>
+                    sqs.DeleteMessageAsync(
+                        new() {QueueUrl = queueInfo.Url.ToString(), ReceiptHandle = sqsMessage.ReceiptHandle},
                         CancellationToken.None);
-                }
 
-                Task ReleaseMessage(TimeSpan delay)
-                {
-                    return sqs.ChangeMessageVisibilityAsync(
+                Task ReleaseMessage(TimeSpan delay) =>
+                    sqs.ChangeMessageVisibilityAsync(
                         new()
                         {
                             QueueUrl = queueInfo.Url.ToString(),
@@ -178,7 +188,6 @@ sealed class AwsSqs : IConsumeDriver
                             VisibilityTimeout = delay.Seconds
                         },
                         CancellationToken.None);
-                }
 
                 var receivedCount =
                     sqsMessage.Attributes
@@ -188,28 +197,33 @@ sealed class AwsSqs : IConsumeDriver
                         ? received
                         : 0;
 
-                return new Message<string>(
-                    message.MessageId,
-                    payload,
-                    message.DateTime,
-                    DeleteMessage,
-                    ReleaseMessage,
-                    message.CorrelationId,
-                    receivedCount - 1);
+                var parsedMessage = new Message<string>(
+                    id: envelope.MessageId,
+                    body: messageContent,
+                    datetime: envelope.DateTime,
+                    deleteMessage: DeleteMessage,
+                    releaseMessage: ReleaseMessage,
+                    correlationId: envelope.CorrelationId,
+                    queueUrl: queueUrl,
+                    retryNumber: receivedCount - 1);
+
+                return parsedMessage;
             });
 
-        return (await Task.WhenAll(parsedMessages))
+        var result = (await Task.WhenAll(parsedMessages))
             .Cast<IMessage>()
             .ToArray();
+
+        diagnostics.AddRetrievedMessages(result.Length);
+
+        return result;
     }
 
-    public Task<IReadOnlyCollection<IMessage>>
-        ReceiveDeadLetters(TopicId topic,
-            CancellationToken ctx) =>
-        ReceiveMessages($"{DeadLetterPrefix}{topic.QueueName}", ctx);
+    public Task<IReadOnlyCollection<IMessage>> ReceiveDeadLetters(TopicId topic, CancellationToken ctx) =>
+        ReceiveMessages(topic, true, ctx);
 
     public Task<IReadOnlyCollection<IMessage>> ReceiveMessages(TopicId topic, CancellationToken ctx) =>
-        ReceiveMessages(topic.QueueName, ctx);
+        ReceiveMessages(topic, false, ctx);
 
     internal class SqsEnvelope
     {

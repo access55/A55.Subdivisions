@@ -15,6 +15,7 @@ interface IConsumerFactory
 class ConsumerFactory : IConsumerFactory
 {
     readonly ILogger<ConsumerFactory> logger;
+    readonly IDiagnostics diagnostics;
     readonly IServiceProvider provider;
     readonly ISubMessageSerializer serializer;
     readonly Stopwatch stopwatch = new();
@@ -22,18 +23,29 @@ class ConsumerFactory : IConsumerFactory
     public ConsumerFactory(
         IServiceProvider provider,
         ILogger<ConsumerFactory> logger,
+        IDiagnostics diagnostics,
         ISubMessageSerializer serializer
     )
 
     {
         this.provider = provider;
         this.logger = logger;
+        this.diagnostics = diagnostics;
         this.serializer = serializer;
     }
 
-    public async Task ConsumeScoped<TMessage>(IConsumerDescriber describer, TMessage message, CancellationToken ctx)
+    public async Task ConsumeScoped<TMessage>(IConsumerDescriber describer, TMessage message,
+        CancellationToken ctx)
         where TMessage : IMessage<string>
     {
+        using var activity = diagnostics.StartProcessActivity(describer.TopicName);
+        diagnostics.SetActivityMessageAttributes(activity,
+            message.QueueUrl,
+            message.MessageId,
+            message.CorrelationId,
+            message.Body,
+            message.Body);
+
         var header =
             $"-> {describer.TopicName}[{message.CorrelationId?.ToString() ?? "EMPTY-CORRELATION-ID"}.{message.MessageId}]";
 
@@ -57,13 +69,14 @@ class ConsumerFactory : IConsumerFactory
         {
             await consumer.Consume(payload, ctx);
             await message.Delete();
+            diagnostics.AddConsumedMessagesCounter(1, stopwatch.Elapsed);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "{Header} Consumer error", header);
+            diagnostics.AddFailedMessagesCounter(1, stopwatch.Elapsed);
             var retryStrategy = scope.ServiceProvider.GetRequiredService<IRetryStrategy>();
             var delay = retryStrategy.Evaluate(message.RetryNumber);
-
             var handler = describer.ErrorHandler?.Invoke(ex) ?? Task.CompletedTask;
             await Task.WhenAll(message.Release(delay), handler);
         }

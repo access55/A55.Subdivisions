@@ -1,8 +1,6 @@
-using Amazon.SQS;
 using Subdivisions.Aws.Tests.Builders;
 using Subdivisions.Aws.Tests.TestUtils;
 using Subdivisions.Aws.Tests.TestUtils.Fixtures;
-using Subdivisions.Clients;
 using Subdivisions.Services;
 
 namespace Subdivisions.Aws.Tests.Specs.Integration;

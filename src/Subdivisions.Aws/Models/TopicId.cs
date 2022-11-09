@@ -2,7 +2,7 @@ using Subdivisions.Extensions;
 
 namespace Subdivisions.Models;
 
-class TopicId
+sealed record TopicId
 {
     public TopicId(string topic, SubTopicNameConfig config)
     {

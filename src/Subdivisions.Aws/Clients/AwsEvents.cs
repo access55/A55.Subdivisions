@@ -1,6 +1,4 @@
 using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Amazon.EventBridge;
 using Amazon.EventBridge.Model;
 using MassTransit;
@@ -23,6 +21,7 @@ sealed class AwsEvents : IProduceDriver
     readonly SubConfig config;
     readonly IAmazonEventBridge eventBridge;
     readonly ISubMessageSerializer serializer;
+    readonly IDiagnostics diagnostics;
     readonly ILogger<AwsEvents> logger;
     readonly ICompressor compressor;
     readonly ISubClock clock;
@@ -30,6 +29,7 @@ sealed class AwsEvents : IProduceDriver
     public AwsEvents(
         IAmazonEventBridge eventBridge,
         ISubMessageSerializer serializer,
+        IDiagnostics diagnostics,
         ILogger<AwsEvents> logger,
         IOptions<SubConfig> config,
         ICompressor compressor,
@@ -37,6 +37,7 @@ sealed class AwsEvents : IProduceDriver
     {
         this.eventBridge = eventBridge;
         this.serializer = serializer;
+        this.diagnostics = diagnostics;
         this.logger = logger;
         this.compressor = compressor;
         this.clock = clock;
@@ -45,7 +46,7 @@ sealed class AwsEvents : IProduceDriver
 
     public async Task<bool> RuleExists(TopicId topicId, CancellationToken ctx)
     {
-        var rules = await eventBridge.ListRulesAsync(new() { Limit = 100, NamePrefix = topicId.TopicName }, ctx);
+        var rules = await eventBridge.ListRulesAsync(new() {Limit = 100, NamePrefix = topicId.TopicName}, ctx);
 
         return rules is not null &&
                rules.Rules.Any(r => r.Name.Trim() == topicId.TopicName && r.State == RuleState.ENABLED);
@@ -96,22 +97,27 @@ sealed class AwsEvents : IProduceDriver
         MessageEnvelope envelope = new(topic.Event,
             DateTime: clock.Now(),
             Payload: body,
-            MessageId: messageId,
             Compressed: compressed ? true : null,
+            MessageId: messageId,
             CorrelationId: correlationId
         );
 
         var payload = serializer.Serialize(envelope).EncodeAsUTF8();
 
+        using var activity = diagnostics.StartProducerActivity(topic.TopicName);
+        diagnostics.SetActivityMessageAttributes(
+            activity, eventBridge.Config.ServiceURL, messageId, correlationId, message, body);
+
         PutEventsRequest request = new()
         {
-            Entries = new() { new() { DetailType = topic.Event, Source = config.Source, Detail = payload } }
+            Entries = new() {new() {DetailType = topic.Event, Source = config.Source, Detail = payload}}
         };
         var response = await eventBridge.PutEventsAsync(request, ctx);
 
         if (response.FailedEntryCount > 0)
             throw new SubdivisionsException(string.Join(",", response.Entries.Select(x => x.ErrorMessage)));
 
+        diagnostics.AddProducedMessagesCounter(1);
         return new(response.FailedEntryCount is 0, messageId, correlationId);
     }
 }

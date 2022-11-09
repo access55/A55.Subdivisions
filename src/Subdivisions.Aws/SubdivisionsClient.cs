@@ -2,7 +2,7 @@ using Subdivisions.Models;
 
 namespace Subdivisions;
 
-public record PublishResult(bool IsSuccess, Guid MessageId, Guid? CorrelationId);
+public readonly record struct PublishResult(bool IsSuccess, Guid MessageId, Guid? CorrelationId);
 
 public interface IProducerClient
 {
