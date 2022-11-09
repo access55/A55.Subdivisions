@@ -20,7 +20,7 @@ public class SubConfigBuilderTests : BaseTest
         var client = A.Fake<IProducerClient>();
         services
             .AddSingleton(client)
-            .AddSingleton(Options.Create(new SubConfig { CompressMessages = false }));
+            .AddSingleton(Options.Create(new SubConfig {CompressMessages = false}));
 
         var config = new SubConfigBuilder(services);
         config.MapTopic<TestMessage>("test-topic");
@@ -42,7 +42,7 @@ public class SubConfigBuilderTests : BaseTest
         var client = A.Fake<IProducerClient>();
         services
             .AddSingleton(client)
-            .AddSingleton(Options.Create(new SubConfig { CompressMessages = false }));
+            .AddSingleton(Options.Create(new SubConfig {CompressMessages = false}));
 
         var config = new SubConfigBuilder(services);
         config.MapTopic<TestMessage>("test-topic")
@@ -64,7 +64,7 @@ public class SubConfigBuilderTests : BaseTest
         var client = A.Fake<IProducerClient>();
         services
             .AddSingleton(client)
-            .AddSingleton(Options.Create(new SubConfig { CompressMessages = true }));
+            .AddSingleton(Options.Create(new SubConfig {CompressMessages = true}));
 
         var config = new SubConfigBuilder(services);
         config.MapTopic<TestMessage>("test-topic");
@@ -85,7 +85,7 @@ public class SubConfigBuilderTests : BaseTest
         var client = A.Fake<IProducerClient>();
         services
             .AddSingleton(client)
-            .AddSingleton(Options.Create(new SubConfig { CompressMessages = true }));
+            .AddSingleton(Options.Create(new SubConfig {CompressMessages = true}));
 
         var config = new SubConfigBuilder(services);
         config.MapTopic<TestMessage>("test-topic")
@@ -228,11 +228,8 @@ public class SubConfigBuilderTests : BaseTest
     public void ShouldConfigureLocalStackWhenConfiguration()
     {
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string>
-            {
-                ["Subdivisions:Localstack"] = "true",
-                ["Subdivisions:Source"] = "app"
-            })
+            .AddInMemoryCollection(
+                new Dictionary<string, string?> {["Subdivisions:Localstack"] = "true", ["Subdivisions:Source"] = "app"})
             .Build();
         var services = new ServiceCollection()
             .AddSingleton<IConfiguration>(_ => configuration!)
