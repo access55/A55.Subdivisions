@@ -17,18 +17,18 @@ public class ConcurrentConsumerJobTests : BaseTest
         var ctx = new CancellationTokenSource();
 
         A.CallTo(() => mocker.Resolve<IOptionsMonitor<SubConfig>>().CurrentValue)
-            .Returns(new SubConfig { MessageTimeoutInSeconds = 100, PollingIntervalInSeconds = 0.1f });
+            .Returns(new SubConfig {MessageTimeoutInSeconds = 100, PollingIntervalInSeconds = 0.1f});
 
         A.CallTo(() => mocker
             .Resolve<IConsumerClient>()
-            .Receive(consumer.TopicName, A<CancellationToken>._)).ReturnsNextFromSequence(new[] { message });
+            .Receive(consumer.TopicName, A<CancellationToken>._)).ReturnsNextFromSequence(new[] {message});
 
         A.CallTo(() => mocker.Resolve<IConsumerFactory>()
                 .ConsumeScoped(A<IConsumerDescriber>._, A<IMessage>._, A<CancellationToken>._))
             .Invokes(() => ctx.CancelAfter(100));
 
         var job = mocker.Generate<ConcurrentConsumerJob>();
-        var workerTask = () => job.Start(new[] { consumer }, ctx.Token);
+        var workerTask = () => job.Start(new[] {consumer}, ctx.Token);
 
         await workerTask.Should().ThrowAsync<OperationCanceledException>();
 
@@ -47,11 +47,11 @@ public class ConcurrentConsumerJobTests : BaseTest
             .Generate();
 
         A.CallTo(() => mocker.Resolve<IOptionsMonitor<SubConfig>>().CurrentValue)
-            .Returns(new SubConfig { MessageTimeoutInSeconds = timeoutInSeconds, PollingIntervalInSeconds = 0.1f });
+            .Returns(new SubConfig {MessageTimeoutInSeconds = timeoutInSeconds, PollingIntervalInSeconds = 0.1f});
 
         A.CallTo(() => mocker
             .Resolve<IConsumerClient>()
-            .Receive(consumer.TopicName, A<CancellationToken>._)).ReturnsNextFromSequence(new[] { message });
+            .Receive(consumer.TopicName, A<CancellationToken>._)).ReturnsNextFromSequence(new[] {message});
 
         A.CallTo(() => mocker.Resolve<IConsumerFactory>()
                 .ConsumeScoped(A<IConsumerDescriber>._, A<IMessage>._, A<CancellationToken>._))
@@ -68,7 +68,7 @@ public class ConcurrentConsumerJobTests : BaseTest
             .Invokes(() => ctx.Cancel());
 
         var job = mocker.Generate<ConcurrentConsumerJob>();
-        var task = () => job.Start(new[] { consumer }, ctx.Token);
+        var task = () => job.Start(new[] {consumer}, ctx.Token);
         await task.Should().ThrowAsync<OperationCanceledException>();
     }
 
@@ -80,19 +80,21 @@ public class ConcurrentConsumerJobTests : BaseTest
         var message2 = new FakeMessageBuilder().Generate();
 
         A.CallTo(() => mocker.Resolve<IOptionsMonitor<SubConfig>>().CurrentValue)
-            .Returns(new SubConfig { MessageTimeoutInSeconds = 100, PollingIntervalInSeconds = 0.1f });
+            .Returns(new SubConfig {MessageTimeoutInSeconds = 100, PollingIntervalInSeconds = 0.1f});
 
         A.CallTo(() => mocker.Resolve<IConsumerClient>()
                 .Receive(consumer.TopicName, A<CancellationToken>._))
-            .ReturnsNextFromSequence(new[] { message1 }, new[] { message2 });
-
-        A.CallTo(() => mocker.Resolve<IConsumerFactory>()
-                .ConsumeScoped(A<IConsumerDescriber>._, A<IMessage>._, A<CancellationToken>._))
-            .ReturnsLazily(() => Task.Delay(1000));
+            .ReturnsNextFromSequence(new[] {message1}, new[] {message2});
 
         var ctx = new CancellationTokenSource();
+        var semaphore = new SemaphoreSlim(1);
+        await semaphore.WaitAsync(ctx.Token);
+        A.CallTo(() => mocker.Resolve<IConsumerFactory>()
+                .ConsumeScoped(A<IConsumerDescriber>._, A<IMessage>._, A<CancellationToken>._))
+            .ReturnsLazily(() => semaphore.WaitAsync(ctx.Token));
+
         var job = mocker.Generate<ConcurrentConsumerJob>();
-        var workerTask = () => job.Start(new[] { consumer }, ctx.Token);
+        var workerTask = () => job.Start(new[] {consumer}, ctx.Token);
         ctx.CancelAfter(500);
         await workerTask.Should().ThrowAsync<OperationCanceledException>();
 
