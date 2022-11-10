@@ -17,7 +17,7 @@ public interface IFakeReadonlyBroker
 
 public interface IFakeBroker : IFakeReadonlyBroker
 {
-    Task<Guid> Publish(string topic, string message);
+    Task<Guid> Publish(string topic, string message, Guid? correlationId = null);
     void Reset();
 
     T[] ProducedOn<T>(string topic) where T : notnull;
@@ -33,7 +33,6 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
 
     readonly IConsumerFactory consumerFactory;
     readonly ISubMessageSerializer serializer;
-    readonly ICorrelationResolver correlationResolver;
     readonly SubConfig config;
     readonly ISubClock subClock;
 
@@ -44,13 +43,11 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
         IConsumerFactory consumerFactory,
         ISubMessageSerializer serializer,
         IEnumerable<IConsumerDescriber> describers,
-        ICorrelationResolver correlationResolver,
         IOptions<SubConfig> config,
         ISubClock subClock)
     {
         this.consumerFactory = consumerFactory;
         this.serializer = serializer;
-        this.correlationResolver = correlationResolver;
         this.config = config.Value;
         this.subClock = subClock;
 
@@ -58,8 +55,8 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
             x => x.TopicName, x => x);
     }
 
-    public async Task<Guid> Publish(string topic, string message) =>
-        (await Produce(new TopicId(topic, config), message, correlationResolver.GetId(), false, default))
+    public async Task<Guid> Publish(string topic, string message, Guid? correlationId = null) =>
+        (await Produce(new TopicId(topic, config), message, correlationId, false, default))
         .MessageId;
 
     public async Task<PublishResult> Produce(TopicId topic, string message, Guid? correlationId, bool compressed,
