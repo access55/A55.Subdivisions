@@ -8,24 +8,25 @@ namespace Subdivisions.Hosting.Config;
 interface ITopicConfigurationBuilder
 {
     bool HasConsumer { get; }
+    string TopicName { get; }
     IConsumerDescriber CreateConsumerDescriber(IServiceProvider sp);
 }
 
 public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBuilder where TMessage : notnull
 {
     readonly IServiceCollection services;
-    readonly string topicName;
     int? concurrency;
     Type? consumerType;
     bool? useCompression;
     Func<Exception, Task>? errorHandler;
-
     TimeSpan? pollingTime;
+
+    public string TopicName { get; }
 
     internal TopicConfigurationBuilder(IServiceCollection services, string topicName)
     {
         this.services = services;
-        this.topicName = topicName;
+        this.TopicName = topicName;
         services.TryAddScoped<IProducer<TMessage>>(sp =>
         {
             var settings = sp.GetRequiredService<IOptions<SubConfig>>().Value;
@@ -53,7 +54,7 @@ public sealed class TopicConfigurationBuilder<TMessage> : ITopicConfigurationBui
                 $"{nameof(SubConfig.PollingIntervalInSeconds)} can't be less then {nameof(SubConfig.LongPollingWaitInSeconds)}");
 
         return new ConsumerDescriber(
-            topicName,
+            TopicName,
             consumerType ?? throw new InvalidOperationException("Consumer type should be specified"),
             typeof(TMessage),
             config);

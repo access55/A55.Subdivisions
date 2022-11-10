@@ -6,7 +6,7 @@ using Subdivisions.Models;
 
 namespace Subdivisions.Services;
 
-public interface ISubResourceManager
+interface ISubResourceManager
 {
     ValueTask EnsureQueueExists(string topic, CancellationToken ctx);
     ValueTask EnsureTopicExists(string topic, CancellationToken ctx);
