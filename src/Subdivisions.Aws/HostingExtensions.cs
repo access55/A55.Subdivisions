@@ -1,5 +1,4 @@
 using Amazon.Runtime;
-using CorrelationId;
 using Microsoft.Extensions.DependencyInjection;
 using Subdivisions.Hosting;
 using Subdivisions.Hosting.Config;

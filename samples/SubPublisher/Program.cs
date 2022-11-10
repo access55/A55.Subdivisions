@@ -2,6 +2,7 @@ using CorrelationId;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Subdivisions;
+using Subdivisions.Hosting;
 using SubPublisher;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,10 @@ builder.Services
         .AddAspNetCoreInstrumentation()
         .AddMeter("A55.Subdivisions")
         .AddConsoleExporter());
+
+builder.Services
+    .AddHealthChecks()
+    .AddCheck<SubdivisionsHealthCheck>("Subdivisions");
 
 builder.Services.AddSubdivisions(sub =>
 {
@@ -42,5 +47,6 @@ app.MapGet("/publish/{name}", async (
 });
 
 app.MapGet("/", () => "Hello Publisher!");
+app.MapHealthChecks("health");
 
 app.Run();

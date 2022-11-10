@@ -2,6 +2,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using SubConsumer;
 using Subdivisions;
+using Subdivisions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services
@@ -13,6 +14,10 @@ builder.Services
         .AddAspNetCoreInstrumentation()
         .AddMeter("A55.Subdivisions")
         .AddConsoleExporter());
+
+builder.Services
+    .AddHealthChecks()
+    .AddCheck<SubdivisionsHealthCheck>("Subdivisions");
 
 builder.Services.AddSubdivisions(sub =>
 {
@@ -27,5 +32,5 @@ builder.Services.AddSubdivisions(sub =>
 var app = builder.Build();
 
 app.MapGet("/", () => "Hello Consumer!");
-
+app.MapHealthChecks("health");
 app.Run();

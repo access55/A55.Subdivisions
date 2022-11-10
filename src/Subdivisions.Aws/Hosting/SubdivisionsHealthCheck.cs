@@ -1,9 +1,9 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Net;
-using Amazon.EventBridge;
 using Amazon.Runtime;
 using Amazon.SQS;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Subdivisions.Hosting.Config;
@@ -11,24 +11,21 @@ using Subdivisions.Models;
 
 namespace Subdivisions.Hosting;
 
-class SubdivisionsHealthCheck : IHealthCheck
+public class SubdivisionsHealthCheck : IHealthCheck
 {
     readonly IAmazonSQS sqs;
-    readonly IAmazonEventBridge eventBridge;
     readonly ImmutableArray<(TopicId Id, bool HasConsumer)> topics;
-    readonly ConcurrentDictionary<TopicId, string> queueUrls = new();
+    static readonly ConcurrentDictionary<TopicId, string> queueUrls = new();
 
     public SubdivisionsHealthCheck(
         IOptions<SubConfig> settings,
-        IEnumerable<ITopicConfigurationBuilder> consumers,
-        IAmazonSQS sqs,
-        IAmazonEventBridge eventBridge
+        IServiceProvider provider,
+        IAmazonSQS sqs
     )
     {
         this.sqs = sqs;
-        this.eventBridge = eventBridge;
 
-        this.topics = consumers
+        this.topics = provider.GetRequiredService<IEnumerable<ITopicConfigurationBuilder>>()
             .Select(c => (new TopicId(c.TopicName, settings.Value), c.HasConsumer))
             .ToImmutableArray();
     }
@@ -41,23 +38,12 @@ class SubdivisionsHealthCheck : IHealthCheck
             if (!await GetQueueStatus(cancellationToken))
                 return HealthCheckResult.Unhealthy();
 
-            if (!await GetTopicStatus(cancellationToken))
-                return HealthCheckResult.Unhealthy();
-
             return HealthCheckResult.Healthy();
         }
         catch
         {
             return HealthCheckResult.Unhealthy();
         }
-    }
-
-    async Task<bool> GetTopicStatus(CancellationToken ctx)
-    {
-        var rulesRequest = topics
-            .Select(t => eventBridge.ListRulesAsync(new() {NamePrefix = t.Id.TopicName}, ctx));
-        var responses = await Task.WhenAll(rulesRequest);
-        return responses.All(IsSuccess);
     }
 
     async Task<bool> GetQueueStatus(CancellationToken ctx)
