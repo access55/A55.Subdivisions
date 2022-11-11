@@ -12,34 +12,57 @@ namespace Subdivisions.Testing;
 public interface IFakeReadonlyBroker
 {
     public IReadOnlyDictionary<string, string[]> ProducedMessages();
+
+    public ISubMessageSerializer Serializer { get; }
+
+    string[] GetConsumed(Type consumer, string topic);
+
     public string[] ProducedOn(string topic);
 }
 
 public interface IFakeBroker : IFakeReadonlyBroker
 {
-    Task<Guid> Publish(string topic, string message, Guid? correlationId = null);
+    Task<Guid> Produce(string topic, string message, Guid? correlationId = null, bool verifyOnly = false);
+
+    Task<Guid> Produce<T>(string topic, T message, Guid? correlationId = null, bool verifyOnly = false)
+        where T : notnull;
+
     void Reset();
 
     T[] ProducedOn<T>(string topic) where T : notnull;
 
+    TMessage[] GetConsumed<TConsumer, TMessage>(string topic)
+        where TMessage : notnull where TConsumer : IConsumer<TMessage>;
+
+    ConsumedMessage[] GetConsumed(string topic);
+    IDictionary<string, ConsumedMessage[]> GetConsumed();
+
     Task<IReadOnlyDictionary<string, string[]>> Delta(Func<Task> action);
     Task<string[]> Delta(string topic, Func<Task> action);
     Task<T[]> Delta<T>(string topic, Func<Task> action) where T : notnull;
+
+    void AutoConsumeLoop(bool enabled);
 }
 
-class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourceManager, IFakeBroker
+public readonly record struct ConsumedMessage(Type Consumer, string Message);
+
+class InMemoryBroker : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourceManager, IFakeBroker
 {
     readonly ImmutableDictionary<string, IConsumerDescriber> consumers;
 
+    public ISubMessageSerializer Serializer { get; }
+
     readonly IConsumerFactory consumerFactory;
-    readonly ISubMessageSerializer serializer;
     readonly SubConfig config;
     readonly ISubClock subClock;
 
     readonly Dictionary<string, List<IMessage<string>>> produced = new();
+    readonly Dictionary<string, List<ConsumedMessage>> consumed = new();
     Dictionary<string, List<IMessage<string>>>? deltaMessages;
 
-    public InMemoryClient(
+    bool autoConsumeLoop = false;
+
+    public InMemoryBroker(
         IConsumerFactory consumerFactory,
         ISubMessageSerializer serializer,
         IEnumerable<IConsumerDescriber> describers,
@@ -47,7 +70,7 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
         ISubClock subClock)
     {
         this.consumerFactory = consumerFactory;
-        this.serializer = serializer;
+        this.Serializer = serializer;
         this.config = config.Value;
         this.subClock = subClock;
 
@@ -55,30 +78,54 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
             x => x.TopicName, x => x);
     }
 
-    public async Task<Guid> Publish(string topic, string message, Guid? correlationId = null) =>
-        (await Produce(new TopicId(topic, config), message, correlationId, false, default))
-        .MessageId;
+    const string OwnHeader = "[TEST_PUBLISH_MESSAGE]";
+
+    public async Task<Guid> Produce<T>(string topic, T message, Guid? correlationId = null, bool verifyOnly = false)
+        where T : notnull
+    {
+        var messageBody = Serializer.Serialize(message);
+        return await Produce(topic, messageBody, correlationId, verifyOnly);
+    }
+
+    public async Task<Guid> Produce(string topic, string message, Guid? correlationId = null, bool verifyOnly = false)
+    {
+        var testMessage = verifyOnly ? message : $"{OwnHeader}{message}";
+        var response = await Produce(new TopicId(topic, config), testMessage, correlationId, false, default);
+        return response.MessageId;
+    }
 
     public async Task<PublishResult> Produce(TopicId topic, string message, Guid? correlationId, bool compressed,
         CancellationToken ctx)
     {
-        var topicName = topic.Event;
+        var owned = message.StartsWith(OwnHeader);
+        if (owned)
+            message = message[OwnHeader.Length..];
+
+        var topicName = topic.RawName;
         var id = NewId.NextGuid();
-        var payload = new LocalMessage<string>(message) { MessageId = id, Datetime = subClock.Now(), RetryNumber = 0 };
+        var sentMessage =
+            new LocalMessage<string>(message) {MessageId = id, Datetime = subClock.Now(), RetryNumber = 0};
 
         if (!produced.ContainsKey(topicName))
             produced.Add(topicName, new());
-        produced[topicName].Add(payload);
+        produced[topicName].Add(sentMessage);
 
         if (deltaMessages is not null)
         {
             if (!deltaMessages.ContainsKey(topicName))
                 deltaMessages.Add(topicName, new());
-            deltaMessages[topicName].Add(payload);
+            deltaMessages[topicName].Add(sentMessage);
         }
 
         if (consumers.TryGetValue(topicName, out var describer))
-            await consumerFactory.ConsumeScoped(describer, payload, ctx);
+        {
+            if (autoConsumeLoop || owned)
+                await consumerFactory.ConsumeScoped(describer, sentMessage, ctx);
+
+            if (!consumed.TryGetValue(topicName, out var consumedMessages))
+                consumed.Add(topicName, new());
+            consumed[topicName].Add(new(describer.ConsumerType, message));
+        }
 
         return new PublishResult(true, id, correlationId);
     }
@@ -86,6 +133,7 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
     public void Reset()
     {
         produced.Clear();
+        consumed.Clear();
         deltaMessages?.Clear();
     }
 
@@ -95,8 +143,8 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
     static string[] GetKeyOrEmpty(string key, IReadOnlyDictionary<string, string[]> dict) =>
         dict.TryGetValue(key, out var values) ? values : Array.Empty<string>();
 
-    public T[] Deserialize<T>(IEnumerable<string> bodies) where T : notnull =>
-        bodies.Select(x => serializer.Deserialize<T>(x)).ToArray();
+    T[] Deserialize<T>(IEnumerable<string> bodies) where T : notnull =>
+        bodies.Select(x => Serializer.Deserialize<T>(x)).ToArray();
 
     public IReadOnlyDictionary<string, string[]> ProducedMessages() => ExtractBody(produced);
 
@@ -104,6 +152,20 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
 
     public T[] ProducedOn<T>(string topic) where T : notnull =>
         Deserialize<T>(ProducedOn(topic));
+
+    public ConsumedMessage[] GetConsumed(string topic) => consumed.TryGetValue(topic, out var consumedMessages)
+        ? consumedMessages.ToArray()
+        : Array.Empty<ConsumedMessage>();
+
+    public IDictionary<string, ConsumedMessage[]> GetConsumed() =>
+        consumed.ToImmutableDictionary(x => x.Key, x => x.Value.ToArray());
+
+    public string[] GetConsumed(Type consumer, string topic) =>
+        GetConsumed(topic).Where(x => x.Consumer == consumer).Select(x => x.Message).ToArray();
+
+    public TMessage[] GetConsumed<TConsumer, TMessage>(string topic)
+        where TConsumer : IConsumer<TMessage> where TMessage : notnull =>
+        Deserialize<TMessage>(GetConsumed(typeof(TConsumer), topic));
 
     public async Task<IReadOnlyDictionary<string, string[]>> Delta(Func<Task> action)
     {
@@ -119,6 +181,8 @@ class InMemoryClient : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
 
     public async Task<T[]> Delta<T>(string topic, Func<Task> action) where T : notnull =>
         Deserialize<T>(await Delta(topic, action));
+
+    public void AutoConsumeLoop(bool enabled) => autoConsumeLoop = enabled;
 
     public Task<IReadOnlyCollection<IMessage<string>>> ReceiveMessages(TopicId topic,
         CancellationToken ctx) =>

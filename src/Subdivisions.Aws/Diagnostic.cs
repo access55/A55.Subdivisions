@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Globalization;
 using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Options;
@@ -24,6 +25,7 @@ interface IDiagnostics
     void AddConsumedMessagesCounter(long quantity, TimeSpan duration);
     void AddProducedMessagesCounter(long quantity);
     void AddFailedMessagesCounter(long quantity, TimeSpan duration);
+    void RecordException(Activity? activity, Exception? ex, string header);
 }
 
 class Diagnostics : IDiagnostics
@@ -109,4 +111,35 @@ class Diagnostics : IDiagnostics
 
     public void AddFailedMessagesCounter(long quantity, TimeSpan duration) => failedMessagesCounter.Add(quantity,
         new KeyValuePair<string, object?>("duration", duration.TotalMilliseconds));
+
+    public void RecordException(Activity? activity, Exception? ex, string header)
+    {
+        activity?.SetStatus(ActivityStatusCode.Error, $"{header}: {ex?.Message}");
+        if (activity is null || ex is null)
+            return;
+
+        var tagsCollection = new ActivityTagsCollection
+        {
+            {"exception.type", ex.GetType().FullName}, {"exception.stacktrace", InvariantString(ex)},
+        };
+
+        if (!string.IsNullOrWhiteSpace(ex.Message))
+            tagsCollection.Add("exception.message", ex.Message);
+
+        activity.AddEvent(new ActivityEvent("exception", default, tagsCollection));
+    }
+
+    static string InvariantString(Exception exception)
+    {
+        var originalUiCulture = Thread.CurrentThread.CurrentUICulture;
+        try
+        {
+            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+            return exception.ToString();
+        }
+        finally
+        {
+            Thread.CurrentThread.CurrentUICulture = originalUiCulture;
+        }
+    }
 }

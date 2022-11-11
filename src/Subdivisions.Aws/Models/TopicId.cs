@@ -9,6 +9,7 @@ sealed record TopicId
         if (!IsValidTopicName(topic))
             throw new ArgumentException($"Invalid topic name {topic}", nameof(topic));
 
+        RawName = topic;
         Prefix = config.Prefix.ToSnakeCase();
         Suffix = config.Suffix.ToSnakeCase();
         Event = topic.ToSnakeCase();
@@ -21,6 +22,7 @@ sealed record TopicId
             $"{Prefix}_{Source}_{Event}_{Suffix}".TrimUnderscores();
     }
 
+    public string RawName { get; }
     public string TopicName { get; }
     public string QueueName { get; }
 

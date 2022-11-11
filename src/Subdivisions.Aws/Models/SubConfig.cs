@@ -37,8 +37,10 @@ public class SubConfig : SubTopicNameConfig
     public double PollingIntervalInSeconds { get; set; } = 5;
     public string? ServiceUrl { get; set; }
     public bool Localstack { get; set; }
+    public bool MapConsumerEndpoints { get; set; }
     public bool AutoCreateNewTopic { get; set; } = true;
     public bool CompressMessages { get; set; }
+    public bool RethrowExceptions { get; set; }
     public string Region { get; set; } = "sa-east-1";
     public int LongPollingWaitInSeconds { get; set; }
 }
@@ -63,7 +65,7 @@ public class ConfigureSubConfigOptions : IConfigureOptions<SubConfig>
         if (hostEnvironment is not null && string.IsNullOrWhiteSpace(options.Source))
             options.Source = hostEnvironment.ApplicationName;
 
-        if (Environment.GetEnvironmentVariable("SUBDIVISIONS_AWS_REGION") is { Length: > 0 } region)
+        if (Environment.GetEnvironmentVariable("SUBDIVISIONS_AWS_REGION") is {Length: > 0} region)
             options.Region = region;
     }
 }

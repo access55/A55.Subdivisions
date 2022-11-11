@@ -1,9 +1,9 @@
-using System.Text.Json;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using FluentAssertions.Json;
 using FluentAssertions.Primitives;
 using Newtonsoft.Json.Linq;
+using Subdivisions.Services;
 
 namespace Subdivisions.Testing;
 
@@ -31,7 +31,7 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
         return new AndConstraint<FakeBrokerAssertions>(this);
     }
 
-    public AndConstraint<JTokenAssertions> Topic(
+    internal AndConstraint<JTokenAssertions> Topic(
         string topicName)
     {
         var messages = JArray.Parse($"[{string.Join(",", Subject.ProducedOn(topicName))}]");
@@ -40,7 +40,7 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
 
     #region ContainsMessage
 
-    AndConstraint<FakeBrokerAssertions> ContainMessageAssert(
+    AndConstraint<FakeBrokerAssertions> ContainsMessageAssert(
         string topicName, JToken message, bool not,
         string because = "", params object[] becauseArgs)
     {
@@ -53,53 +53,53 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
         return new AndConstraint<FakeBrokerAssertions>(this);
     }
 
-    public AndConstraint<FakeBrokerAssertions> ContainMessage(
+    public AndConstraint<FakeBrokerAssertions> ContainsMessageOn(
         string topicName, object message,
         string because = "", params object[] becauseArgs)
     {
-        var jsonMessage = JsonSerializer.Serialize(message);
-        return ContainMessage(topicName, jsonMessage, because, becauseArgs);
+        var jsonMessage = Subject.Serializer.Serialize(message);
+        return ContainsMessageOn(topicName, jsonMessage, because, becauseArgs);
     }
 
-    public AndConstraint<FakeBrokerAssertions> ContainMessage(
+    public AndConstraint<FakeBrokerAssertions> ContainsMessageOn(
         string topicName, string message,
         string because = "", params object[] becauseArgs)
     {
         var jsonMessage = JToken.Parse(message);
-        return ContainMessage(topicName, jsonMessage, because, becauseArgs);
+        return ContainsMessageOn(topicName, jsonMessage, because, becauseArgs);
     }
 
-    public AndConstraint<FakeBrokerAssertions> ContainMessage(
+    public AndConstraint<FakeBrokerAssertions> ContainsMessageOn(
         string topicName, JToken message,
         string because = "", params object[] becauseArgs) =>
-        ContainMessageAssert(topicName, message, not: false, because, becauseArgs);
+        ContainsMessageAssert(topicName, message, not: false, because, becauseArgs);
 
-    public AndConstraint<FakeBrokerAssertions> NotContainMessage(
+    public AndConstraint<FakeBrokerAssertions> NotContainsMessageOn(
         string topicName, object message,
         string because = "", params object[] becauseArgs)
     {
-        var jsonMessage = JsonSerializer.Serialize(message);
-        return NotContainMessage(topicName, jsonMessage, because, becauseArgs);
+        var jsonMessage = Subject.Serializer.Serialize(message);
+        return NotContainsMessageOn(topicName, jsonMessage, because, becauseArgs);
     }
 
-    public AndConstraint<FakeBrokerAssertions> NotContainMessage(
+    public AndConstraint<FakeBrokerAssertions> NotContainsMessageOn(
         string topicName, string message,
         string because = "", params object[] becauseArgs)
     {
         var jsonMessage = JToken.Parse(message);
-        return NotContainMessage(topicName, jsonMessage, because, becauseArgs);
+        return NotContainsMessageOn(topicName, jsonMessage, because, becauseArgs);
     }
 
-    public AndConstraint<FakeBrokerAssertions> NotContainMessage(
+    public AndConstraint<FakeBrokerAssertions> NotContainsMessageOn(
         string topicName, JToken message,
         string because = "", params object[] becauseArgs) =>
-        ContainMessageAssert(topicName, message, not: true, because, becauseArgs);
+        ContainsMessageAssert(topicName, message, not: true, because, becauseArgs);
 
     #endregion
 
     #region ContainsEquivalentMessage
 
-    public AndConstraint<FakeBrokerAssertions> ContainsEquivalentMessage(
+    public AndConstraint<FakeBrokerAssertions> ContainsMessageEquivalentTo(
         string topicName, JToken message,
         string because = "", params object[] becauseArgs)
     {
@@ -108,31 +108,31 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
         return new AndConstraint<FakeBrokerAssertions>(this);
     }
 
-    public AndConstraint<FakeBrokerAssertions> ContainsEquivalentMessage(
+    public AndConstraint<FakeBrokerAssertions> ContainsMessageEquivalentTo(
         string topicName, object message,
         string because = "", params object[] becauseArgs)
     {
-        var jsonMessage = JsonSerializer.Serialize(message);
-        return ContainsEquivalentMessage(topicName, jsonMessage, because, becauseArgs);
+        var jsonMessage = Subject.Serializer.Serialize(message);
+        return ContainsMessageEquivalentTo(topicName, jsonMessage, because, becauseArgs);
     }
 
-    public AndConstraint<FakeBrokerAssertions> ContainsEquivalentMessage(
+    public AndConstraint<FakeBrokerAssertions> ContainsMessageEquivalentTo(
         string topicName, string message,
         string because = "", params object[] becauseArgs)
     {
         var jsonMessage = JToken.Parse(message);
-        return ContainsEquivalentMessage(topicName, jsonMessage, because, becauseArgs);
+        return ContainsMessageEquivalentTo(topicName, jsonMessage, because, becauseArgs);
     }
 
     #endregion
 
     #region HaveMessages
 
-    AndConstraint<FakeBrokerAssertions> HaveMessagesAssert(
+    AndConstraint<FakeBrokerAssertions> HaveReceivedAssert(
         object topicAndMessages, bool not,
         string because = "", params string[] becauseArgs)
     {
-        var expected = JToken.Parse(JsonSerializer.Serialize(topicAndMessages));
+        var expected = JToken.Parse(Subject.Serializer.Serialize(topicAndMessages));
         var pushedMessages = Subject.ProducedMessages();
 
         var received = DictToJToken(pushedMessages);
@@ -145,37 +145,37 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
         return new AndConstraint<FakeBrokerAssertions>(this);
     }
 
-    public AndConstraint<FakeBrokerAssertions> HaveMessages(
+    public AndConstraint<FakeBrokerAssertions> HaveReceived(
         object topicAndMessages,
         string because = "", params string[] becauseArgs) =>
-        HaveMessagesAssert(topicAndMessages, not: false, because, becauseArgs);
+        HaveReceivedAssert(topicAndMessages, not: false, because, becauseArgs);
 
-    public AndConstraint<FakeBrokerAssertions> HaveMessages(
+    public AndConstraint<FakeBrokerAssertions> HaveReceived(
         Dictionary<string, object[]> messages,
         string because = "", params string[] becauseArgs)
     {
         var strMessages = messages.ToDictionary(
             x => x.Key,
-            x => x.Value.Select(v => JsonSerializer.Serialize(v)).ToArray());
+            x => x.Value.Select(v => Subject.Serializer.Serialize(v)).ToArray());
 
-        return HaveJsonMessages(strMessages, because, becauseArgs);
+        return HaveReceivedAsJson(strMessages, because, becauseArgs);
     }
 
-    public AndConstraint<FakeBrokerAssertions> NotHaveMessages(
+    public AndConstraint<FakeBrokerAssertions> NotHaveReceived(
         Dictionary<string, object[]> messages,
         string because = "", params string[] becauseArgs)
     {
         var strMessages = messages.ToDictionary(
             x => x.Key,
-            x => x.Value.Select(v => JsonSerializer.Serialize(v)).ToArray());
+            x => x.Value.Select(v => Subject.Serializer.Serialize(v)).ToArray());
 
-        return NotHaveJsonMessages(strMessages, because, becauseArgs);
+        return NotHaveReceivedAsJson(strMessages, because, becauseArgs);
     }
 
-    public AndConstraint<FakeBrokerAssertions> NotHaveMessages(
+    public AndConstraint<FakeBrokerAssertions> NotHaveReceived(
         object topicAndMessages,
         string because = "", params string[] becauseArgs) =>
-        HaveMessagesAssert(topicAndMessages, not: true, because, becauseArgs);
+        HaveReceivedAssert(topicAndMessages, not: true, because, becauseArgs);
 
     AndConstraint<FakeBrokerAssertions> JsonMessagesBeAssertion(
         Dictionary<string, string[]> messages, bool not,
@@ -194,13 +194,13 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
         return new AndConstraint<FakeBrokerAssertions>(this);
     }
 
-    public AndConstraint<FakeBrokerAssertions> HaveJsonMessages(
+    public AndConstraint<FakeBrokerAssertions> HaveReceivedAsJson(
         Dictionary<string, string[]> messages,
         string because = "",
         params string[] becauseArgs) =>
         JsonMessagesBeAssertion(messages, not: false, because, becauseArgs);
 
-    public AndConstraint<FakeBrokerAssertions> NotHaveJsonMessages(
+    public AndConstraint<FakeBrokerAssertions> NotHaveReceivedAsJson(
         Dictionary<string, string[]> messages,
         string because = "",
         params string[] becauseArgs) =>
@@ -210,11 +210,11 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
 
     #region ContainMessagesEquivalentTo
 
-    public AndConstraint<FakeBrokerAssertions> ContainMessagesEquivalentTo(
+    public AndConstraint<FakeBrokerAssertions> HaveReceivedMessagesEquivalentTo(
         object topicAndMessages,
         string because = "", params string[] becauseArgs)
     {
-        var expected = JToken.Parse(JsonSerializer.Serialize(topicAndMessages));
+        var expected = JToken.Parse(Subject.Serializer.Serialize(topicAndMessages));
         var pushedMessages = Subject.ProducedMessages();
 
         var received = DictToJToken(pushedMessages);
@@ -223,18 +223,18 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
         return new AndConstraint<FakeBrokerAssertions>(this);
     }
 
-    public AndConstraint<FakeBrokerAssertions> ContainMessagesEquivalentTo(
+    public AndConstraint<FakeBrokerAssertions> HaveReceivedMessagesEquivalentTo(
         Dictionary<string, object[]> messages,
         string because = "", params string[] becauseArgs)
     {
         var strMessages = messages.ToDictionary(
             x => x.Key,
-            x => x.Value.Select(v => JsonSerializer.Serialize(v)).ToArray());
+            x => x.Value.Select(v => Subject.Serializer.Serialize(v)).ToArray());
 
-        return ContainJsonMessageSubtree(strMessages, because, becauseArgs);
+        return HaveReceivedMessagesAsJsonSubtree(strMessages, because, becauseArgs);
     }
 
-    public AndConstraint<FakeBrokerAssertions> ContainJsonMessageSubtree(
+    public AndConstraint<FakeBrokerAssertions> HaveReceivedMessagesAsJsonSubtree(
         Dictionary<string, string[]> messages,
         string because = "",
         params string[] becauseArgs)
@@ -246,6 +246,40 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
         received.Should().ContainSubtree(expected, because, becauseArgs);
 
         return new AndConstraint<FakeBrokerAssertions>(this);
+    }
+
+    #endregion
+
+    #region HaveBeenConsumedBy
+
+    public AndConstraint<FakeBrokerAssertions> HaveBeenConsumedBy(
+        string topicName, Type consumer, string? message = null,
+        string because = "", params object[] becauseArgs)
+    {
+        var consumed = Subject.GetConsumed(consumer, topicName);
+
+        consumed.Should().NotBeEmpty($"Expected {consumer} to have consumed a message, but found none. {because}",
+            becauseArgs);
+
+        if (message is null)
+            return new AndConstraint<FakeBrokerAssertions>(this);
+
+        var messageJson = JToken.Parse(message);
+        var consumedMessages = consumed.Select(JToken.Parse).ToArray();
+        consumedMessages.Should().ContainEquivalentOf(messageJson, because, becauseArgs);
+
+        return new AndConstraint<FakeBrokerAssertions>(this);
+    }
+
+    public AndConstraint<FakeBrokerAssertions> HaveBeenConsumedBy<TConsumer>(
+        string topicName, object? message = null,
+        string because = "", params object[] becauseArgs) where TConsumer : IWeakConsumer
+    {
+        var stringMessage = message is string strMsg
+            ? strMsg
+            : Subject.Serializer.Serialize(message);
+
+        return HaveBeenConsumedBy(topicName, typeof(TConsumer), stringMessage, because, becauseArgs);
     }
 
     #endregion
@@ -268,7 +302,16 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
             throw new InvalidOperationException();
 
         var messages = await fake.Delta(action);
-        var broker = new DeltaFakerBroker(messages);
+
+        var consumed = fake.GetConsumed()
+            .SelectMany(c => c.Value,
+                (item, m) => (item.Key, m.Consumer, m.Message))
+            .GroupBy(x => (x.Consumer, x.Key))
+            .ToDictionary(
+                x => x.Key,
+                x => x.Select(m => m.Message).ToArray());
+
+        var broker = new DeltaFakerBroker(messages, consumed, fake.Serializer);
         return new FakeBrokerAssertions(broker);
     }
 }
@@ -276,9 +319,22 @@ public class FakeBrokerAssertions : ReferenceTypeAssertions<IFakeReadonlyBroker,
 class DeltaFakerBroker : IFakeReadonlyBroker
 {
     readonly IReadOnlyDictionary<string, string[]> messages;
+    readonly IReadOnlyDictionary<(Type, string), string[]> consumed;
 
-    public DeltaFakerBroker(IReadOnlyDictionary<string, string[]> messages) => this.messages = messages;
+    public DeltaFakerBroker(
+        IReadOnlyDictionary<string, string[]> messages,
+        IReadOnlyDictionary<(Type, string), string[]> consumed,
+        ISubMessageSerializer serializer)
+    {
+        this.messages = messages;
+        this.consumed = consumed;
+        Serializer = serializer;
+    }
+
     public IReadOnlyDictionary<string, string[]> ProducedMessages() => messages;
+    public ISubMessageSerializer Serializer { get; }
+    public string[] GetConsumed(Type consumer, string topic) => consumed[(consumer, topic)];
+
     public string[] ProducedOn(string topic) => messages[topic];
 }
 

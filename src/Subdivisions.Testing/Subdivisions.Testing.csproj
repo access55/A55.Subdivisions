@@ -7,11 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Subdivisions.Aws\Subdivisions.Aws.csproj"/>
+    <ProjectReference Include="..\Subdivisions.Aws\Subdivisions.Aws.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentAssertions.Json" Version="6.1.0"/>
+    <PackageReference Include="FluentAssertions.Json" Version="6.1.0" />
 
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
       <PrivateAssets>all</PrivateAssets>

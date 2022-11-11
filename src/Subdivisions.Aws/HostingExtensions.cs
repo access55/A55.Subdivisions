@@ -19,6 +19,8 @@ public static class HostingExtensions
         return services
             .AddSubdivisionsServices(builder.ConfigureOptions, credentials)
             .AddScoped<ISubCorrelationIdContext, SubCorrelationIdContext>()
+            .AddScoped(typeof(IProducer<,>), typeof(TypedProducer<,>))
+            .AddScoped(typeof(IProducer<,,>), typeof(TypedProducer<,,>))
             .AddSingleton<IConsumerFactory, ConsumerFactory>()
             .AddSingleton<IConsumerJob, ConcurrentConsumerJob>()
             .AddHostedService<SubdivisionsHostedService>();

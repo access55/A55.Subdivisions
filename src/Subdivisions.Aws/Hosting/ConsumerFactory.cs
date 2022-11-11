@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Subdivisions.Models;
 using Subdivisions.Services;
 
@@ -16,6 +17,7 @@ class ConsumerFactory : IConsumerFactory
 {
     readonly ILogger<ConsumerFactory> logger;
     readonly IDiagnostics diagnostics;
+    readonly IOptions<SubConfig> config;
     readonly IServiceProvider provider;
     readonly ISubMessageSerializer serializer;
     readonly Stopwatch stopwatch = new();
@@ -24,6 +26,7 @@ class ConsumerFactory : IConsumerFactory
         IServiceProvider provider,
         ILogger<ConsumerFactory> logger,
         IDiagnostics diagnostics,
+        IOptions<SubConfig> config,
         ISubMessageSerializer serializer
     )
 
@@ -31,6 +34,7 @@ class ConsumerFactory : IConsumerFactory
         this.provider = provider;
         this.logger = logger;
         this.diagnostics = diagnostics;
+        this.config = config;
         this.serializer = serializer;
     }
 
@@ -74,11 +78,18 @@ class ConsumerFactory : IConsumerFactory
         catch (Exception ex)
         {
             logger.LogError(ex, "{Header} Consumer error", header);
+
+            diagnostics.RecordException(activity, ex, header);
             diagnostics.AddFailedMessagesCounter(1, stopwatch.Elapsed);
+
             var retryStrategy = scope.ServiceProvider.GetRequiredService<IRetryStrategy>();
             var delay = retryStrategy.Evaluate(message.RetryNumber);
             var handler = describer.ErrorHandler?.Invoke(ex) ?? Task.CompletedTask;
-            await Task.WhenAll(message.Release(delay), handler);
+            await message.Release(delay);
+            await handler;
+
+            if (config.Value.RethrowExceptions)
+                throw;
         }
         finally
         {
