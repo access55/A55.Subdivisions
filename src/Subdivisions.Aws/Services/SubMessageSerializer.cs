@@ -18,12 +18,13 @@ class SnakeCaseNamingPolicy : JsonNamingPolicy
     public override string ConvertName(string name) => name.ToSnakeCase();
 }
 
-public class SubJsonSerializer : ISubMessageSerializer
+class SubJsonSerializer : ISubMessageSerializer
 {
     static readonly JsonSerializerOptions jsonOptions = new()
     {
         PropertyNamingPolicy = SnakeCaseNamingPolicy.Instance,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Converters = {new JsonStringEnumConverter(), new DateTimeUtcOnlyConverter()}
     };
 
     public string Serialize<TValue>(TValue something) =>

@@ -85,11 +85,13 @@ sealed class AwsSqs : IConsumeDriver
         if (queueUrlCache.TryGetValue(queue, out var cachedInfo))
             return cachedInfo;
 
-        var urlResponse = await sqs.GetQueueUrlAsync(new GetQueueUrlRequest {QueueName = queue}, ctx);
-        if (urlResponse.HttpStatusCode is not (HttpStatusCode.OK or HttpStatusCode.NoContent))
-            return null;
+        var responseQueues =
+            await sqs.ListQueuesAsync(new ListQueuesRequest {QueueNamePrefix = queue, MaxResults = 1000}, ctx);
 
-        var info = await GetQueueAttributes(urlResponse.QueueUrl, ctx);
+        var url = responseQueues.QueueUrls.Find(name => name.Contains(queue));
+        if (url is null) return null;
+
+        var info = await GetQueueAttributes(url, ctx);
         queueUrlCache.AddOrUpdate(queue, info, (_, _) => info);
         return info;
     }

@@ -28,6 +28,9 @@ public sealed class SubConfigBuilder : SubConfig
         return builder;
     }
 
+    public TopicConfigurationBuilder<TMessage> MapTopic<TMessage>()
+        where TMessage : notnull => MapTopic<TMessage>(typeof(TMessage).Name);
+
     public ICorrelationIdBuilder WithCorrelationId(Action<CorrelationIdOptions> config)
     {
         CustomCorrelationId = true;

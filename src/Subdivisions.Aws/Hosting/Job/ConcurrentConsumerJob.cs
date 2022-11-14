@@ -55,7 +55,9 @@ sealed class ConcurrentConsumerJob : IConsumerJob
             {
                 await channel.WaitToWriteAsync(ctx);
                 var timeoutToken = GetTimeoutToken(ctx);
+                logger.LogDebug($"Receiving messages from {describer.TopicName}");
                 var messages = await sub.Receive(describer.TopicName, ctx);
+                logger.LogDebug($"Received {messages.Count} messages");
                 var tasks = messages.Select(async m =>
                     await channel.WriteAsync(new(m, timeoutToken), ctx));
                 await Task.WhenAll(tasks);
