@@ -1,8 +1,15 @@
+using System.Runtime.CompilerServices;
 using Amazon.Runtime;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Subdivisions.Hosting;
 using Subdivisions.Hosting.Config;
 using Subdivisions.Hosting.Job;
+using Subdivisions.Models;
 
 namespace Subdivisions;
 
@@ -24,5 +31,14 @@ public static class HostingExtensions
             .AddSingleton<IConsumerFactory, ConsumerFactory>()
             .AddSingleton<IConsumerJob, ConcurrentConsumerJob>()
             .AddHostedService<SubdivisionsHostedService>();
+    }
+
+    public static void UseSubdivisions(this IEndpointRouteBuilder app)
+    {
+        var settings = app.ServiceProvider.GetService<IOptions<SubConfig>>();
+        if (settings is null)
+            throw new InvalidOperationException("You should call AddSubdivisions before");
+
+        app.MapTopicEndpoints(settings.Value);
     }
 }
