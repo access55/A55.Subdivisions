@@ -105,6 +105,7 @@ public class FakeBrokerTests
     [Test]
     public async Task ShouldReturnAllProducedMessage()
     {
+        broker.AutoConsumeLoop();
         var publisher = provider.GetRequiredService<IProducer<MyMessage2>>();
 
         var message = AutoFaker.Generate<MyMessage2>();
@@ -122,6 +123,7 @@ public class FakeBrokerTests
     [Test]
     public async Task ShouldReturnAllProducedDeltaMessage()
     {
+        broker.AutoConsumeLoop();
         var publisher = provider.GetRequiredService<IProducer<MyMessage2>>();
 
         var message_old = AutoFaker.Generate<MyMessage2>();
@@ -142,6 +144,7 @@ public class FakeBrokerTests
     public async Task ShouldReset()
     {
         var publisher = provider.GetRequiredService<IProducer<MyMessage2>>();
+        broker.AutoConsumeLoop();
 
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
@@ -160,7 +163,7 @@ public class FakeBrokerTests
     public async Task ShouldPublish()
     {
         var message = AutoFaker.Generate<MyMessage2>();
-        await broker.Publish("my_recur_topic", message.ToJson());
+        await broker.Produce("my_recur_topic", message.ToJson());
 
         var produced = broker.ProducedMessages();
         produced.Should().BeEquivalentTo(new Dictionary<string, string[]>

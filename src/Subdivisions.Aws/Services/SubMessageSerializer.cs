@@ -24,7 +24,7 @@ class SubJsonSerializer : ISubMessageSerializer
     {
         PropertyNamingPolicy = SnakeCaseNamingPolicy.Instance,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Converters = {new JsonStringEnumConverter(), new DateTimeUtcOnlyConverter()}
+        Converters = { new JsonStringEnumConverter(), new DateTimeUtcOnlyConverter() }
     };
 
     public string Serialize<TValue>(TValue something) =>

@@ -191,6 +191,9 @@ public class SubConfigBuilderTests : BaseTest
             sub.MessageRetentionInDays = fakeConfig.MessageRetentionInDays;
             sub.MessageTimeoutInSeconds = fakeConfig.MessageTimeoutInSeconds;
             sub.MessageDelayInSeconds = fakeConfig.MessageDelayInSeconds;
+            sub.RethrowExceptions = fakeConfig.RethrowExceptions;
+            sub.CompressMessages = fakeConfig.CompressMessages;
+            sub.MapConsumerEndpoints = fakeConfig.MapConsumerEndpoints;
             sub.PollingIntervalInSeconds = fakeConfig.PollingIntervalInSeconds;
             sub.ServiceUrl = fakeConfig.ServiceUrl;
             sub.Localstack = fakeConfig.Localstack;

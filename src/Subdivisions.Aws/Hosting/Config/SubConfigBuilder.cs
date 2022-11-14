@@ -74,6 +74,10 @@ public sealed class SubConfigBuilder : SubConfig
             config.AutoCreateNewTopic = this.AutoCreateNewTopic;
         if (this.CompressMessages != defaultConfig.CompressMessages)
             config.CompressMessages = this.CompressMessages;
+        if (this.RethrowExceptions != defaultConfig.RethrowExceptions)
+            config.RethrowExceptions = this.RethrowExceptions;
+        if (this.MapConsumerEndpoints != defaultConfig.MapConsumerEndpoints)
+            config.MapConsumerEndpoints = this.MapConsumerEndpoints;
         if (this.Region != defaultConfig.Region)
             config.Region = this.Region;
         if (this.LongPollingWaitInSeconds != defaultConfig.LongPollingWaitInSeconds)

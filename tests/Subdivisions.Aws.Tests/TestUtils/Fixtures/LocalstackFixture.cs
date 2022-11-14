@@ -3,13 +3,36 @@ using Amazon.KeyManagementService.Model;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Subdivisions.Clients;
 using Subdivisions.Extensions;
 using Subdivisions.Models;
 
-[assembly: LevelOfParallelism(5)]
+[assembly: LevelOfParallelism(3)]
 
 namespace Subdivisions.Aws.Tests.TestUtils.Fixtures;
+
+public class LocalStackConfiguration : TestcontainerMessageBrokerConfiguration
+{
+    const string LocalStackImage = "localstack/localstack:1.1.0";
+    const int LocalStackPort = 4566;
+
+    public LocalStackConfiguration()
+        : this(LocalStackImage)
+    {
+    }
+
+    public LocalStackConfiguration(string image)
+        : base(image, LocalStackPort)
+    {
+        Environments.Add("EXTERNAL_SERVICE_PORTS_START", "4510");
+        Environments.Add("EXTERNAL_SERVICE_PORTS_END", "4559");
+    }
+
+    public override IWaitForContainerOS WaitStrategy => Wait.ForUnixContainer()
+        .UntilPortIsAvailable(LocalStackPort);
+}
 
 [Parallelizable(ParallelScope.Self)]
 public class LocalstackFixture : ServicesFixture
@@ -30,7 +53,10 @@ public class LocalstackFixture : ServicesFixture
     protected override async Task BeforeSetup()
     {
         localstack = new TestcontainersBuilder<LocalStackTestcontainer>()
-            .WithMessageBroker(new LocalStackTestcontainerConfiguration())
+            .WithMessageBroker(new LocalStackConfiguration())
+            .WithWaitStrategy(
+                Wait.ForUnixContainer()
+                    .UntilPortIsAvailable(4566))
             .Build();
 
         await localstack.StartAsync();
@@ -51,6 +77,9 @@ public class LocalstackFixture : ServicesFixture
 
         c.MessageDelayInSeconds = 0;
         c.LongPollingWaitInSeconds = 0;
+        c.MapConsumerEndpoints = false;
+        c.RethrowExceptions = true;
+        c.CompressMessages = false;
     }
 
     [TearDown]
@@ -60,6 +89,7 @@ public class LocalstackFixture : ServicesFixture
     public async Task LocalstackSetup()
     {
         config = GetService<IOptions<SubConfig>>().Value;
+        GetService<AwsSqs>().ClearCache();
         kmsTestKeyId = await CreateDefaultKmsKey();
     }
 

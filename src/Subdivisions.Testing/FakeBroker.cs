@@ -41,7 +41,7 @@ public interface IFakeBroker : IFakeReadonlyBroker
     Task<string[]> Delta(string topic, Func<Task> action);
     Task<T[]> Delta<T>(string topic, Func<Task> action) where T : notnull;
 
-    void AutoConsumeLoop(bool enabled);
+    void AutoConsumeLoop(bool enabled = true);
 }
 
 public readonly record struct ConsumedMessage(Type Consumer, string Message);
@@ -104,7 +104,7 @@ class InMemoryBroker : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
         var topicName = topic.RawName;
         var id = NewId.NextGuid();
         var sentMessage =
-            new LocalMessage<string>(message) {MessageId = id, Datetime = subClock.Now(), RetryNumber = 0};
+            new LocalMessage<string>(message) { MessageId = id, Datetime = subClock.Now(), RetryNumber = 0 };
 
         if (!produced.ContainsKey(topicName))
             produced.Add(topicName, new());
@@ -135,6 +135,7 @@ class InMemoryBroker : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
         produced.Clear();
         consumed.Clear();
         deltaMessages?.Clear();
+        autoConsumeLoop = false;
     }
 
     static IReadOnlyDictionary<string, string[]> ExtractBody(Dictionary<string, List<IMessage<string>>> messages) =>
@@ -182,7 +183,7 @@ class InMemoryBroker : IConsumeDriver, IProduceDriver, IConsumerJob, ISubResourc
     public async Task<T[]> Delta<T>(string topic, Func<Task> action) where T : notnull =>
         Deserialize<T>(await Delta(topic, action));
 
-    public void AutoConsumeLoop(bool enabled) => autoConsumeLoop = enabled;
+    public void AutoConsumeLoop(bool enabled = true) => autoConsumeLoop = enabled;
 
     public Task<IReadOnlyCollection<IMessage<string>>> ReceiveMessages(TopicId topic,
         CancellationToken ctx) =>

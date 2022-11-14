@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Subdivisions.Aws.Tests.Builders;
 using Subdivisions.Aws.Tests.TestUtils.Fixtures;
@@ -43,11 +44,15 @@ public class ConcurrentConsumerJobTests : BaseTest
         const int timeoutInSeconds = 1;
 
         var consumer = new ConsumerDescriberBuilder()
-            .WithErrorHandler()
             .Generate();
 
         A.CallTo(() => mocker.Resolve<IOptionsMonitor<SubConfig>>().CurrentValue)
-            .Returns(new SubConfig { MessageTimeoutInSeconds = timeoutInSeconds, PollingIntervalInSeconds = 0.1f });
+            .Returns(new SubConfig
+            {
+                MessageTimeoutInSeconds = timeoutInSeconds,
+                PollingIntervalInSeconds = 0.1f,
+                RethrowExceptions = true
+            });
 
         A.CallTo(() => mocker
             .Resolve<IConsumerClient>()
@@ -64,7 +69,8 @@ public class ConcurrentConsumerJobTests : BaseTest
 
         var ctx = new CancellationTokenSource();
 
-        A.CallTo(() => consumer.ErrorHandler!(A<OperationCanceledException>._))
+        A.CallTo(mocker.Resolve<ILogger<ConcurrentConsumerJob>>())
+            .Where(x => x.Arguments.Get<LogLevel>("logLevel") == LogLevel.Critical)
             .Invokes(() => ctx.Cancel());
 
         var job = mocker.Generate<ConcurrentConsumerJob>();

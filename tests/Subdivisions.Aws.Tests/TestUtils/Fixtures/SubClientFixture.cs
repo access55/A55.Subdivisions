@@ -23,7 +23,7 @@ public class SubClientFixture : LocalstackFixture
         var resources = GetService<ISubResourceManager>();
         await resources.EnsureQueueExists(TopicName, default);
 
-        fakedDate = faker.Date.Soon();
+        fakedDate = faker.Date.Soon().ToUniversalTime();
         A.CallTo(() => fakeClock.Now()).Returns(fakedDate);
     }
 

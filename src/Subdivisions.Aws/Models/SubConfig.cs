@@ -65,7 +65,7 @@ public class ConfigureSubConfigOptions : IConfigureOptions<SubConfig>
         if (hostEnvironment is not null && string.IsNullOrWhiteSpace(options.Source))
             options.Source = hostEnvironment.ApplicationName;
 
-        if (Environment.GetEnvironmentVariable("SUBDIVISIONS_AWS_REGION") is {Length: > 0} region)
+        if (Environment.GetEnvironmentVariable("SUBDIVISIONS_AWS_REGION") is { Length: > 0 } region)
             options.Region = region;
     }
 }

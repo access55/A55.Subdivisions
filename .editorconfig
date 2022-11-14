@@ -171,3 +171,5 @@ dotnet_diagnostic.AsyncFixer01.severity = suggestion # The method dont needs asy
 dotnet_diagnostic.CS1591.severity = suggestion
 dotnet_diagnostic.RCS1138.severity = suggestion
 dotnet_diagnostic.S927.severity = suggestion
+dotnet_diagnostic.S2479.severity = suggestion
+

@@ -25,7 +25,8 @@ public class TestMessage
             date_time_field = DateTimeField?.ToString("o")
         });
 
-    public static TestMessage New() => AutoFaker.Generate<TestMessage>();
+    public static TestMessage New() =>
+        new AutoFaker<TestMessage>().RuleFor(x => x.DateTimeField, f => f.Date.Soon().ToUniversalTime()).Generate();
 }
 
 public struct TestMessageValue

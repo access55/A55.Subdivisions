@@ -69,13 +69,15 @@ sealed class AwsSqs : IConsumeDriver
         this.config = config.Value;
     }
 
-    async Task<QueueInfo> GetQueueAttributes(string queueUrl, CancellationToken ctx)
+    public async Task<QueueInfo> GetQueueAttributes(string queueUrl, CancellationToken ctx)
     {
-        var response = await sqs.GetQueueAttributesAsync(queueUrl, new List<string> {QueueAttributeName.QueueArn}, ctx);
+        var response = await sqs.GetQueueAttributesAsync(queueUrl, new List<string> { QueueAttributeName.QueueArn }, ctx);
         logger.LogDebug("Queue Attributes Response is: {Response}", JsonSerializer.Serialize(response.Attributes));
 
         return new(new(queueUrl), new(response.QueueARN));
     }
+
+    public void ClearCache() => queueUrlCache.Clear();
 
     public async ValueTask<QueueInfo?> GetQueue(string queueName,
         CancellationToken ctx, bool deadLetter = false)
@@ -86,7 +88,7 @@ sealed class AwsSqs : IConsumeDriver
             return cachedInfo;
 
         var responseQueues =
-            await sqs.ListQueuesAsync(new ListQueuesRequest {QueueNamePrefix = queue, MaxResults = 1000}, ctx);
+            await sqs.ListQueuesAsync(new ListQueuesRequest { QueueNamePrefix = queue, MaxResults = 1000 }, ctx);
 
         var url = responseQueues.QueueUrls.Find(name => name.Contains(queue));
         if (url is null) return null;
@@ -109,7 +111,8 @@ sealed class AwsSqs : IConsumeDriver
 
         var deadLetterPolicy = new
         {
-            deadLetterTargetArn = deadLetter.Arn.Value, maxReceiveCount = config.RetriesBeforeDeadLetter.ToString()
+            deadLetterTargetArn = deadLetter.Arn.Value,
+            maxReceiveCount = config.RetriesBeforeDeadLetter.ToString()
         };
 
         var createQueueRequest = new CreateQueueRequest
@@ -137,7 +140,7 @@ sealed class AwsSqs : IConsumeDriver
             new CreateQueueRequest
             {
                 QueueName = $"{DeadLetterPrefix}{queueName}",
-                Attributes = new() {["Policy"] = Iam, ["KmsMasterKeyId"] = keyId}
+                Attributes = new() { ["Policy"] = Iam, ["KmsMasterKeyId"] = keyId }
             }, ctx);
         return await GetQueueAttributes(q.QueueUrl, ctx);
     }
@@ -159,7 +162,7 @@ sealed class AwsSqs : IConsumeDriver
                 QueueUrl = queueUrl,
                 MaxNumberOfMessages = config.QueueMaxReceiveCount,
                 WaitTimeSeconds = config.LongPollingWaitInSeconds,
-                AttributeNames = new() {MessageSystemAttributeName.ApproximateReceiveCount}
+                AttributeNames = new() { MessageSystemAttributeName.ApproximateReceiveCount }
             }, ctx);
 
         if (readMessagesRequest?.Messages is not { } messages)
@@ -185,7 +188,7 @@ sealed class AwsSqs : IConsumeDriver
 
                 Task DeleteMessage() =>
                     sqs.DeleteMessageAsync(
-                        new() {QueueUrl = queueInfo.Url.ToString(), ReceiptHandle = sqsMessage.ReceiptHandle},
+                        new() { QueueUrl = queueInfo.Url.ToString(), ReceiptHandle = sqsMessage.ReceiptHandle },
                         CancellationToken.None);
 
                 Task ReleaseMessage(TimeSpan delay) =>

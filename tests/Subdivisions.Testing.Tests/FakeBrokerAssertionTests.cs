@@ -31,6 +31,8 @@ public class FakeBrokerAssertionsTests
             .BuildServiceProvider();
 
         broker = provider.GetRequiredService<IFakeBroker>();
+        broker.Reset();
+        broker.AutoConsumeLoop();
     }
 
     [Test]
@@ -60,7 +62,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage1>();
         await publisher.Publish(message);
 
-        broker.Should().ContainMessage("my_topic", message.ToJson());
+        broker.Should().ContainsMessageOn("my_topic", message.ToJson());
     }
 
     [Test]
@@ -71,7 +73,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage1>();
         await publisher.Publish(message);
 
-        broker.Should().ContainMessage("my_topic", new { id = message.Id, foo = message.Foo });
+        broker.Should().ContainsMessageOn("my_topic", new { id = message.Id, foo = message.Foo });
     }
 
     [Test]
@@ -82,11 +84,11 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage1>();
         await publisher.Publish(message);
 
-        var action = () => broker.Should().NotContainMessage("my_topic", message.ToJson());
+        var action = () => broker.Should().NotContainsMessageOn("my_topic", message.ToJson());
         action.Should().Throw<AssertionException>();
 
         var message2 = AutoFaker.Generate<MyMessage1>();
-        broker.Should().NotContainMessage("my_topic", message2.ToJson());
+        broker.Should().NotContainsMessageOn("my_topic", message2.ToJson());
     }
 
     [Test]
@@ -97,11 +99,11 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage1>();
         await publisher.Publish(message);
 
-        var action = () => broker.Should().NotContainMessage("my_topic", new { id = message.Id, foo = message.Foo });
+        var action = () => broker.Should().NotContainsMessageOn("my_topic", new { id = message.Id, foo = message.Foo });
         action.Should().Throw<AssertionException>();
 
         var message2 = AutoFaker.Generate<MyMessage1>();
-        broker.Should().NotContainMessage("my_topic", new { id = message2.Id, foo = message2.Foo });
+        broker.Should().NotContainsMessageOn("my_topic", new { id = message2.Id, foo = message2.Foo });
     }
 
     [Test]
@@ -112,7 +114,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage1>();
         await publisher.Publish(message);
 
-        broker.Should().ContainsEquivalentMessage("my_topic", new { id = message.Id });
+        broker.Should().ContainsMessageEquivalentTo("my_topic", new { id = message.Id });
     }
 
     [Test]
@@ -123,7 +125,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage1>();
         await publisher.Publish(message);
 
-        broker.Should().ContainsEquivalentMessage("my_topic", $@"{{""id"":""{message.Id}""}}");
+        broker.Should().ContainsMessageEquivalentTo("my_topic", $@"{{""id"":""{message.Id}""}}");
     }
 
     [Test]
@@ -134,7 +136,7 @@ public class FakeBrokerAssertionsTests
         var publisher = provider.GetRequiredService<IProducer<MyMessage1>>();
         await publisher.Publish(message1);
 
-        var action = () => broker.Should().ContainMessage("my_topic", message2.ToJson());
+        var action = () => broker.Should().ContainsMessageOn("my_topic", message2.ToJson());
 
         action.Should().Throw<AssertionException>();
     }
@@ -147,7 +149,7 @@ public class FakeBrokerAssertionsTests
         var publisher = provider.GetRequiredService<IProducer<MyMessage1>>();
         await publisher.Publish(message1);
 
-        var action = () => broker.Should().ContainMessage("my_topic", message2);
+        var action = () => broker.Should().ContainsMessageOn("my_topic", message2);
         action.Should().Throw<AssertionException>();
     }
 
@@ -159,7 +161,7 @@ public class FakeBrokerAssertionsTests
         var publisher = provider.GetRequiredService<IProducer<MyMessage1>>();
         await publisher.Publish(message1);
 
-        var action = () => broker.Should().ContainMessage("my_topic", new { id = message2.Id, foo = message2.Foo });
+        var action = () => broker.Should().ContainsMessageOn("my_topic", new { id = message2.Id, foo = message2.Foo });
 
         action.Should().Throw<AssertionException>();
     }
@@ -172,25 +174,25 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        broker.Should().HaveJsonMessages(new()
+        broker.Should().HaveReceived(new()
         {
-            ["my_recur_topic"] = new[] { message.ToJson() },
-            ["my_topic"] = new[] { new MyMessage1 { Foo = message.Bar, Id = message.Id }.ToJson() }
+            ["my_recur_topic"] = new[] { message },
+            ["my_topic"] = new[] { new MyMessage1 { Foo = message.Bar, Id = message.Id } }
         });
     }
 
     [Test]
     public async Task ShouldCheckForNotProducedMessages()
     {
-        var publisher = provider.GetRequiredService<IProducer<MyMessage2>>();
+        var publisher = provider.GetRequiredService<IProducer<MyMessage2, MyMessage1>>();
 
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        var action = () => broker.Should().NotHaveJsonMessages(new()
+        var action = () => broker.Should().NotHaveReceived(new()
         {
-            ["my_recur_topic"] = new[] { message.ToJson() },
-            ["my_topic"] = new[] { new MyMessage1 { Foo = message.Bar, Id = message.Id }.ToJson() }
+            ["my_recur_topic"] = new[] { message },
+            ["my_topic"] = new[] { new MyMessage1 { Foo = message.Bar, Id = message.Id } }
         });
 
         action.Should().Throw<AssertionException>();
@@ -199,33 +201,17 @@ public class FakeBrokerAssertionsTests
     [Test]
     public async Task ShouldCheckForEquivalentProducedMessages()
     {
+        broker.AutoConsumeLoop();
         var publisher = provider.GetRequiredService<IProducer<MyMessage2>>();
 
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        broker.Should().HaveMessages(new()
+        broker.Should().HaveReceivedMessagesEquivalentTo(new()
         {
             ["my_recur_topic"] = new[] { new { id = message.Id, bar = message.Bar } },
             ["my_topic"] = new[] { new { id = message.Id, foo = message.Bar } }
         });
-    }
-
-    [Test]
-    public async Task ShouldCheckForEquivalentNotProducedMessages()
-    {
-        var publisher = provider.GetRequiredService<IProducer<MyMessage2>>();
-
-        var message = AutoFaker.Generate<MyMessage2>();
-        await publisher.Publish(message);
-
-        var action = () => broker.Should().NotHaveMessages(new()
-        {
-            ["my_recur_topic"] = new[] { new { id = message.Id, bar = message.Bar } },
-            ["my_topic"] = new[] { new { id = message.Id, foo = message.Bar } }
-        });
-
-        action.Should().Throw<AssertionException>();
     }
 
     [Test]
@@ -236,7 +222,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        broker.Should().HaveMessages(new
+        broker.Should().HaveReceivedMessagesEquivalentTo(new
         {
             my_recur_topic = new[] { new { id = message.Id, bar = message.Bar } },
             my_topic = new[] { new { id = message.Id, foo = message.Bar } }
@@ -251,7 +237,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        var action = () => broker.Should().NotHaveMessages(new
+        var action = () => broker.Should().NotHaveReceived(new
         {
             my_recur_topic = new[] { new { id = message.Id, bar = message.Bar } },
             my_topic = new[] { new { id = message.Id, foo = message.Bar } }
@@ -259,7 +245,7 @@ public class FakeBrokerAssertionsTests
 
         action.Should().Throw<AssertionException>();
 
-        broker.Should().NotHaveMessages(new { my_topic = new[] { new { id = Guid.NewGuid(), foo = "message" } } });
+        broker.Should().NotHaveReceived(new { my_topic = new[] { new { id = Guid.NewGuid(), foo = "message" } } });
     }
 
     [Test]
@@ -270,7 +256,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        broker.Should().ContainMessagesEquivalentTo(new
+        broker.Should().HaveReceivedMessagesEquivalentTo(new
         {
             my_recur_topic = new[] { new { id = message.Id } },
             my_topic = new[] { new { foo = message.Bar } }
@@ -285,7 +271,8 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        broker.Should().ContainJsonMessageSubtree(new() { ["my_recur_topic"] = new[] { $@"{{""id"":""{message.Id}""}}" } });
+        broker.Should()
+            .HaveReceivedMessagesAsJsonSubtree(new() { ["my_recur_topic"] = new[] { $@"{{""id"":""{message.Id}""}}" } });
     }
 
     [Test]
@@ -296,7 +283,7 @@ public class FakeBrokerAssertionsTests
         var message = AutoFaker.Generate<MyMessage2>();
         await publisher.Publish(message);
 
-        broker.Should().ContainMessagesEquivalentTo(new() { ["my_recur_topic"] = new[] { new { id = message.Id } } });
+        broker.Should().HaveReceivedMessagesEquivalentTo(new() { ["my_recur_topic"] = new[] { new { id = message.Id } } });
     }
 
     [Test]
