@@ -1,6 +1,5 @@
 [![Nuget](https://img.shields.io/nuget/v/Subdivisions.Aws.svg?style=flat)](https://www.nuget.org/packages/Subdivisions.Aws)
-[![CI](https://github.com/access55/A55.Subdivisions/actions/workflows/ci.yml/badge.svg)](https://github.com/access55/A55.Subdivisions/actions/workflows/ci.yml)
-![](https://raw.githubusercontent.com/access55/A55.Subdivisions/badges/badge_linecoverage.svg)
+[![CI](https://github.com/access55/A55.Subdivisions/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/access55/A55.Subdivisions/actions/workflows/ci.yml)![](https://raw.githubusercontent.com/access55/A55.Subdivisions/badges/badge_linecoverage.svg)
 ![](https://raw.githubusercontent.com/access55/A55.Subdivisions/badges/badge_branchcoverage.svg)
 ![](https://raw.githubusercontent.com/access55/A55.Subdivisions/badges/test_report_badge.svg)
 ![](https://raw.githubusercontent.com/access55/A55.Subdivisions/badges/lines_badge.svg)
