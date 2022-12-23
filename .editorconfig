@@ -50,26 +50,26 @@ dotnet_style_prefer_conditional_expression_over_return = true:silent
 
 # Style Definitions
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
-dotnet_naming_style.camel_case_style.capitalization  = camel_case
+dotnet_naming_style.camel_case_style.capitalization = camel_case
 
 
 # constant case preferences
-dotnet_naming_symbols.constant_fields.applicable_kinds            = field
-dotnet_naming_symbols.constant_fields.applicable_accessibilities  = *
-dotnet_naming_symbols.constant_fields.required_modifiers          = const
+dotnet_naming_symbols.constant_fields.applicable_kinds = field
+dotnet_naming_symbols.constant_fields.applicable_accessibilities = *
+dotnet_naming_symbols.constant_fields.required_modifiers = const
 
 dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = suggestion
-dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols  = constant_fields
-dotnet_naming_rule.constant_fields_should_be_pascal_case.style    = pascal_case_style
+dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols = constant_fields
+dotnet_naming_rule.constant_fields_should_be_pascal_case.style = pascal_case_style
 
 # fields case preferences
 dotnet_naming_symbols.private_field_symbols.applicable_kinds = field
 dotnet_naming_symbols.private_field_symbols.applicable_accessibilities = private
+
 dotnet_naming_rule.private_field_symbols_should_be_camel_case.symbols = private_field_symbols
 dotnet_naming_rule.private_field_symbols_should_be_camel_case.severity = warning
 dotnet_naming_rule.private_field_symbols_should_be_camel_case.style = camel_case_style
 
-# protected fields
 dotnet_naming_symbols.protected_field_symbols.applicable_kinds = field
 dotnet_naming_symbols.protected_field_symbols.applicable_accessibilities = protected
 dotnet_naming_rule.protected_field_symbols_should_be_camel_case.symbols = protected_field_symbols
@@ -99,7 +99,7 @@ csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
 csharp_style_throw_expression = true:suggestion
 csharp_style_conditional_delegate_call = true:suggestion
 # Modifier preferences
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
+csharp_preferred_modifier_order = public, private, protected, internal, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, volatile, async:suggestion
 # Expression-level preferences
 csharp_prefer_braces = when_multiline:suggestion
 csharp_style_deconstructed_variable_declaration = true:suggestion
@@ -135,6 +135,12 @@ csharp_space_between_method_call_empty_parameter_list_parentheses = false
 csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
 
+dotnet_diagnostic.CA1050.severity = warning # Declare types in namespaces
+dotnet_diagnostic.csharp_prefer_braces = false
+
+# Sonar Csharp
+# dotnet_diagnostic.S3881.severity = silent # Implement IDisposable correctly
+dotnet_diagnostic.S3925.severity = silent # Update this implementation of 'ISerializable' to conform to the recommended serialization pattern
 
 # Roslynator
 dotnet_analyzer_diagnostic.category-roslynator.severity = default
@@ -142,13 +148,28 @@ roslynator_analyzers.enabled_by_default = true
 roslynator_refactorings.enabled = true
 roslynator_compiler_diagnostic_fixes.enabled = true
 
-dotnet_diagnostic.RCS1214.severity = warning
-dotnet_diagnostic.RCS1036.severity = warning
-dotnet_diagnostic.S3881.severity = suggestion
-dotnet_diagnostic.IDE0011.severity = silent
-dotnet_diagnostic.RCS1001.severity = silent
-dotnet_diagnostic.RCS1194.severity = silent
-dotnet_diagnostic.RCS1163.severity = silent
-dotnet_diagnostic.RCS1118.severity = silent
-dotnet_diagnostic.CA1050.severity = silent
-dotnet_diagnostic.S3925.severity = silent
+dotnet_diagnostic.RCS1214.severity = warning # Unnecessary interpolated string
+dotnet_diagnostic.RCS1036.severity = warning # Remove unnecessary blank line
+dotnet_diagnostic.rcs1110.severity = warning # declare type inside namespace
+dotnet_diagnostic.RCS1188.severity = warning # reduntant assignament
+
+
+dotnet_diagnostic.RCS1163.severity = suggestion # Unused parameter
+
+dotnet_diagnostic.IDE0011.severity = silent # Add braces
+dotnet_diagnostic.RCS1001.severity = silent # Add braces
+dotnet_diagnostic.RCS1194.severity = silent # Implement exception constructors
+dotnet_diagnostic.RCS1118.severity = silent # Mark local variable as const
+
+# Nunit
+dotnet_diagnostic.NUnit1027.severity = suggestion # parameter error nunit
+
+dotnet_diagnostic.S1210.severity = suggestion
+dotnet_diagnostic.AsyncFixer01.severity = suggestion # The method dont needs async
+
+# TODO: remove this and document the lib
+dotnet_diagnostic.CS1591.severity = suggestion
+dotnet_diagnostic.RCS1138.severity = suggestion
+dotnet_diagnostic.S927.severity = suggestion
+dotnet_diagnostic.S2479.severity = suggestion
+
