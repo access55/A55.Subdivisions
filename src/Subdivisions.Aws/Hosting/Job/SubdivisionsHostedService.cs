@@ -39,41 +39,53 @@ class SubdivisionsHostedService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await Bootstrap(stoppingToken);
-        await job.Start(consumers, stoppingToken);
+        if (await Bootstrap(stoppingToken))
+            await job.Start(consumers, stoppingToken);
     }
 
-    public async Task Bootstrap(CancellationToken cancellationToken)
+    public async Task<bool> Bootstrap(CancellationToken cancellationToken)
     {
-        using var _ = logger.BeginScope("Bootstrapping Subdivisions");
-        logger.LogInformation(
-            $"Naming config: Source={config.Source}; Prefix={config.Prefix}; Suffix={config.Suffix}");
+        using (logger.BeginScope("Bootstrapping Subdivisions"))
+        {
+            logger.LogInformation(
+                $"Naming config: Source={config.Source}; Prefix={config.Prefix}; Suffix={config.Suffix}");
 
-        if (config.Localstack)
-            await bootstrapper.SetupLocalstack(cancellationToken);
-
-        logger.LogInformation("Setting up consumers");
-        await Task.WhenAll(consumers
-            .Select(async d =>
+            if (consumers.IsDefaultOrEmpty && producers.IsDefaultOrEmpty)
             {
-                logger.LogInformation($"Consumer of {d.TopicName} with {d.ConsumerType.Name}");
-                await bootstrapper.EnsureTopicExists(d.TopicName, d.NameOverride,
-                    cancellationToken);
-                await bootstrapper.EnsureQueueExists(d.TopicName, d.NameOverride,
-                    cancellationToken);
+                logger.LogInformation(
+                    "No configured consumers or producers. Skipping configuration.");
+                return false;
+            }
 
-                await bootstrapper.UpdateQueueAttr(d.TopicName, d.ConsumeTimeout, d.NameOverride,
-                    cancellationToken);
-            }));
+            if (config.Localstack)
+                await bootstrapper.SetupLocalstack(cancellationToken);
 
-        logger.LogInformation("Setting up producers:");
-        await Task.WhenAll(producers
-            .Select(async d =>
-            {
-                logger.LogInformation($"Producer of {d.TopicName}");
-                await bootstrapper.EnsureTopicExists(d.TopicName, d.NameOverride,
-                    cancellationToken);
-            }));
+            logger.LogInformation("Setting up consumers");
+            await Task.WhenAll(consumers
+                .Select(async d =>
+                {
+                    logger.LogInformation($"Consumer of {d.TopicName} with {d.ConsumerType.Name}");
+                    await bootstrapper.EnsureTopicExists(d.TopicName, d.NameOverride,
+                        cancellationToken);
+                    await bootstrapper.EnsureQueueExists(d.TopicName, d.NameOverride,
+                        cancellationToken);
+
+                    await bootstrapper.UpdateQueueAttr(d.TopicName, d.ConsumeTimeout,
+                        d.NameOverride,
+                        cancellationToken);
+                }));
+
+            logger.LogInformation("Setting up producers:");
+            await Task.WhenAll(producers
+                .Select(async d =>
+                {
+                    logger.LogInformation($"Producer of {d.TopicName}");
+                    await bootstrapper.EnsureTopicExists(d.TopicName, d.NameOverride,
+                        cancellationToken);
+                }));
+
+            return true;
+        }
     }
 
     void ValidateConsumerConfiguration()

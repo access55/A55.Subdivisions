@@ -31,7 +31,7 @@ public class SubdivisionsHostedServiceTests : BaseTest
     }
 
     [Test]
-    public async Task BootsTrapShouldBeCalledForEachDescriber()
+    public async Task BootstrapShouldBeCalledForEachDescriber()
     {
         var describers = GetConsumerDescribers();
 
@@ -49,7 +49,7 @@ public class SubdivisionsHostedServiceTests : BaseTest
     }
 
     [Test]
-    public async Task BootsTrapStartShouldStartConsumerJob()
+    public async Task BootstrapStartShouldStartConsumerJob()
     {
         var describers = GetConsumerDescribers();
 
