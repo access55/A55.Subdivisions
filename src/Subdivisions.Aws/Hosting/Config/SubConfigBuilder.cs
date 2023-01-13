@@ -37,6 +37,14 @@ public sealed class SubConfigBuilder : SubConfig
     public TopicConfigurationBuilder<TMessage> MapTopic<TMessage>()
         where TMessage : notnull => MapTopic<TMessage>(typeof(TMessage).Name);
 
+    public TopicConfigurationBuilder<TMessage> MapTopic<TMessage>(Delegate handler)
+        where TMessage : notnull =>
+        MapTopic<TMessage>().WithConsumer(handler);
+
+    public TopicConfigurationBuilder<TMessage> MapTopic<TMessage>(string topicName,
+        Delegate handler) where TMessage : notnull =>
+        MapTopic<TMessage>(topicName).WithConsumer(handler);
+
     public TopicConfigurationBuilder<TMessage> MapConsumer<TMessage, TConsumer>()
         where TMessage : notnull
         where TConsumer : class, IConsumer<TMessage> =>

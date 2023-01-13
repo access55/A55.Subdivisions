@@ -39,7 +39,7 @@ public class TestMessage
             .RuleFor(x => x.DateTimeField, f => f.Date.Soon().ToUniversalTime())
             .Generate();
 
-    public MessageMeta GetMeta() => AutoFaker.Generate<MessageMeta>();
+    public IMessageMeta GetMeta() => AutoFaker.Generate<MessageMeta>();
 }
 
 public struct TestMessageValue
@@ -72,7 +72,7 @@ public class TestMessageSuper : TestMessage
 
 public class FakeMessageConsumer<T> : IMessageConsumer<T> where T : notnull
 {
-    public virtual Task Consume(T message, MessageMeta meta, CancellationToken ctx) =>
+    public virtual Task Consume(T message, IMessageMeta meta, CancellationToken ctx) =>
         Task.CompletedTask;
 }
 

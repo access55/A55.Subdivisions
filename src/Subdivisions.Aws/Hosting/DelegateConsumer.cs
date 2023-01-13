@@ -24,7 +24,7 @@ sealed class DelegateConsumer<TMessage> : IMessageConsumer<TMessage> where TMess
         return (delegateType, funcParams);
     }
 
-    public async Task Consume(TMessage message, MessageMeta meta, CancellationToken ctx)
+    public async Task Consume(TMessage message, IMessageMeta meta, CancellationToken ctx)
     {
         var (delegateType, funcParams) = ValidateParams(handler);
 
@@ -38,7 +38,7 @@ sealed class DelegateConsumer<TMessage> : IMessageConsumer<TMessage> where TMess
                 {
                     _ when t == typeof(TMessage) => message,
                     _ when t == typeof(CancellationToken) => ctx,
-                    _ when t == typeof(MessageMeta) => meta,
+                    _ when t == typeof(IMessageMeta) => meta,
                     _ => scope.ServiceProvider.GetRequiredService(t),
                 })
             .ToArray();

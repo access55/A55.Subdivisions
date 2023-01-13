@@ -135,7 +135,7 @@ public class ConsumerDescriberTests
 
     public abstract class AbstractConsumer : IMessageConsumer
     {
-        public Task Consume(string message, MessageMeta meta, CancellationToken ctx) =>
+        public Task Consume(string message, IMessageMeta meta, CancellationToken ctx) =>
             Task.CompletedTask;
     }
 
