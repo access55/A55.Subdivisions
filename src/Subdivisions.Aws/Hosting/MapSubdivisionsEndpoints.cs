@@ -1,10 +1,13 @@
 using System.Reflection;
+using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using CorrelationId.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Subdivisions.Models;
@@ -37,8 +40,10 @@ static class SubdivisionsEndpoints
                 [FromServices] IProducerClient producer, HttpContext context
             ) =>
             {
-                var requestMessage =
-                    await context.Request.ReadFromJsonAsync(topic.MessageType);
+                using HttpRequestStreamReader reader = new(context.Request.Body, Encoding.Default);
+                var json = await reader.ReadToEndAsync();
+                var requestMessage = JsonSerializer.Deserialize(json, topic.MessageType);
+
                 var message = serializer.Serialize(requestMessage);
                 var correlationId = Guid.TryParse(app.ServiceProvider
                     .GetService<ICorrelationContextAccessor>()
