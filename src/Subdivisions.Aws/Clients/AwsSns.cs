@@ -27,7 +27,7 @@ sealed class AwsSns
         var keyId = await kms.GetKey(ctx) ??
                     throw new InvalidOperationException("Default KMS EncryptionKey Id not found");
 
-        logger.LogInformation($"Ensuring SNS topic: {topicId.TopicName}");
+        logger.LogInformation("Ensuring SNS topic: {TopicIdTopicName}", topicId.TopicName);
 
         try
         {
@@ -72,8 +72,8 @@ sealed class AwsSns
 
     public async Task Subscribe(SnsArn snsArn, SqsArn sqsArn, CancellationToken ctx)
     {
-        logger.LogInformation(
-            $"Subscribing SQS[{sqsArn}] to SNS[[{snsArn.Value}]");
+        logger.LogInformation("Subscribing SQS[{SqsArn}] to SNS[[{SnsArnValue}]", sqsArn,
+            snsArn.Value);
 
         var subscriptions = await sns
             .ListSubscriptionsByTopicAsync(new ListSubscriptionsByTopicRequest
@@ -84,8 +84,8 @@ sealed class AwsSns
 
         if (subscriptions.Subscriptions.Any(x => x.Endpoint == sqsArn.Value))
         {
-            logger.LogInformation(
-                $"Subscription for {sqsArn.Value} already added to {snsArn.Value}");
+            logger.LogInformation("Subscription for {SqsArnValue} already added to {SnsArnValue}",
+                sqsArn.Value, snsArn.Value);
             return;
         }
 

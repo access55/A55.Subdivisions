@@ -173,7 +173,7 @@ sealed class AwsSqs : IConsumeDriver
         if (attrs.Count == 0)
             return;
 
-        logger.LogInformation($"Updating queue {queueName} attributes");
+        logger.LogInformation("Updating queue {QueueName} attributes", queueName);
         await sqs.SetQueueAttributesAsync(queue.Value.Url.ToString(), attrs, ctx);
 
         var info = queue.Value with
@@ -254,7 +254,8 @@ sealed class AwsSqs : IConsumeDriver
                         envelope.CorrelationId,
                         payload.Message);
 
-                    logger.LogDebug("Received {Queue} Message: {Message}", queue, message);
+                    logger.LogDebug("Received {Queue} Message: {Message}", queue,
+                        message.RootElement.ToString());
 
                     var receivedCount =
                         sqsMessage.Attributes
@@ -266,15 +267,16 @@ sealed class AwsSqs : IConsumeDriver
                             : 0;
 
                     var jsonBody = message.RootElement.GetRawText();
-                    var parsedMessage = new SqsMessage<string>(jsonBody, sqsMessage.ReceiptHandle, sqs)
-                    {
-                        MessageId = envelope.MessageId ?? payload.MessageId,
-                        Datetime = envelope.DateTime,
-                        CorrelationId = envelope.CorrelationId,
-                        QueueUrl = queueUrl,
-                        TopicArn = payload.TopicArn,
-                        RetryNumber = receivedCount - 1
-                    };
+                    var parsedMessage =
+                        new SqsMessage<string>(jsonBody, sqsMessage.ReceiptHandle, sqs)
+                        {
+                            MessageId = envelope.MessageId ?? payload.MessageId,
+                            Datetime = envelope.DateTime,
+                            CorrelationId = envelope.CorrelationId,
+                            QueueUrl = queueUrl,
+                            TopicArn = payload.TopicArn,
+                            RetryNumber = receivedCount - 1
+                        };
 
                     return parsedMessage;
                 }

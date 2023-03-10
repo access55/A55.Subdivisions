@@ -58,7 +58,8 @@ class AwsResourceManager : ISubResourceManager
         {
             TopicId original = new(topic, config);
             logger.LogInformation(
-                $"Overriding queue name from '{original.QueueName}' to '{topicId.QueueName}'");
+                "Overriding queue name from \'{OriginalQueueName}\' to \'{TopicIdQueueName}\'",
+                original.QueueName, topicId.QueueName);
         }
 
         logger.LogInformation("Setting queue '{Queue}' up: Region={Region}",
@@ -71,7 +72,8 @@ class AwsResourceManager : ISubResourceManager
         var topicArn = await sns.EnsureTopic(topicId, ctx);
         var queueInfo = await sqs.CreateQueue(topicId.QueueName, ctx);
         logger.LogInformation(
-            $"Subscribing {topicId.QueueName}[{queueInfo.Arn}] on {topicId.TopicName}[{topicArn}]");
+            "Subscribing {TopicIdQueueName}[{QueueInfoArn}] on {TopicIdTopicName}[{TopicArn}]",
+            topicId.QueueName, queueInfo.Arn, topicId.TopicName, topicArn);
         await sns.Subscribe(topicArn, queueInfo.Arn, ctx);
 
         await WaitForQueue(topicId.QueueName, ctx)
@@ -97,7 +99,7 @@ class AwsResourceManager : ISubResourceManager
         {
             logger.LogInformation("Waiting queue be available...");
             await Task.Delay(TimeSpan.FromSeconds(2), ctx);
-            logger.LogInformation("Not available yet.");
+            logger.LogInformation("Not available yet");
         }
 
         logger.LogInformation("Queue available!");
@@ -114,7 +116,8 @@ class AwsResourceManager : ISubResourceManager
         {
             TopicId original = new(topic, config);
             logger.LogInformation(
-                $"Overriding topic name from '{original.TopicName}' to '{topicId.TopicName}'");
+                "Overriding topic name from \'{OriginalTopicName}\' to \'{TopicIdTopicName}\'",
+                original.TopicName, topicId.TopicName);
         }
 
         await EnsureTopicExists(topicId, ctx);
@@ -125,7 +128,7 @@ class AwsResourceManager : ISubResourceManager
     {
         if (await events.RuleExists(topic, ctx))
         {
-            logger.LogInformation($"Rule {topic.TopicName} already exists");
+            logger.LogInformation("Rule {TopicTopicName} already exists", topic.TopicName);
             return;
         }
 

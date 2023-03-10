@@ -40,11 +40,12 @@ public class SubdivisionsHostedServiceTests : BaseTest
         var service = mocker.Generate<SubdivisionsHostedService>();
 
         await service.StartAsync(default);
+        await Task.Delay(100);
 
         var bootstrapper = mocker.Resolve<ISubResourceManager>();
         foreach (var describer in describers)
-            A.CallTo(() => bootstrapper.EnsureTopicExists(describer.TopicName,
-                    A<TopicNameOverride>._, A<CancellationToken>._))
+            A.CallTo(() => bootstrapper.EnsureTopicExists(
+                    describer.TopicName, A<TopicNameOverride>._, A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
     }
 

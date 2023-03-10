@@ -8,11 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddOpenTelemetryTracing(b => b
         .AddAspNetCoreInstrumentation()
-        .AddSource("A55.Subdivisions")
+        .AddSource(SubTelemetry.SourceName)
         .AddConsoleExporter())
     .AddOpenTelemetryMetrics(b => b
         .AddAspNetCoreInstrumentation()
-        .AddMeter("A55.Subdivisions")
+        .AddMeter(SubTelemetry.SourceName)
         .AddConsoleExporter());
 
 builder.Services

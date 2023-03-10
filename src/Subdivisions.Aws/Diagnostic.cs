@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Subdivisions.Models;
+using static Subdivisions.SubTelemetry;
 
 namespace Subdivisions;
 
@@ -29,11 +30,14 @@ interface IDiagnostics
     void RecordException(Activity? activity, Exception? ex, string header);
 }
 
+public static class SubTelemetry
+{
+    public const string SourceName = "A55.Subdivisions";
+}
+
 class Diagnostics : IDiagnostics
 {
     readonly SubConfig config;
-
-    const string SourceName = "A55.Subdivisions";
 
     static readonly ActivitySource activitySource =
         new(SourceName, Assembly.GetExecutingAssembly().GetName().Version?.ToString());

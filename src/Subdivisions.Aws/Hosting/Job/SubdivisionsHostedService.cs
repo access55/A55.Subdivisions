@@ -37,23 +37,26 @@ class SubdivisionsHostedService : BackgroundService
         ValidateConsumerConfiguration();
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        if (await Bootstrap(stoppingToken))
-            await job.Start(consumers, stoppingToken);
-    }
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken) =>
+        await Task.Run(async () =>
+            {
+                if (await Bootstrap(stoppingToken))
+                    await job.Start(consumers, stoppingToken);
+            },
+            stoppingToken);
 
     public async Task<bool> Bootstrap(CancellationToken cancellationToken)
     {
         using (logger.BeginScope("Bootstrapping Subdivisions"))
         {
             logger.LogInformation(
-                $"Naming config: Source={config.Source}; Prefix={config.Prefix}; Suffix={config.Suffix}");
+                "Naming config: Source={ConfigSource}; Prefix={ConfigPrefix}; Suffix={ConfigSuffix}",
+                config.Source, config.Prefix, config.Suffix);
 
             if (consumers.IsDefaultOrEmpty && producers.IsDefaultOrEmpty)
             {
                 logger.LogInformation(
-                    "No configured consumers or producers. Skipping configuration.");
+                    "No configured consumers or producers. Skipping configuration");
                 return false;
             }
 
@@ -64,7 +67,8 @@ class SubdivisionsHostedService : BackgroundService
             await Task.WhenAll(consumers
                 .Select(async d =>
                 {
-                    logger.LogInformation($"Consumer of {d.TopicName} with {d.ConsumerType.Name}");
+                    logger.LogInformation("Consumer of {ArgTopicName} with {ConsumerTypeName}",
+                        d.TopicName, d.ConsumerType.Name);
                     await bootstrapper.EnsureTopicExists(d.TopicName, d.NameOverride,
                         cancellationToken);
                     await bootstrapper.EnsureQueueExists(d.TopicName, d.NameOverride,
@@ -79,7 +83,7 @@ class SubdivisionsHostedService : BackgroundService
             await Task.WhenAll(producers
                 .Select(async d =>
                 {
-                    logger.LogInformation($"Producer of {d.TopicName}");
+                    logger.LogInformation("Producer of {ArgTopicName}", d.TopicName);
                     await bootstrapper.EnsureTopicExists(d.TopicName, d.NameOverride,
                         cancellationToken);
                 }));

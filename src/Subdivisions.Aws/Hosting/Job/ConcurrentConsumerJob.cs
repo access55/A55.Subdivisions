@@ -26,7 +26,8 @@ sealed class ConcurrentConsumerJob : IConsumerJob
         this.consumerFactory = consumerFactory;
     }
 
-    public async Task Start(IReadOnlyCollection<IConsumerDescriber> describers,
+    public async Task Start(
+        IReadOnlyCollection<IConsumerDescriber> describers,
         CancellationToken stoppingToken)
     {
         var workers =
@@ -52,17 +53,18 @@ sealed class ConcurrentConsumerJob : IConsumerJob
         await using var scope = provider.CreateAsyncScope();
         using var sub = scope.ServiceProvider.GetRequiredService<IConsumerClient>();
 
-        while (await timer.WaitForNextTickAsync(ctx))
+        do
             try
             {
                 await channel.WaitToWriteAsync(ctx);
                 using var timeoutTokenSource = GetTimeoutTokenSource(ctx);
                 var token = timeoutTokenSource.Token;
-                logger.LogDebug($"{describer.TopicName}: Polling messages");
+                logger.LogDebug("{DescriberTopicName}: Polling messages", describer.TopicName);
 
                 var messages = await sub.Receive(describer.TopicName, describer.NameOverride, ctx);
 
-                logger.LogDebug($"{describer.TopicName}: Received {messages.Count} messages");
+                logger.LogDebug("{DescriberTopicName}: Received {MessagesCount} messages",
+                    describer.TopicName, messages.Count);
 
                 var tasks = messages.Select(async m =>
                     await channel.WriteAsync(new(m, token), ctx));
@@ -72,12 +74,14 @@ sealed class ConcurrentConsumerJob : IConsumerJob
             catch (Exception ex)
             {
                 logger.LogCritical(ex,
-                    $"Subdivisions: Polling Worker Failure ({describer.TopicName})");
+                    "Subdivisions: Polling Worker Failure ({DescriberTopicName})",
+                    describer.TopicName);
                 if (describer.ErrorHandler is not null)
                     await describer.ErrorHandler(ex);
                 if (config.CurrentValue.RaiseExceptions)
                     throw;
             }
+        while (await timer.WaitForNextTickAsync(ctx));
 
         channel.Complete();
     }
@@ -98,7 +102,8 @@ sealed class ConcurrentConsumerJob : IConsumerJob
                 catch (Exception ex)
                 {
                     logger.LogCritical(ex,
-                        $"Subdivisions: Consumer Worker Failure ({describer.TopicName})");
+                        "Subdivisions: Consumer Worker Failure ({DescriberTopicName})",
+                        describer.TopicName);
                     if (describer.ErrorHandler is not null)
                         await describer.ErrorHandler(ex);
                     if (config.CurrentValue.RaiseExceptions)

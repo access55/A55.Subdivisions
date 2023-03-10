@@ -60,7 +60,7 @@ sealed class AwsEvents : IProduceDriver
 
     public async Task PutTarget(TopicId topic, SnsArn snsArn, CancellationToken ctx)
     {
-        logger.LogInformation($"Putting EventBridge SNS target {topic.TopicName}[{snsArn.Value}]");
+        logger.LogInformation("Putting EventBridge SNS target {TopicTopicName}[{SnsArnValue}]", topic.TopicName, snsArn.Value);
 
         var ruleTargets = await eventBridge.ListTargetsByRuleAsync(new()
         {
@@ -69,7 +69,7 @@ sealed class AwsEvents : IProduceDriver
 
         if (ruleTargets.Targets.Any(x => x.Arn == snsArn.Value))
         {
-            logger.LogInformation($"Target with {topic.TopicName}[{snsArn.Value}] already added");
+            logger.LogInformation("Target with {TopicTopicName}[{SnsArnValue}] already added", topic.TopicName, snsArn.Value);
             return;
         }
 
@@ -89,8 +89,7 @@ sealed class AwsEvents : IProduceDriver
                     }
                 }, ctx);
 
-        logger.LogInformation(
-            $"Completed({result.HttpStatusCode}): EventBridge SNS target {topic.TopicName}[{snsArn.Value}]");
+        logger.LogInformation("Completed({ResultHttpStatusCode}): EventBridge SNS target {TopicTopicName}[{SnsArnValue}]", result.HttpStatusCode, topic.TopicName, snsArn.Value);
     }
 
     public async Task<RuleArn> CreateRule(TopicId topicId, CancellationToken ctx)
@@ -113,7 +112,7 @@ sealed class AwsEvents : IProduceDriver
             EventPattern = eventPattern
         };
 
-        logger.LogInformation($"Creating EventBridge rule: {topicId.TopicName}");
+        logger.LogInformation("Creating EventBridge rule: {TopicIdTopicName}", topicId.TopicName);
         var response = await eventBridge.PutRuleAsync(request, ctx).ConfigureAwait(false);
         logger.LogDebug("Event Create/Update Response is: {Response}",
             response.HttpStatusCode);
@@ -135,7 +134,7 @@ sealed class AwsEvents : IProduceDriver
         );
 
         var body = serializer.Serialize(envelope).EncodeAsUtf8();
-        logger.LogDebug($"Produce {topic.TopicName}: {body}");
+        logger.LogDebug("Produce {TopicTopicName}: {Body}", topic.TopicName, body);
 
         using var activity = diagnostics.StartProducerActivity(topic.TopicName);
         diagnostics.SetActivityMessageAttributes(
@@ -158,7 +157,8 @@ sealed class AwsEvents : IProduceDriver
         if (response.FailedEntryCount > 0)
             throw new SubdivisionsException(string.Join(",",
                 response.Entries.Select(x => x.ErrorMessage)));
-        logger.LogDebug($"{topic}: Message produced on {topic.Event} - {response.HttpStatusCode}");
+        logger.LogDebug("{Topic}: Message produced on {TopicEvent} - {ResponseHttpStatusCode}",
+            topic, topic.Event, response.HttpStatusCode);
         diagnostics.AddProducedMessagesCounter(1, topic.RawName);
         return new(response.FailedEntryCount is 0, messageId, correlationId);
     }
