@@ -6,11 +6,13 @@ using Subdivisions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services
-    .AddOpenTelemetryTracing(b => b
+    .AddOpenTelemetry()
+    .WithTracing(b => b
         .AddAspNetCoreInstrumentation()
         .AddSource(SubTelemetry.SourceName)
-        .AddConsoleExporter())
-    .AddOpenTelemetryMetrics(b => b
+        .AddConsoleExporter()
+    )
+    .WithMetrics(b => b
         .AddAspNetCoreInstrumentation()
         .AddMeter(SubTelemetry.SourceName)
         .AddConsoleExporter());
