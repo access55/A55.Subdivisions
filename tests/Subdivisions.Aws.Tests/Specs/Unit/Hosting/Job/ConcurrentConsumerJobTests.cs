@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Subdivisions.Aws.Tests.Builders;
@@ -8,6 +9,7 @@ using Subdivisions.Models;
 
 namespace Subdivisions.Aws.Tests.Specs.Unit.Hosting.Job;
 
+[SuppressMessage("Minor Code Smell", "S3878:Arrays should not be created for params parameters")]
 public class ConcurrentConsumerJobTests : BaseTest
 {
     [Test]
@@ -121,13 +123,14 @@ public class ConcurrentConsumerJobTests : BaseTest
         A.CallTo(() => mocker.Resolve<IConsumerClient>()
                 .Receive(consumer.TopicName, A<TopicNameOverride>._,
                     A<CancellationToken>._))
-            .ReturnsNextFromSequence(new[]
-            {
-                message1
-            }, new[]
-            {
-                message2
-            });
+            .ReturnsNextFromSequence(
+                new[]
+                {
+                    message1
+                }, new[]
+                {
+                    message2
+                });
 
         var ctx = new CancellationTokenSource();
         var semaphore = new SemaphoreSlim(1);
