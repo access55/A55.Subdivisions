@@ -3,23 +3,25 @@ using System.Text.Json.Serialization;
 
 namespace Subdivisions;
 
-public class DateTimeUtcOnlyConverter : JsonConverter<DateTime>
+class DateTimeUtcOnlyConverter : JsonConverter<DateTime>
 {
     readonly TimeSpan offset;
-    public DateTimeUtcOnlyConverter(TimeSpan offset) => this.offset = offset;
 
     public DateTimeUtcOnlyConverter(TimeZoneInfo? timeZone = null) =>
         offset = timeZone?.BaseUtcOffset ?? TimeZoneInfo.Utc.BaseUtcOffset;
 
-    public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+    public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert,
+        JsonSerializerOptions options) =>
         reader.GetDateTime() switch
         {
             { Kind: DateTimeKind.Utc } utcDate => utcDate,
             { Kind: DateTimeKind.Local } localDate => localDate.ToUniversalTime(),
-            { Kind: DateTimeKind.Unspecified } date => new DateTimeOffset(date.Ticks, offset).UtcDateTime,
+            { Kind: DateTimeKind.Unspecified } date => new DateTimeOffset(date.Ticks, offset)
+                .UtcDateTime,
             _ => throw new IndexOutOfRangeException(nameof(DateTime.Kind))
         };
 
-    public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options) =>
+    public override void Write(Utf8JsonWriter writer, DateTime value,
+        JsonSerializerOptions options) =>
         writer.WriteStringValue(value.ToUniversalTime());
 }

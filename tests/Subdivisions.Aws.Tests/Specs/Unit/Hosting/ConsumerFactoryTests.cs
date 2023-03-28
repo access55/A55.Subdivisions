@@ -105,7 +105,11 @@ public class ConsumerFactoryTests : BaseTest
             .Generate();
 
         var meta = MessageMeta.FromMessage(message);
-        mocker.Provide<ISubMessageSerializer>(new SubJsonSerializer());
+        mocker.Provide<ISubMessageSerializer>(
+            new SubJsonSerializer(new SubJsonSerializerOptions(new[]
+            {
+                new SubDefaultJsonSerializerConverters()
+            })));
         var factory = mocker.Generate<ConsumerFactory>();
 
         await factory.ConsumeScoped(describer, message, default);

@@ -1,7 +1,9 @@
+using System.Text.Json.Serialization;
 using CorrelationId;
 using CorrelationId.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Subdivisions.Models;
+using Subdivisions.Services;
 
 namespace Subdivisions.Hosting.Config;
 
@@ -54,6 +56,12 @@ public sealed class SubConfigBuilder : SubConfig
         where TMessage : notnull
         where TConsumer : class, IConsumer<TMessage> =>
         MapTopic<TMessage>(topicName).WithConsumer<TConsumer>();
+
+    public void RemoveDefaultJsonConverters() => SubDefaultJsonSerializerConverters.Clear();
+
+    public void AddJsonConverter(params JsonConverter[] converters) =>
+        services.AddSingleton<ISubJsonSerializerConverters>(
+            new SubJsonSerializerConverters(converters));
 
     public ICorrelationIdBuilder WithCorrelationId(Action<CorrelationIdOptions> config)
     {
