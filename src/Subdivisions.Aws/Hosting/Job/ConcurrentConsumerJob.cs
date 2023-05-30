@@ -82,8 +82,8 @@ sealed class ConcurrentConsumerJob : IConsumerJob
                 logger.LogCritical(ex,
                     "Subdivisions: Polling Worker Failure ({DescriberTopicName})",
                     describer.TopicName);
-                if (describer.ErrorHandler is not null)
-                    await describer.ErrorHandler(ex);
+                if (describer.ErrorListener is not null)
+                    await describer.ErrorListener(ex);
                 if (config.CurrentValue.RaiseExceptions)
                     throw;
             }
@@ -110,8 +110,8 @@ sealed class ConcurrentConsumerJob : IConsumerJob
                     logger.LogCritical(ex,
                         "Subdivisions: Consumer Worker Failure ({DescriberTopicName})",
                         describer.TopicName);
-                    if (describer.ErrorHandler is not null)
-                        await describer.ErrorHandler(ex);
+                    if (describer.ErrorListener is not null)
+                        await describer.ErrorListener(ex);
                     if (config.CurrentValue.RaiseExceptions)
                         throw;
                 }
