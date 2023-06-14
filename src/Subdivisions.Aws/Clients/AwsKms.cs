@@ -17,12 +17,12 @@ sealed class AwsKms
         this.config = config.Value;
     }
 
-    public async ValueTask<KeyId?> GetKey(CancellationToken ctx)
+    public async ValueTask<KeyId?> GetKey(CancellationToken ct)
     {
         if (keyCache is not null)
             return keyCache;
 
-        var aliases = await kms.ListAliasesAsync(new ListAliasesRequest { Limit = 100 }, ctx);
+        var aliases = await kms.ListAliasesAsync(new ListAliasesRequest { Limit = 100 }, ct);
         var key = aliases.Aliases.Find(x => x.AliasName == config.PubKey)?.TargetKeyId;
 
         if (string.IsNullOrWhiteSpace(key))

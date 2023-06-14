@@ -46,33 +46,33 @@ public class SubdivisionsHealthCheck : IHealthCheck
         }
     }
 
-    async Task<bool> GetQueueStatus(CancellationToken ctx)
+    async Task<bool> GetQueueStatus(CancellationToken ct)
     {
         var queues = topics
             .Where(x => x.HasConsumer)
-            .Select(t => IsQueueAccessible(t.Id, ctx));
+            .Select(t => IsQueueAccessible(t.Id, ct));
 
         var healthyQueues = await Task.WhenAll(queues);
-        return healthyQueues.All(x => x);
+        return Array.TrueForAll(healthyQueues, x => x);
     }
 
     static bool IsSuccess(AmazonWebServiceResponse response) =>
         response.HttpStatusCode is HttpStatusCode.OK or HttpStatusCode.NoContent;
 
-    async Task<bool> IsQueueAccessible(TopicId topic, CancellationToken ctx)
+    async Task<bool> IsQueueAccessible(TopicId topic, CancellationToken ct)
     {
         try
         {
             if (!queueUrls.TryGetValue(topic, out var queueUrl))
             {
-                var queueUrlResponse = await sqs.GetQueueUrlAsync(topic.QueueName, ctx);
+                var queueUrlResponse = await sqs.GetQueueUrlAsync(topic.QueueName, ct);
                 if (!IsSuccess(queueUrlResponse) || queueUrlResponse.QueueUrl is null)
                     return false;
                 queueUrl = queueUrlResponse.QueueUrl;
                 queueUrls.AddOrUpdate(topic, queueUrl, (key, old) => queueUrl);
             }
 
-            var attributesResponse = await sqs.GetQueueAttributesAsync(queueUrl, new(), ctx);
+            var attributesResponse = await sqs.GetQueueAttributesAsync(queueUrl, new(), ct);
             return IsSuccess(attributesResponse);
         }
         catch

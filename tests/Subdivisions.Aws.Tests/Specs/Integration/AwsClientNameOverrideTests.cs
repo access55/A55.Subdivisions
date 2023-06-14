@@ -1,5 +1,4 @@
 using Amazon.SQS;
-using NUnit.Framework.Interfaces;
 using Subdivisions.Aws.Tests.TestUtils;
 using Subdivisions.Aws.Tests.TestUtils.Fixtures;
 using Subdivisions.Models;

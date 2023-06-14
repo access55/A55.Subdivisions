@@ -33,10 +33,7 @@ public class SubdivisionsHostedServiceTests : LocalstackFixture
             faker.TopicNameString(),
             typeof(FakeMessageConsumer),
             typeof(string),
-            new ConsumerConfig
-            {
-                ConsumeTimeout = TimeSpan.FromSeconds(faker.Random.Int(1, 220))
-            }
+            new ConsumerConfig { ConsumeTimeout = TimeSpan.FromSeconds(faker.Random.Int(1, 220)) }
         );
 
         var ns = Enumerable.Range(0, faker.Random.Int(3, 10)).ToArray();
@@ -103,7 +100,7 @@ public class SubdivisionsHostedServiceTests : LocalstackFixture
 
         var sns = GetService<IAmazonSimpleNotificationService>();
         var savedRules = await sns.ListTopicsAsync();
-        var snsTopics = savedRules.Topics.Select(x => x.TopicArn.Split(":").Last());
+        var snsTopics = savedRules.Topics.Select(x => x.TopicArn.Split(":")[^1]);
 
         snsTopics.Should().BeEquivalentTo(topics);
     }

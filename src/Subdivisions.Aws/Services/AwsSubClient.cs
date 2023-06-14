@@ -39,59 +39,59 @@ sealed class AwsSubClient : ISubdivisionsClient
     public async ValueTask<IReadOnlyCollection<IMessage<T>>> Receive<T>(
         string topic,
         TopicNameOverride? nameOverride = null,
-        CancellationToken ctx = default)
+        CancellationToken ct = default)
         where T : notnull
     {
-        var message = await Receive(topic, nameOverride, ctx);
+        var message = await Receive(topic, nameOverride, ct);
         return message.Select(m => m.Map(s => serializer.Deserialize<T>(s))).ToArray();
     }
 
     public ValueTask<IReadOnlyCollection<IMessage>> Receive(string topic,
         TopicNameOverride? nameOverride = null,
-        CancellationToken ctx = default) =>
-        Receive(CreateTopicName(topic, nameOverride), ctx);
+        CancellationToken ct = default) =>
+        Receive(CreateTopicName(topic, nameOverride), ct);
 
     internal async ValueTask<IReadOnlyCollection<IMessage>> Receive(TopicId topic,
-        CancellationToken ctx) =>
-        await consumer.ReceiveMessages(topic, ctx);
+        CancellationToken ct) =>
+        await consumer.ReceiveMessages(topic, ct);
 
     public async Task<IReadOnlyCollection<IMessage<T>>> DeadLetters<T>(
         string queueName,
         TopicNameOverride? nameOverride = null,
-        CancellationToken ctx = default)
+        CancellationToken ct = default)
         where T : notnull
     {
-        var message = await DeadLetters(queueName, nameOverride, ctx);
+        var message = await DeadLetters(queueName, nameOverride, ct);
         return message.Select(m => m.Map(s => serializer.Deserialize<T>(s))).ToArray();
     }
 
     public Task<IReadOnlyCollection<IMessage>> DeadLetters(string queueName,
         TopicNameOverride? nameOverride = null,
-        CancellationToken ctx = default)
+        CancellationToken ct = default)
     {
         var topic = CreateTopicName(queueName, nameOverride);
-        return consumer.ReceiveDeadLetters(topic, ctx);
+        return consumer.ReceiveDeadLetters(topic, ct);
     }
 
     public Task<PublishResult> Publish<T>(string topicName, T message,
         Guid? correlationId = null,
         ProduceOptions? options = null,
-        CancellationToken ctx = default)
+        CancellationToken ct = default)
         where T : notnull
     {
         var rawMessage = serializer.Serialize(message);
-        return Publish(topicName, rawMessage, correlationId, options, ctx);
+        return Publish(topicName, rawMessage, correlationId, options, ct);
     }
 
     public Task<PublishResult> Publish(string topicName, string message,
         Guid? correlationId = null,
         ProduceOptions? options = null,
-        CancellationToken ctx = default) =>
+        CancellationToken ct = default) =>
         Publish(
             CreateTopicName(topicName, options?.NameOverride),
             message,
             correlationId,
-            ctx);
+           ct);
 
     TopicId CreateTopicName(string name, TopicNameOverride? nameOverride) =>
         new(name, config.Value.FromOverride(nameOverride));
@@ -99,16 +99,16 @@ sealed class AwsSubClient : ISubdivisionsClient
     internal async Task<PublishResult> Publish(
         TopicId topic, string message,
         Guid? correlationId,
-        CancellationToken ctx)
+        CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(topic);
 
         logger.LogDebug("{Topic}: Start send message", topic.TopicName);
-        await resources.EnsureTopicExists(topic, ctx);
+        await resources.EnsureTopicExists(topic, ct);
         var validCorrelationId = correlationId ?? correlationResolver.GetId();
         var publishResult =
-            await producer.Produce(topic, message, validCorrelationId, ctx);
+            await producer.Produce(topic, message, validCorrelationId, ct);
         logger.LogInformation(
             "<- {RawName}[{CorrelationId}.{MessageId}] - Produced {TopicName} - Success: {IsSuccess}",
             topic.RawName, publishResult.CorrelationId, publishResult.MessageId, topic.TopicName,

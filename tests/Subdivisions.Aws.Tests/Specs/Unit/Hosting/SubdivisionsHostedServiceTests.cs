@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Subdivisions.Aws.Tests.Builders;
 using Subdivisions.Aws.Tests.TestUtils;
@@ -18,10 +19,7 @@ public class SubdivisionsHostedServiceTests : BaseTest
         var builder = new ConsumerDescriberBuilder()
             .WithTopicName(faker.TopicNameString());
 
-        mocker.Provide<IEnumerable<IConsumerDescriber>>(new[]
-        {
-            builder.Generate(), builder.Generate()
-        });
+        mocker.Provide<IEnumerable<IConsumerDescriber>>(new[] { builder.Generate(), builder.Generate() });
         var action = () => mocker.Generate<SubdivisionsHostedService>();
 
         action.Should().Throw<ArgumentException>()
@@ -64,7 +62,7 @@ public class SubdivisionsHostedServiceTests : BaseTest
         A.CallTo(() => job
                 .Start(
                     A<ImmutableArray<IConsumerDescriber>>.That.IsSameSequenceAs(
-                        describers),
+                        describers.ToImmutableArray()),
                     A<CancellationToken>._))
             .MustHaveHappenedOnceExactly();
     }
@@ -84,6 +82,7 @@ public class SubdivisionsHostedServiceTests : BaseTest
     }
 }
 
+[SuppressMessage("Minor Code Smell", "S2094:Classes should not be empty")]
 static class FakeMessageTypes
 {
     public static readonly Dictionary<Type, Type> All = new()

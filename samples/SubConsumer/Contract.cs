@@ -22,7 +22,7 @@ public class MyConsumer : IConsumer<MyMessage>
 
     public MyConsumer(ILogger<MyConsumer> logger) => this.logger = logger;
 
-    public Task Consume(MyMessage message, CancellationToken ctx)
+    public Task Consume(MyMessage message, CancellationToken ct)
     {
         logger.LogInformation("Received new message: {M}", message.ToString());
 

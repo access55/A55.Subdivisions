@@ -3,8 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Subdivisions.Aws.Tests.Builders;
 using Subdivisions.Aws.Tests.TestUtils;
 using Subdivisions.Aws.Tests.TestUtils.Fixtures;
-using Subdivisions.Clients;
-using Subdivisions.Models;
 using Subdivisions.Services;
 
 namespace Subdivisions.Aws.Tests.Specs.Integration;

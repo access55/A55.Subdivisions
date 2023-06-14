@@ -47,7 +47,7 @@ sealed class ConcurrentConsumerJob : IConsumerJob
     async Task PollingWorker(
         IConsumerDescriber describer,
         ChannelWriter<ConsumeRequest> channel,
-        CancellationToken ctx)
+        CancellationToken ct)
     {
         using PeriodicTimer timer = new(describer.PollingInterval);
         await using var scope = provider.CreateAsyncScope();
@@ -56,18 +56,18 @@ sealed class ConcurrentConsumerJob : IConsumerJob
         do
             try
             {
-                await channel.WaitToWriteAsync(ctx);
-                using var timeoutTokenSource = GetTimeoutTokenSource(ctx);
+                await channel.WaitToWriteAsync(ct);
+                using var timeoutTokenSource = GetTimeoutTokenSource(ct);
                 var token = timeoutTokenSource.Token;
                 logger.LogDebug("{DescriberTopicName}: Polling messages", describer.TopicName);
 
-                var messages = await sub.Receive(describer.TopicName, describer.NameOverride, ctx);
+                var messages = await sub.Receive(describer.TopicName, describer.NameOverride, ct);
 
                 logger.LogDebug("{DescriberTopicName}: Received {MessagesCount} messages",
                     describer.TopicName, messages.Count);
 
                 var tasks = messages.Select(async m =>
-                    await channel.WriteAsync(new(m, token), ctx));
+                    await channel.WriteAsync(new(m, token), ct));
 
                 await Task.WhenAll(tasks);
             }
@@ -87,7 +87,7 @@ sealed class ConcurrentConsumerJob : IConsumerJob
                 if (config.CurrentValue.RaiseExceptions)
                     throw;
             }
-        while (await timer.WaitForNextTickAsync(ctx));
+        while (await timer.WaitForNextTickAsync(ct));
 
         channel.Complete();
     }
@@ -99,11 +99,11 @@ sealed class ConcurrentConsumerJob : IConsumerJob
     {
         async Task TopicConsumer()
         {
-            await foreach (var (message, ctx) in channel.ReadAllAsync(stopToken))
+            await foreach (var (message, ct) in channel.ReadAllAsync(stopToken))
                 try
                 {
-                    ctx.ThrowIfCancellationRequested();
-                    await consumerFactory.ConsumeScoped(describer, message, ctx);
+                    ct.ThrowIfCancellationRequested();
+                    await consumerFactory.ConsumeScoped(describer, message, ct);
                 }
                 catch (Exception ex)
                 {
@@ -134,5 +134,5 @@ sealed class ConcurrentConsumerJob : IConsumerJob
         return combinedToken;
     }
 
-    record struct ConsumeRequest(IMessage<string> Message, CancellationToken Ctx);
+    record struct ConsumeRequest(IMessage<string> Message, CancellationToken ct);
 }

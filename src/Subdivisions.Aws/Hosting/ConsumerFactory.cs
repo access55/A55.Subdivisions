@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -10,7 +11,7 @@ namespace Subdivisions.Hosting;
 interface IConsumerFactory
 {
     Task ConsumeScoped<TMessage>(IConsumerDescriber describer, TMessage message,
-        CancellationToken ctx)
+        CancellationToken ct)
         where TMessage : IMessage<string>;
 }
 
@@ -40,7 +41,7 @@ class ConsumerFactory : IConsumerFactory
     }
 
     public async Task ConsumeScoped<TMessage>(IConsumerDescriber describer, TMessage message,
-        CancellationToken ctx)
+        CancellationToken ct)
         where TMessage : IMessage<string>
     {
         using var activity = diagnostics.StartProcessActivity(describer.TopicName);
@@ -77,7 +78,7 @@ class ConsumerFactory : IConsumerFactory
         stopwatch.Restart();
         try
         {
-            await consumer.Consume(payload, MessageMeta.FromMessage(message), ctx);
+            await consumer.Consume(payload, MessageMeta.FromMessage(message), ct);
             await message.Delete();
             logger.LogInformation("[DELETED]{Header}: {Location}", header, message.Location());
             diagnostics.AddConsumedMessagesCounter(1, describer.TopicName, stopwatch.Elapsed);
@@ -127,17 +128,32 @@ class ConsumerFactory : IConsumerFactory
     }
 }
 
+/// <inheritdoc />
+[Serializable]
 public class ConsumerIgnoreMessageException : Exception
 {
+    /// <inheritdoc />
     public ConsumerIgnoreMessageException(string message) : base(message)
+    {
+    }
+
+    /// <inheritdoc />
+    protected ConsumerIgnoreMessageException(SerializationInfo info, StreamingContext context)
+        : base(info, context)
     {
     }
 }
 
+/// <inheritdoc />
+[Serializable]
 public class ConsumerDelayMessageException : Exception
 {
     public TimeSpan Time { get; }
 
+    /// <inheritdoc />
     public ConsumerDelayMessageException(TimeSpan time) : base($"delaying message for {time}") =>
         Time = time;
+
+    /// <inheritdoc />
+    protected ConsumerDelayMessageException(SerializationInfo info, StreamingContext context) : base(info, context) { }
 }

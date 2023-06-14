@@ -122,7 +122,7 @@ sealed class InMemoryBroker : IConsumeDriver, IProduceDriver, IConsumerJob, ISub
 
     public async Task<PublishResult> Produce(TopicId topic, string message,
         Guid? correlationId,
-        CancellationToken ctx)
+        CancellationToken ct)
     {
         var owned = message.StartsWith(OwnHeader);
         if (owned)
@@ -152,7 +152,7 @@ sealed class InMemoryBroker : IConsumeDriver, IProduceDriver, IConsumerJob, ISub
         if (consumers.TryGetValue(topicName, out var describer))
         {
             if (autoConsumeLoop || owned)
-                await consumerFactory.ConsumeScoped(describer, sentMessage, ctx);
+                await consumerFactory.ConsumeScoped(describer, sentMessage, ct);
 
             if (!consumed.TryGetValue(topicName, out var consumedMessages))
                 consumed.Add(topicName, new());
@@ -223,12 +223,12 @@ sealed class InMemoryBroker : IConsumeDriver, IProduceDriver, IConsumerJob, ISub
     public void AutoConsumeLoop(bool enabled = true) => autoConsumeLoop = enabled;
 
     public Task<IReadOnlyCollection<IMessage<string>>> ReceiveMessages(TopicId topic,
-        CancellationToken ctx) =>
+        CancellationToken ct) =>
         Task.FromResult<IReadOnlyCollection<IMessage<string>>>(
             Array.Empty<IMessage<string>>());
 
     public Task<IReadOnlyCollection<IMessage<string>>> ReceiveDeadLetters(TopicId topic,
-        CancellationToken ctx) =>
+        CancellationToken ct) =>
         Task.FromResult<IReadOnlyCollection<IMessage<string>>>(
             Array.Empty<IMessage<string>>());
 
@@ -237,22 +237,22 @@ sealed class InMemoryBroker : IConsumeDriver, IProduceDriver, IConsumerJob, ISub
         Task.CompletedTask;
 
     public ValueTask EnsureQueueExists(string topic, TopicNameOverride? nameOverride,
-        CancellationToken ctx) =>
+        CancellationToken ct) =>
         ValueTask.CompletedTask;
 
     public ValueTask EnsureTopicExists(string topic, TopicNameOverride? nameOverride,
-        CancellationToken ctx) =>
+        CancellationToken ct) =>
         ValueTask.CompletedTask;
 
-    public ValueTask EnsureTopicExists(TopicId topic, CancellationToken ctx) =>
+    public ValueTask EnsureTopicExists(TopicId topic, CancellationToken ct) =>
         ValueTask.CompletedTask;
 
     public ValueTask UpdateQueueAttr(string topic, TimeSpan? newTimeout,
         TopicNameOverride? nameOverride,
-        CancellationToken ctx) =>
+        CancellationToken ct) =>
         ValueTask.CompletedTask;
 
-    public Task SetupLocalstack(CancellationToken ctx) => Task.CompletedTask;
+    public Task SetupLocalstack(CancellationToken ct) => Task.CompletedTask;
 
     public void Dispose()
     {
@@ -268,7 +268,7 @@ class LocalMessage<T> : IMessage<T> where T : notnull
     public Guid? CorrelationId { get; set; }
     public DateTime Datetime { get; set; }
     public T Body { get; set; }
-    public uint RetryNumber { get; set; }
+    public int RetryNumber { get; set; }
     public string QueueUrl { get; set; } = "";
     public string? TopicArn { get; set; }
     public Task Delete() => Task.CompletedTask;
