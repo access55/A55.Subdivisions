@@ -1,6 +1,4 @@
 using Amazon.KeyManagementService;
-using Amazon.KeyManagementService.Model;
-using DotNet.Testcontainers.Builders;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Subdivisions.Clients;

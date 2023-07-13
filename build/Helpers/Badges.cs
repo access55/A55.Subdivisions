@@ -14,7 +14,8 @@ public static class Badges
             .SetReportTypes(ReportTypes.Badges));
 
     public static void ForDotNetVersion(AbsolutePath output, GlobalJson globalJson) =>
-        DownloadShieldsIo(output / "dotnet_version_badge.svg", ".NET", globalJson.Sdk.Version.ToString(), "blue");
+        DownloadShieldsIo(output / "dotnet_version_badge.svg", ".NET",
+            globalJson.Sdk.Version.ToString(), "blue");
 
     public static void ForTests(AbsolutePath output, string resultName)
     {
@@ -44,8 +45,9 @@ public static class Badges
 
     static void DownloadShieldsIo(AbsolutePath fileName, string label, string message, string color)
     {
-        EnsureExistingParentDirectory(fileName.Parent);
-        var url = "https://img.shields.io/badge/" + Uri.EscapeDataString($"{label}-{message}-{color}");
+        fileName.Parent.CreateOrCleanDirectory();
+        var url = "https://img.shields.io/badge/" +
+                  Uri.EscapeDataString($"{label}-{message}-{color}");
         HttpTasks.HttpDownloadFile(url, fileName);
     }
 
@@ -57,7 +59,9 @@ public static class Badges
                 ?.XPathSelectElement("//*[local-name() = 'Counters']");
 
         var value = (string name) =>
-            counters is not null && int.TryParse(counters.Attribute(name)?.Value, out var n) ? n : default;
+            counters is not null && int.TryParse(counters.Attribute(name)?.Value, out var n)
+                ? n
+                : default;
 
         return new(value("passed"), value("failed"), value("total") - value("executed"));
     }
